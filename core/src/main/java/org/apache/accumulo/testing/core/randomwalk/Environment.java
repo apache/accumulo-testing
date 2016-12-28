@@ -35,6 +35,7 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.KerberosToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,38 +45,6 @@ import org.slf4j.LoggerFactory;
  * for creating client-side objects. This class is not thread-safe.
  */
 public class Environment {
-  /**
-   * The configuration property key for a username.
-   */
-  public static final String KEY_USERNAME = "USERNAME";
-  /**
-   * The configuration property key for a password.
-   */
-  public static final String KEY_PASSWORD = "PASSWORD";
-  /**
-   * The configuration property key for a keytab
-   */
-  public static final String KEY_KEYTAB = "KEYTAB";
-  /**
-   * The configuration property key for the instance name.
-   */
-  public static final String KEY_INSTANCE = "INSTANCE";
-  /**
-   * The configuration property key for the comma-separated list of ZooKeepers.
-   */
-  public static final String KEY_ZOOKEEPERS = "ZOOKEEPERS";
-  /**
-   * The configuration property key for the maximum memory for the multi-table batch writer.
-   */
-  public static final String KEY_MAX_MEM = "MAX_MEM";
-  /**
-   * The configuration property key for the maximum latency, in milliseconds, for the multi-table batch writer.
-   */
-  public static final String KEY_MAX_LATENCY = "MAX_LATENCY";
-  /**
-   * The configuration property key for the number of write threads for the multi-table batch writer.
-   */
-  public static final String KEY_NUM_THREADS = "NUM_THREADS";
 
   private static final Logger log = LoggerFactory.getLogger(Environment.class);
 
@@ -123,7 +92,7 @@ public class Environment {
    * @return username
    */
   public String getUserName() {
-    return p.getProperty(KEY_USERNAME);
+    return p.getProperty(TestProps.ACCUMULO_USERNAME);
   }
 
   /**
@@ -132,7 +101,7 @@ public class Environment {
    * @return password
    */
   public String getPassword() {
-    return p.getProperty(KEY_PASSWORD);
+    return p.getProperty(TestProps.ACCUMULO_PASSWORD);
   }
 
   /**
@@ -141,7 +110,7 @@ public class Environment {
    * @return path to keytab
    */
   public String getKeytab() {
-    return p.getProperty(KEY_KEYTAB);
+    return p.getProperty(TestProps.ACCUMULO_KEYTAB);
   }
 
   /**
@@ -186,8 +155,8 @@ public class Environment {
    */
   public Instance getInstance() {
     if (instance == null) {
-      String instance = p.getProperty(KEY_INSTANCE);
-      String zookeepers = p.getProperty(KEY_ZOOKEEPERS);
+      String instance = p.getProperty(TestProps.ACCUMULO_INSTANCE);
+      String zookeepers = p.getProperty(TestProps.ZOOKEEPERS);
       this.instance = new ZooKeeperInstance(ClientConfiguration.loadDefault().withInstance(instance).withZkHosts(zookeepers));
     }
     return instance;
@@ -216,9 +185,9 @@ public class Environment {
    */
   public MultiTableBatchWriter getMultiTableBatchWriter() throws AccumuloException, AccumuloSecurityException {
     if (mtbw == null) {
-      long maxMem = Long.parseLong(p.getProperty(KEY_MAX_MEM));
-      long maxLatency = Long.parseLong(p.getProperty(KEY_MAX_LATENCY));
-      int numThreads = Integer.parseInt(p.getProperty(KEY_NUM_THREADS));
+      long maxMem = Long.parseLong(p.getProperty(TestProps.RW_BW_MAX_MEM));
+      long maxLatency = Long.parseLong(p.getProperty(TestProps.RW_BW_MAX_LATENCY));
+      int numThreads = Integer.parseInt(p.getProperty(TestProps.RW_BW_NUM_THREADS));
       mtbw = getConnector().createMultiTableBatchWriter(
           new BatchWriterConfig().setMaxMemory(maxMem).setMaxLatency(maxLatency, TimeUnit.MILLISECONDS).setMaxWriteThreads(numThreads));
     }

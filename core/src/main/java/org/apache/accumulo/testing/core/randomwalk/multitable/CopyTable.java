@@ -23,6 +23,7 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.impl.Tables;
 import org.apache.accumulo.core.util.CachedConfiguration;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -64,7 +65,7 @@ public class CopyTable extends Test {
     }
     args[4] = srcTableName;
     args[5] = env.getInstance().getInstanceName();
-    args[6] = env.getConfigProperty("ZOOKEEPERS");
+    args[6] = env.getConfigProperty(TestProps.ZOOKEEPERS);
     args[7] = dstTableName;
 
     log.debug("copying " + srcTableName + " to " + dstTableName);

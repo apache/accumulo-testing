@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.core.randomwalk;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -170,12 +169,12 @@ public class Module extends Node {
   private HashMap<String,String> prefixes = new HashMap<>();
   private HashMap<String,AdjList> adjMap = new HashMap<>();
   private HashMap<String,Set<String>> aliasMap = new HashMap<>();
-  private final File xmlFile;
+  private final String id;
   private String initNodeId;
   private Fixture fixture = null;
 
-  public Module(File xmlFile) throws Exception {
-    this.xmlFile = xmlFile;
+  public Module(String id) throws Exception {
+    this.id = id;
     loadFromXml();
   }
 
@@ -414,7 +413,7 @@ public class Module extends Node {
 
   @Override
   public String toString() {
-    return xmlFile.toString();
+    return id;
   }
 
   private String getFullName(String name) {
@@ -497,12 +496,13 @@ public class Module extends Node {
     dbf.setSchema(moduleSchema);
 
     // parse the document
+
     try {
       docbuilder = dbf.newDocumentBuilder();
-      d = docbuilder.parse(xmlFile);
+      d = docbuilder.parse(this.getClass().getResourceAsStream("/randomwalk/modules/" + id));
     } catch (Exception e) {
-      log.error("Failed to parse: " + xmlFile, e);
-      throw new Exception("Failed to parse: " + xmlFile);
+      log.error("Failed to parse xml at randomwalk/modules/" + id, e);
+      throw new Exception("Failed to parse xml at randomwalk/modules/" + id);
     }
 
     // parse packages

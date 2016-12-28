@@ -16,14 +16,11 @@
  */
 package org.apache.accumulo.testing.core.randomwalk;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-
-import com.beust.jcommander.Parameter;
 
 public class Framework {
 
@@ -63,7 +60,7 @@ public class Framework {
    *          Name of node
    * @return Node specified by id
    */
-  public Node getNode(String id) throws Exception {
+  Node getNode(String id) throws Exception {
 
     // check for node in nodes
     if (nodes.containsKey(id)) {
@@ -71,21 +68,14 @@ public class Framework {
     }
 
     // otherwise create and put in nodes
-    Node node = null;
+    Node node;
     if (id.endsWith(".xml")) {
-      node = new Module(new File("/randomwalk/modules/" + id));
+      node = new Module(id);
     } else {
       node = (Test) Class.forName(id).newInstance();
     }
     nodes.put(id, node);
     return node;
-  }
-
-  static class Opts extends org.apache.accumulo.core.cli.Help {
-    @Parameter(names = "--configDir", required = true, description = "directory containing the test configuration")
-    String configDir;
-    @Parameter(names = "--module", required = true, description = "the name of the module to run")
-    String module;
   }
 
   public static void main(String[] args) throws Exception {
@@ -100,10 +90,12 @@ public class Framework {
     props.load(fis);
     fis.close();
 
+    log.info("Running random walk test with module: " + args[1]);
+
     State state = new State();
     Environment env = new Environment(props);
-    int retval = getInstance().run(args[1], state, env);
+    getInstance().run(args[1], state, env);
 
-    System.exit(retval);
+    log.info("Test finished");
   }
 }

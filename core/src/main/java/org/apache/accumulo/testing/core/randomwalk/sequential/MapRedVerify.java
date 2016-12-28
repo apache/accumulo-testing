@@ -26,6 +26,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.CachedConfiguration;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -46,7 +47,7 @@ public class MapRedVerify extends Test {
     }
     args[4] = state.getString("seqTableName");
     args[5] = env.getInstance().getInstanceName();
-    args[6] = env.getConfigProperty("ZOOKEEPERS");
+    args[6] = env.getConfigProperty(TestProps.ZOOKEEPERS);
     args[7] = args[4] + "_MR";
 
     if (ToolRunner.run(CachedConfiguration.getInstance(), new MapRedVerifyTool(), args) != 0) {

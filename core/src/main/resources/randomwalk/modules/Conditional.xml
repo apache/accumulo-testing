@@ -17,8 +17,7 @@
 -->
 <module>
 
-<package prefix="ct" value="org.apache.accumulo.test.randomwalk.conditional"/>
-
+<package prefix="ct" value="org.apache.accumulo.testing.core.randomwalk.conditional"/>
 
 <init id="ct.Setup"/>
 
