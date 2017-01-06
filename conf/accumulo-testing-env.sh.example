@@ -23,3 +23,4 @@ test -z "$HADOOP_CONF_DIR" && export HADOOP_CONF_DIR=/path/to/hadoop/etc/hadoop
 # Set the Accumulo version that should be included in the shaded jar
 export ACCUMULO_VERSION=`accumulo version`
 export HADOOP_VERSION=`hadoop version | head -n1 | awk '{print $2}'`
+export ZOOKEEPER_VERSION=3.4.9

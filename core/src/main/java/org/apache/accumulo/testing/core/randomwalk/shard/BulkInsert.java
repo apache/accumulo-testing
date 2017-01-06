@@ -110,7 +110,7 @@ public class BulkInsert extends Test {
 
     int maxSplits = Integer.parseInt(props.getProperty("maxSplits"));
 
-    Configuration conf = CachedConfiguration.getInstance();
+    Configuration conf = env.getHadoopConfiguration();
     FileSystem fs = FileSystem.get(conf);
 
     String rootDir = "/tmp/shard_bulk/" + dataTableName;
@@ -179,11 +179,7 @@ public class BulkInsert extends Test {
 
     SortTool sortTool = new SortTool(seqFile, outputDir, workDir + "/splits.txt", splits);
 
-    String[] args = new String[2];
-    args[0] = "-libjars";
-    args[1] = getMapReduceJars();
-
-    if (ToolRunner.run(CachedConfiguration.getInstance(), sortTool, args) != 0) {
+    if (ToolRunner.run(env.getHadoopConfiguration(), sortTool, new String[0]) != 0) {
       throw new Exception("Failed to run map/red verify");
     }
   }

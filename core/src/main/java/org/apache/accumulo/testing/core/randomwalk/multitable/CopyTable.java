@@ -22,7 +22,6 @@ import java.util.Random;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.impl.Tables;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -55,18 +54,16 @@ public class CopyTable extends Test {
     int nextId = ((Integer) state.get("nextId")).intValue();
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
-    String[] args = new String[8];
-    args[0] = "-libjars";
-    args[1] = getMapReduceJars();
-    args[2] = env.getUserName();
-    args[3] = env.getPassword();
-    if (null == args[3]) {
-      args[3] = env.getKeytab();
+    String[] args = new String[6];
+    args[0] = env.getUserName();
+    args[1] = env.getPassword();
+    if (null == args[1]) {
+      args[1] = env.getKeytab();
     }
-    args[4] = srcTableName;
-    args[5] = env.getInstance().getInstanceName();
-    args[6] = env.getConfigProperty(TestProps.ZOOKEEPERS);
-    args[7] = dstTableName;
+    args[2] = srcTableName;
+    args[3] = env.getInstance().getInstanceName();
+    args[4] = env.getConfigProperty(TestProps.ZOOKEEPERS);
+    args[5] = dstTableName;
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
@@ -74,7 +71,7 @@ public class CopyTable extends Test {
 
     env.getConnector().tableOperations().addSplits(dstTableName, splits);
 
-    if (ToolRunner.run(CachedConfiguration.getInstance(), new CopyTool(), args) != 0) {
+    if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
       return;
     }

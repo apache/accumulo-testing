@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.testing.core.randomwalk;
 
-import java.io.File;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -62,39 +61,5 @@ public abstract class Node {
 
   synchronized public long lastProgress() {
     return progress;
-  }
-
-  protected String getMapReduceJars() {
-
-    String acuHome = System.getenv("ACCUMULO_HOME");
-    String zkHome = System.getenv("ZOOKEEPER_HOME");
-
-    if (acuHome == null || zkHome == null) {
-      throw new RuntimeException("ACCUMULO or ZOOKEEPER home not set!");
-    }
-
-    String retval = null;
-
-    File zkLib = new File(zkHome);
-    String[] files = zkLib.list();
-    if (files != null) {
-      for (int i = 0; i < files.length; i++) {
-        String f = files[i];
-        if (f.matches("^zookeeper-.+jar$")) {
-          if (retval == null) {
-            retval = String.format("%s/%s", zkLib.getAbsolutePath(), f);
-          } else {
-            retval += String.format(",%s/%s", zkLib.getAbsolutePath(), f);
-          }
-        }
-      }
-    }
-
-    File libdir = new File(acuHome + "/lib");
-    for (String jar : "accumulo-core accumulo-server-base accumulo-fate accumulo-trace commons-math3 libthrift htrace-core".split(" ")) {
-      retval += String.format(",%s/%s.jar", libdir.getAbsolutePath(), jar);
-    }
-
-    return retval;
   }
 }

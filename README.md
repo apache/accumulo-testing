@@ -46,9 +46,9 @@ walkers in 5 containers in YARN using the Image.xml module.
 
         ./bin/accumulo-testing rw-yarn 5 Image.xml
 
-This command will create an application in YARN and exit when test is completed. While its
-running, you can view logs for each random walker using the YARN resource manager. The YARN
-application can be killed at any time using `ctrl-c` or via the resource manager.
+This command will create an application in YARN and exit when all containers for the test have started.
+While its running, you can view logs for each random walker using the YARN resource manager. The YARN
+application can be killed at any time using the YARN resource manager or command line tool.
 
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml

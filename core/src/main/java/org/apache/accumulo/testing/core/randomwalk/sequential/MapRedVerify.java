@@ -25,7 +25,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -37,20 +36,18 @@ public class MapRedVerify extends Test {
   @Override
   public void visit(State state, Environment env, Properties props) throws Exception {
 
-    String[] args = new String[8];
-    args[0] = "-libjars";
-    args[1] = getMapReduceJars();
-    args[2] = env.getUserName();
-    args[3] = env.getPassword();
-    if (null == args[3]) {
-      args[3] = env.getKeytab();
+    String[] args = new String[6];
+    args[0] = env.getUserName();
+    args[1] = env.getPassword();
+    if (null == args[1]) {
+      args[1] = env.getKeytab();
     }
-    args[4] = state.getString("seqTableName");
-    args[5] = env.getInstance().getInstanceName();
-    args[6] = env.getConfigProperty(TestProps.ZOOKEEPERS);
-    args[7] = args[4] + "_MR";
+    args[2] = state.getString("seqTableName");
+    args[3] = env.getInstance().getInstanceName();
+    args[4] = env.getConfigProperty(TestProps.ZOOKEEPERS);
+    args[5] = args[2] + "_MR";
 
-    if (ToolRunner.run(CachedConfiguration.getInstance(), new MapRedVerifyTool(), args) != 0) {
+    if (ToolRunner.run(env.getHadoopConfiguration(), new MapRedVerifyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
       return;
     }
@@ -73,8 +70,8 @@ public class MapRedVerify extends Test {
       log.error("Gaps in output");
     }
 
-    log.debug("Dropping table: " + args[7]);
+    log.debug("Dropping table: " + args[5]);
     Connector conn = env.getConnector();
-    conn.tableOperations().delete(args[7]);
+    conn.tableOperations().delete(args[5]);
   }
 }

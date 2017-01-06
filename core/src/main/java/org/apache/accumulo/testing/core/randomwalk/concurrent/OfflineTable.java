@@ -16,6 +16,8 @@
  */
 package org.apache.accumulo.testing.core.randomwalk.concurrent;
 
+import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
+
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -26,8 +28,6 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
-
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 
 public class OfflineTable extends Test {
 

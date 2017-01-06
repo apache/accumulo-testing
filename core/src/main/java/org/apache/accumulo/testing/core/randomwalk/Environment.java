@@ -36,6 +36,7 @@ import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.KerberosToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.testing.core.TestProps;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,6 +121,17 @@ public class Environment {
    */
   public String getPid() {
     return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+  }
+
+
+  public Configuration getHadoopConfiguration() {
+    Configuration config = new Configuration();
+    config.set("mapreduce.framework.name", "yarn");
+    // Setting below are required due to bundled jar breaking default config.
+    // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+    config.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+    config.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+    return config;
   }
 
   /**

@@ -49,7 +49,7 @@ public class ExportIndex extends Test {
     String exportDir = "/tmp/shard_export/" + indexTableName;
     String copyDir = "/tmp/shard_export/" + tmpIndexTableName;
 
-    FileSystem fs = FileSystem.get(CachedConfiguration.getInstance());
+    FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
 
     fs.delete(new Path("/tmp/shard_export/" + indexTableName), true);
     fs.delete(new Path("/tmp/shard_export/" + tmpIndexTableName), true);
@@ -74,7 +74,7 @@ public class ExportIndex extends Test {
     while ((file = reader.readLine()) != null) {
       Path src = new Path(file);
       Path dest = new Path(new Path(copyDir), src.getName());
-      FileUtil.copy(fs, src, fs, dest, false, true, CachedConfiguration.getInstance());
+      FileUtil.copy(fs, src, fs, dest, false, true, env.getHadoopConfiguration());
     }
 
     reader.close();

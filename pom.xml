@@ -40,7 +40,7 @@
   <properties>
     <accumulo.version>1.8.0</accumulo.version>
     <hadoop.version>2.6.4</hadoop.version>
-    <zookeeper.version>3.4.6</zookeeper.version>
+    <zookeeper.version>3.4.9</zookeeper.version>
     <slf4j.version>1.7.21</slf4j.version>
     <twill.version>0.9.0</twill.version>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -97,6 +97,11 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
+        <version>${hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
         <version>${hadoop.version}</version>
       </dependency>
       <dependency>
