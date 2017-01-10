@@ -44,8 +44,8 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.util.SimpleThreadPool;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -55,7 +55,7 @@ import org.w3c.dom.NodeList;
  */
 public class Module extends Node {
 
-  private static final Logger log = Logger.getLogger(Module.class);
+  private static final Logger log = LoggerFactory.getLogger(Module.class);
 
   private class Dummy extends Node {
 
@@ -69,8 +69,14 @@ public class Module extends Node {
     public void visit(State state, Environment env, Properties props) {
       String print;
       if ((print = props.getProperty("print")) != null) {
-        Level level = Level.toLevel(print);
-        log.log(level, name);
+        switch (print) {
+          case "TRACE": log.trace(name); break;
+          case "DEBUG": log.debug(name); break;
+          case "INFO": log.info(name); break;
+          case "WARN": log.warn(name); break;
+          case "ERROR": log.error(name); break;
+          default: log.info(name); break;
+        }
       }
     }
 

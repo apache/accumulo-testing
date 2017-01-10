@@ -26,16 +26,12 @@ public abstract class BulkTest extends Test {
 
   @Override
   public void visit(final State state, final Environment env, Properties props) throws Exception {
-    Setup.run(state, new Runnable() {
-      @Override
-      public void run() {
-        try {
-          runLater(state, env);
-        } catch (Throwable ex) {
-          log.error(ex, ex);
-        }
+    Setup.run(state, () -> {
+      try {
+        runLater(state, env);
+      } catch (Throwable ex) {
+        log.error(ex.toString(), ex);
       }
-
     });
   }
 

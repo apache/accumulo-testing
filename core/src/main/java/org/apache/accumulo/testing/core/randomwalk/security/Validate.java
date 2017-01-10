@@ -29,7 +29,7 @@ import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.Environment;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 public class Validate extends Test {
 

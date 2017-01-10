@@ -76,7 +76,7 @@ public class BatchVerify extends Test {
 
       log.debug(String.format("scanning %d rows in the following %d ranges:", count, ranges.size()));
       for (Range r : ranges) {
-        log.debug(r);
+        log.debug(r.toString());
       }
 
       scanner.setRanges(ranges);

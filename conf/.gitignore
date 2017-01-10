@@ -1,2 +1,3 @@
 /accumulo-testing.properties
 /accumulo-testing-env.sh
+/log4j.properties
