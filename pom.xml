@@ -38,7 +38,7 @@
   </modules>
 
   <properties>
-    <accumulo.version>1.8.0</accumulo.version>
+    <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
     <hadoop.version>2.6.4</hadoop.version>
     <zookeeper.version>3.4.9</zookeeper.version>
     <slf4j.version>1.7.21</slf4j.version>
