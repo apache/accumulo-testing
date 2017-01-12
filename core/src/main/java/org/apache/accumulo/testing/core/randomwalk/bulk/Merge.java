@@ -19,17 +19,17 @@ package org.apache.accumulo.testing.core.randomwalk.bulk;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
 
 public class Merge extends SelectiveBulkTest {
 
   @Override
-  protected void runLater(State state, Environment env) throws Exception {
+  protected void runLater(State state, RandWalkEnv env) throws Exception {
     Text[] points = getRandomTabletRange(state);
     log.info("merging " + rangeToString(points));
-    env.getConnector().tableOperations().merge(Setup.getTableName(), points[0], points[1]);
+    env.getAccumuloConnector().tableOperations().merge(Setup.getTableName(), points[0], points[1]);
     log.info("merging " + rangeToString(points) + " complete");
   }
 

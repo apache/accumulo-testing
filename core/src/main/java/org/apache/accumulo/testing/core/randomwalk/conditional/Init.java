@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriter.Status;
 import org.apache.accumulo.core.data.Condition;
 import org.apache.accumulo.core.data.ConditionalMutation;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -37,7 +37,7 @@ import org.apache.hadoop.io.Text;
 public class Init extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
     int numBanks = (Integer) state.get("numBanks");
     int numAccts = (Integer) state.get("numAccts");
@@ -46,7 +46,7 @@ public class Init extends Test {
     TreeSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 10; i++)
       splits.add(new Text(Utils.getBank((int) (numBanks * .1 * i))));
-    env.getConnector().tableOperations().addSplits((String) state.get("tableName"), splits);
+    env.getAccumuloConnector().tableOperations().addSplits((String) state.get("tableName"), splits);
     log.info("Added splits " + splits);
 
     ArrayList<Integer> banks = new ArrayList<>();

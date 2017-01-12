@@ -18,7 +18,7 @@ package org.apache.accumulo.testing.core.randomwalk.bulk;
 
 import java.util.Properties;
 
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 
 /**
@@ -30,7 +30,7 @@ public abstract class BulkImportTest extends BulkTest {
   public static final String SKIPPED_IMPORT = "skipped.import", TRUE = Boolean.TRUE.toString(), FALSE = Boolean.FALSE.toString();
 
   @Override
-  public void visit(final State state, Environment env, Properties props) throws Exception {
+  public void visit(final State state, RandWalkEnv env, Properties props) throws Exception {
     /**
      * Each visit() is performed sequentially and then submitted to the threadpool which will have async execution. As long as we're checking the state and
      * making decisions about what to do before we submit something to the thread pool, we're fine.
@@ -71,7 +71,7 @@ public abstract class BulkImportTest extends BulkTest {
     }
   }
 
-  private boolean shouldQueueMoreImports(State state, Environment env) throws Exception {
+  private boolean shouldQueueMoreImports(State state, RandWalkEnv env) throws Exception {
     // Only selectively import when it's BulkPlusOne. If we did a BulkPlusOne,
     // we must also do a BulkMinusOne to keep the table consistent
     if (getClass().equals(BulkPlusOne.class)) {

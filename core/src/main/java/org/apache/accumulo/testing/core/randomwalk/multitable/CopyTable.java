@@ -23,7 +23,7 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.impl.Tables;
 import org.apache.accumulo.testing.core.TestProps;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -41,7 +41,7 @@ public class CopyTable extends Test {
   }
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
     @SuppressWarnings("unchecked")
     List<String> tables = (List<String>) state.get("tableList");
@@ -55,33 +55,33 @@ public class CopyTable extends Test {
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
     String[] args = new String[6];
-    args[0] = env.getUserName();
-    args[1] = env.getPassword();
+    args[0] = env.getAccumuloUserName();
+    args[1] = env.getAccumuloPassword();
     if (null == args[1]) {
-      args[1] = env.getKeytab();
+      args[1] = env.getAccumuloKeytab();
     }
     args[2] = srcTableName;
-    args[3] = env.getInstance().getInstanceName();
+    args[3] = env.getAccumuloInstance().getInstanceName();
     args[4] = env.getConfigProperty(TestProps.ZOOKEEPERS);
     args[5] = dstTableName;
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
-    env.getConnector().tableOperations().create(dstTableName);
+    env.getAccumuloConnector().tableOperations().create(dstTableName);
 
-    env.getConnector().tableOperations().addSplits(dstTableName, splits);
+    env.getAccumuloConnector().tableOperations().addSplits(dstTableName, splits);
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
       return;
     }
 
-    String tableId = Tables.getNameToIdMap(env.getInstance()).get(dstTableName);
+    String tableId = Tables.getNameToIdMap(env.getAccumuloInstance()).get(dstTableName);
     log.debug("copied " + srcTableName + " to " + dstTableName + " (id - " + tableId + " )");
 
     tables.add(dstTableName);
 
-    env.getConnector().tableOperations().delete(srcTableName);
+    env.getAccumuloConnector().tableOperations().delete(srcTableName);
     log.debug("dropped " + srcTableName);
 
     nextId++;

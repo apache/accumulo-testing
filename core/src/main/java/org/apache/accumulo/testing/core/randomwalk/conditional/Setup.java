@@ -23,14 +23,14 @@ import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriterConfig;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.conf.Property;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
 public class Setup extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     Random rand = new Random();
     state.set("rand", rand);
 
@@ -46,14 +46,14 @@ public class Setup extends Test {
     state.set("tableName", tableName);
 
     try {
-      env.getConnector().tableOperations().create(tableName);
+      env.getAccumuloConnector().tableOperations().create(tableName);
       log.debug("created table " + tableName);
       boolean blockCache = rand.nextBoolean();
-      env.getConnector().tableOperations().setProperty(tableName, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
+      env.getAccumuloConnector().tableOperations().setProperty(tableName, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
       log.debug("set " + Property.TABLE_BLOCKCACHE_ENABLED.getKey() + " " + blockCache);
     } catch (TableExistsException tee) {}
 
-    ConditionalWriter cw = env.getConnector().createConditionalWriter(tableName, new ConditionalWriterConfig().setMaxWriteThreads(1));
+    ConditionalWriter cw = env.getAccumuloConnector().createConditionalWriter(tableName, new ConditionalWriterConfig().setMaxWriteThreads(1));
     state.set("cw", cw);
 
   }

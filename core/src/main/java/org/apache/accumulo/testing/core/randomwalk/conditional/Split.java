@@ -22,7 +22,7 @@ import java.util.Random;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -32,10 +32,10 @@ import org.apache.hadoop.io.Text;
  */
 public class Split extends Test {
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
     Random rand = (Random) state.get("rand");
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
     String row = Utils.getBank(rand.nextInt((Integer) state.get("numBanks")));
 
     log.debug("adding split " + row);

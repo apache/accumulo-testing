@@ -24,14 +24,14 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 
 public class MultiTableFixture extends Fixture {
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {
+  public void setUp(State state, RandWalkEnv env) throws Exception {
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -43,7 +43,7 @@ public class MultiTableFixture extends Fixture {
   }
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {
+  public void tearDown(State state, RandWalkEnv env) throws Exception {
     // We have resources we need to clean up
     if (env.isMultiTableBatchWriterInitialized()) {
       MultiTableBatchWriter mtbw = env.getMultiTableBatchWriter();
@@ -57,7 +57,7 @@ public class MultiTableFixture extends Fixture {
       env.resetMultiTableBatchWriter();
     }
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     @SuppressWarnings("unchecked")
     List<String> tables = (List<String>) state.get("tableList");

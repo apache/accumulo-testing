@@ -26,14 +26,14 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 
 public class SecurityFixture extends Fixture {
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {
+  public void setUp(State state, RandWalkEnv env) throws Exception {
     String secTableName, systemUserName, tableUserName, secNamespaceName;
     // A best-effort sanity check to guard against not password-based auth
     ClientConfiguration clientConf = ClientConfiguration.loadDefault();
@@ -41,7 +41,7 @@ public class SecurityFixture extends Fixture {
       throw new IllegalStateException("Security module currently cannot support Kerberos/SASL instances");
     }
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -84,10 +84,10 @@ public class SecurityFixture extends Fixture {
   }
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {
+  public void tearDown(State state, RandWalkEnv env) throws Exception {
     log.debug("One last validate");
     Validate.validate(state, env, log);
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     if (WalkingSecurity.get(state, env).getTableExists()) {
       String secTableName = WalkingSecurity.get(state, env).getTableName();

@@ -20,49 +20,44 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.validators.PositiveInteger;
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 
 public class ContinuousScanner {
 
-  static class Opts extends ContinuousWalk.Opts {
-    @Parameter(names = "--numToScan", description = "Number rows to scan between sleeps", required = true, validateWith = PositiveInteger.class)
-    long numToScan = 0;
-  }
-
   public static void main(String[] args) throws Exception {
-    Opts opts = new Opts();
-    ScannerOpts scanOpts = new ScannerOpts();
-    ClientOnDefaultTable clientOpts = new ClientOnDefaultTable("ci");
-    clientOpts.parseArgs(ContinuousScanner.class.getName(), args, scanOpts, opts);
+
+    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(props);
 
     Random r = new Random();
 
     long distance = 1000000000000l;
 
-    Connector conn = clientOpts.getConnector();
-    Authorizations auths = opts.randomAuths.getAuths(r);
-    Scanner scanner = ContinuousUtil.createScanner(conn, clientOpts.getTableName(), auths);
-    scanner.setBatchSize(scanOpts.scanBatchSize);
+    Connector conn = env.getAccumuloConnector();
+    Authorizations auths = env.getRandomAuthorizations();
+    Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), auths);
+    scanner.setBatchSize(env.getScannerBatchSize());
 
-    double delta = Math.min(.05, .05 / (opts.numToScan / 1000.0));
+    int numToScan = Integer.parseInt(props.getProperty(TestProps.CI_SCANNER_ENTRIES));
+    int scannerSleepMs = Integer.parseInt(props.getProperty(TestProps.CI_SCANNER_SLEEP_MS));
+
+    double delta = Math.min(.05, .05 / (numToScan / 1000.0));
 
     while (true) {
-      long startRow = ContinuousIngest.genLong(opts.min, opts.max - distance, r);
+      long startRow = ContinuousIngest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
       byte[] scanStart = ContinuousIngest.genRow(startRow);
       byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
 
@@ -83,13 +78,13 @@ public class ContinuousScanner {
 
       // System.out.println("P1 " +count +" "+((1-delta) * numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
 
-      if (count < (1 - delta) * opts.numToScan || count > (1 + delta) * opts.numToScan) {
+      if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
         if (count == 0) {
           distance = distance * 10;
           if (distance < 0)
             distance = 1000000000000l;
         } else {
-          double ratio = (double) opts.numToScan / count;
+          double ratio = (double) numToScan / count;
           // move ratio closer to 1 to make change slower
           ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
           distance = (long) (ratio * distance);
@@ -100,8 +95,9 @@ public class ContinuousScanner {
 
       System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);
 
-      if (opts.sleepTime > 0)
-        sleepUninterruptibly(opts.sleepTime, TimeUnit.MILLISECONDS);
+      if (scannerSleepMs > 0) {
+        sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+      }
     }
 
   }

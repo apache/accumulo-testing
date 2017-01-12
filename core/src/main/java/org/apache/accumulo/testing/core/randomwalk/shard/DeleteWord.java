@@ -29,7 +29,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -42,7 +42,7 @@ import org.apache.hadoop.io.Text;
 public class DeleteWord extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String indexTableName = (String) state.get("indexTableName");
     String docTableName = (String) state.get("docTableName");
     int numPartitions = (Integer) state.get("numPartitions");
@@ -51,7 +51,7 @@ public class DeleteWord extends Test {
     String wordToDelete = Insert.generateRandomWord(rand);
 
     // use index to find all documents containing word
-    Scanner scanner = env.getConnector().createScanner(indexTableName, Authorizations.EMPTY);
+    Scanner scanner = env.getAccumuloConnector().createScanner(indexTableName, Authorizations.EMPTY);
     scanner.fetchColumnFamily(new Text(wordToDelete));
 
     ArrayList<Range> documentsToDelete = new ArrayList<>();
@@ -61,7 +61,7 @@ public class DeleteWord extends Test {
 
     if (documentsToDelete.size() > 0) {
       // use a batch scanner to fetch all documents
-      BatchScanner bscanner = env.getConnector().createBatchScanner(docTableName, Authorizations.EMPTY, 8);
+      BatchScanner bscanner = env.getAccumuloConnector().createBatchScanner(docTableName, Authorizations.EMPTY, 8);
       bscanner.setRanges(documentsToDelete);
 
       BatchWriter ibw = env.getMultiTableBatchWriter().getBatchWriter(indexTableName);

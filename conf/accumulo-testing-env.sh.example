@@ -24,3 +24,31 @@ test -z "$HADOOP_CONF_DIR" && export HADOOP_CONF_DIR=/path/to/hadoop/etc/hadoop
 export ACCUMULO_VERSION=`accumulo version`
 export HADOOP_VERSION=`hadoop version | head -n1 | awk '{print $2}'`
 export ZOOKEEPER_VERSION=3.4.9
+
+# Agitator
+# ========
+# Accumulo user
+AGTR_ACCUMULO_USER=$(whoami)
+# Time (in minutes) between killing Accumulo masters
+AGTR_MASTER_KILL_SLEEP_TIME=60
+AGTR_MASTER_RESTART_SLEEP_TIME=2
+# Time (in minutes) between killing Accumulo tservers
+AGTR_TSERVER_KILL_SLEEP_TIME=20
+AGTR_TSERVER_RESTART_SLEEP_TIME=10
+# Min and max number of Accumulo tservers that the agitator will kill at once
+AGTR_TSERVER_MIN_KILL=1
+AGTR_TSERVER_MAX_KILL=1
+# Amount of time (in minutes) the agitator should sleep before killing datanodes
+AGTR_DATANODE_KILL_SLEEP_TIME=20
+# Amount of time (in minutes) the agitator should wait before restarting datanodes
+AGTR_DATANODE_RESTART_SLEEP_TIME=10
+# Min and max number of datanodes the agitator will kill at once
+AGTR_DATANODE_MIN_KILL=1
+AGTR_DATANODE_MAX_KILL=1
+# HDFS agitation
+AGTR_HDFS_USER=$(whoami)
+AGTR_HDFS=false
+AGTR_HDFS_SLEEP_TIME=10
+AGTR_HDFS_SUPERUSER=hdfs
+AGTR_HDFS_COMMAND="${HADOOP_PREFIX:-/usr/lib/hadoop}/share/hadoop/hdfs/bin/hdfs"
+AGTR_HDFS_SUDO=$(which sudo)

@@ -16,10 +16,10 @@
  */
 package org.apache.accumulo.testing.core.randomwalk;
 
-import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.accumulo.testing.core.TestProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public class Framework {
    * @param startName
    *          Full name of starting graph or test
    */
-  public int run(String startName, State state, Environment env) {
+  public int run(String startName, State state, RandWalkEnv env) {
 
     try {
       Node node = getNode(startName);
@@ -86,15 +86,12 @@ public class Framework {
       System.exit(-1);
     }
 
-    Properties props = new Properties();
-    FileInputStream fis = new FileInputStream(args[0]);
-    props.load(fis);
-    fis.close();
+    Properties props = TestProps.loadFromFile(args[0]);
 
     log.info("Running random walk test with module: " + args[1]);
 
     State state = new State();
-    Environment env = new Environment(props);
+    RandWalkEnv env = new RandWalkEnv(props);
     getInstance().run(args[1], state, env);
 
     log.info("Test finished");

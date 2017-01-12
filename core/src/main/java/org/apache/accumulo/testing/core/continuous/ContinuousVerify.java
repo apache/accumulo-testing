@@ -22,16 +22,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.accumulo.core.cli.MapReduceClientOnDefaultTable;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.CachedConfiguration;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.continuous.ContinuousWalk.BadChecksumException;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -47,13 +47,9 @@ import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.validators.PositiveInteger;
-
 /**
  * A map reduce job that verifies a table created by continuous ingest. It verifies that all referenced nodes are defined.
  */
-
 public class ContinuousVerify extends Configured implements Tool {
 
   public static final VLongWritable DEF = new VLongWritable(-1);
@@ -76,7 +72,7 @@ public class ContinuousVerify extends Configured implements Tool {
       try {
         ContinuousWalk.validate(key, data);
       } catch (BadChecksumException bce) {
-        context.getCounter(Counts.CORRUPT).increment(1l);
+        context.getCounter(Counts.CORRUPT).increment(1L);
         if (corrupt < 1000) {
           log.error("Bad checksum : " + key);
         } else if (corrupt == 1000) {
@@ -100,7 +96,7 @@ public class ContinuousVerify extends Configured implements Tool {
     }
   }
 
-  public static enum Counts {
+  public enum Counts {
     UNREFERENCED, UNDEFINED, REFERENCED, CORRUPT
   }
 
@@ -131,95 +127,82 @@ public class ContinuousVerify extends Configured implements Tool {
         }
 
         context.write(new Text(ContinuousIngest.genRow(key.get())), new Text(sb.toString()));
-        context.getCounter(Counts.UNDEFINED).increment(1l);
+        context.getCounter(Counts.UNDEFINED).increment(1L);
 
       } else if (defCount > 0 && refs.size() == 0) {
-        context.getCounter(Counts.UNREFERENCED).increment(1l);
+        context.getCounter(Counts.UNREFERENCED).increment(1L);
       } else {
-        context.getCounter(Counts.REFERENCED).increment(1l);
+        context.getCounter(Counts.REFERENCED).increment(1L);
       }
 
     }
   }
 
-  static class Opts extends MapReduceClientOnDefaultTable {
-    @Parameter(names = "--output", description = "location in HDFS to store the results; must not exist")
-    String outputDir = "/tmp/continuousVerify";
-
-    @Parameter(names = "--maxMappers", description = "the maximum number of mappers to use", validateWith = PositiveInteger.class)
-    int maxMaps = 1;
-
-    @Parameter(names = "--reducers", description = "the number of reducers to use", validateWith = PositiveInteger.class)
-    int reducers = 1;
-
-    @Parameter(names = "--offline", description = "perform the verification directly on the files while the table is offline")
-    boolean scanOffline = false;
-
-    public Opts() {
-      super("ci");
-    }
-  }
-
   @Override
   public int run(String[] args) throws Exception {
-    Opts opts = new Opts();
-    opts.parseArgs(this.getClass().getName(), args);
+
+    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(props);
 
     Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
-    opts.setAccumuloConfigs(job);
 
-    Set<Range> ranges = null;
-    String clone = opts.getTableName();
-    Connector conn = null;
+    boolean scanOffline = Boolean.parseBoolean(props.getProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
+    String tableName = env.getAccumuloTableName();
+    int maxMaps = Integer.parseInt(props.getProperty(TestProps.CI_VERIFY_MAX_MAPS));
+    int reducers = Integer.parseInt(props.getProperty(TestProps.CI_VERIFY_REDUCERS));
+    String outputDir = props.getProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
 
-    if (opts.scanOffline) {
+    Set<Range> ranges;
+    String clone = "";
+    Connector conn = env.getAccumuloConnector();
+
+    if (scanOffline) {
       Random random = new Random();
-      clone = opts.getTableName() + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffl));
-      conn = opts.getConnector();
-      conn.tableOperations().clone(opts.getTableName(), clone, true, new HashMap<String,String>(), new HashSet<String>());
-      ranges = conn.tableOperations().splitRangeByTablets(opts.getTableName(), new Range(), opts.maxMaps);
+      clone = tableName + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffL));
+      conn.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
+      ranges = conn.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
       conn.tableOperations().offline(clone);
       AccumuloInputFormat.setInputTableName(job, clone);
       AccumuloInputFormat.setOfflineTableScan(job, true);
     } else {
-      ranges = opts.getConnector().tableOperations().splitRangeByTablets(opts.getTableName(), new Range(), opts.maxMaps);
+      ranges = conn.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
+      AccumuloInputFormat.setInputTableName(job, tableName);
     }
-
+    
     AccumuloInputFormat.setRanges(job, ranges);
     AccumuloInputFormat.setAutoAdjustRanges(job, false);
+    AccumuloInputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());
+    AccumuloInputFormat.setZooKeeperInstance(job, env.getClientConfiguration());
 
     job.setMapperClass(CMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
     job.setMapOutputValueClass(VLongWritable.class);
 
     job.setReducerClass(CReducer.class);
-    job.setNumReduceTasks(opts.reducers);
+    job.setNumReduceTasks(reducers);
 
     job.setOutputFormatClass(TextOutputFormat.class);
 
-    job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", opts.scanOffline);
+    job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
 
-    TextOutputFormat.setOutputPath(job, new Path(opts.outputDir));
+    TextOutputFormat.setOutputPath(job, new Path(outputDir));
 
     job.waitForCompletion(true);
 
-    if (opts.scanOffline) {
+    if (scanOffline) {
       conn.tableOperations().delete(clone);
     }
-    opts.stopTracing();
     return job.isSuccessful() ? 0 : 1;
   }
 
-  /**
-   *
-   * @param args
-   *          instanceName zookeepers username password table columns outputpath
-   */
   public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(CachedConfiguration.getInstance(), new ContinuousVerify(), args);
+
+    ContinuousEnv env = new ContinuousEnv(TestProps.loadFromFile(args[0]));
+
+    int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousVerify(), args);
     if (res != 0)
       System.exit(res);
   }

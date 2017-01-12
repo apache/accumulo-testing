@@ -23,7 +23,7 @@ public abstract class Fixture {
 
   protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
-  public abstract void setUp(State state, Environment env) throws Exception;
+  public abstract void setUp(State state, RandWalkEnv env) throws Exception;
 
-  public abstract void tearDown(State state, Environment env) throws Exception;
+  public abstract void tearDown(State state, RandWalkEnv env) throws Exception;
 }

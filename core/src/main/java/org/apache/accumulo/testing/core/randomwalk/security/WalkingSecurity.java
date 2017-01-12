@@ -47,7 +47,7 @@ import org.apache.accumulo.server.security.SecurityOperation;
 import org.apache.accumulo.server.security.handler.Authenticator;
 import org.apache.accumulo.server.security.handler.Authorizor;
 import org.apache.accumulo.server.security.handler.PermissionHandler;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WalkingSecurity extends SecurityOperation implements Authorizor, Authenticator, PermissionHandler {
   State state = null;
-  Environment env = null;
+  RandWalkEnv env = null;
   private static final Logger log = LoggerFactory.getLogger(WalkingSecurity.class);
 
   private static final String tableName = "SecurityTableName";
@@ -82,7 +82,7 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
     super(context, author, authent, pm);
   }
 
-  public WalkingSecurity(State state2, Environment env2) {
+  public WalkingSecurity(State state2, RandWalkEnv env2) {
     super(new AccumuloServerContext(new ServerConfigurationFactory(HdfsZooInstance.getInstance())));
     this.state = state2;
     this.env = env2;
@@ -91,7 +91,7 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
     permHandle = this;
   }
 
-  public static WalkingSecurity get(State state, Environment env) {
+  public static WalkingSecurity get(State state, RandWalkEnv env) {
     if (instance == null || instance.state != state) {
       instance = new WalkingSecurity(state, env);
       state.set(tableExists, Boolean.toString(false));
@@ -359,11 +359,11 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   public TCredentials getSysCredentials() {
-    return new Credentials(getSysUserName(), getSysToken()).toThrift(this.env.getInstance());
+    return new Credentials(getSysUserName(), getSysToken()).toThrift(this.env.getAccumuloInstance());
   }
 
   public TCredentials getTabCredentials() {
-    return new Credentials(getTabUserName(), getTabToken()).toThrift(this.env.getInstance());
+    return new Credentials(getTabUserName(), getTabToken()).toThrift(this.env.getAccumuloInstance());
   }
 
   public AuthenticationToken getSysToken() {

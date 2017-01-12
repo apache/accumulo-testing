@@ -16,72 +16,59 @@
  */
 package org.apache.accumulo.testing.core.continuous;
 
-import java.util.List;
+import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.testing.core.TestProps;
+import org.apache.hadoop.io.Text;
 
-/**
- *
- */
-public class GenSplits {
+public class CreateTable {
 
-  static class Opts {
-    @Parameter(names = "--min", description = "minimum row")
-    long minRow = 0;
+  public static void main(String[] args) throws Exception {
 
-    @Parameter(names = "--max", description = "maximum row")
-    long maxRow = Long.MAX_VALUE;
-
-    @Parameter(description = "<num tablets>")
-    List<String> args = null;
-  }
-
-  public static void main(String[] args) {
-
-    Opts opts = new Opts();
-    JCommander jcommander = new JCommander(opts);
-    jcommander.setProgramName(GenSplits.class.getSimpleName());
-
-    try {
-      jcommander.parse(args);
-    } catch (ParameterException pe) {
-      System.err.println(pe.getMessage());
-      jcommander.usage();
+    if (args.length != 1) {
+      System.err.println("Usage: CreateTable <propsPath>");
       System.exit(-1);
     }
 
-    if (opts.args == null || opts.args.size() != 1) {
-      jcommander.usage();
+    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(props);
+
+    Connector conn = env.getAccumuloConnector();
+    String tableName = env.getAccumuloTableName();
+    if (conn.tableOperations().exists(tableName)) {
+      System.err.println("ERROR: Accumulo table '"+ tableName + "' already exists");
       System.exit(-1);
     }
 
-    int numTablets = Integer.parseInt(opts.args.get(0));
-
+    int numTablets = Integer.parseInt(props.getProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
     if (numTablets < 1) {
       System.err.println("ERROR: numTablets < 1");
       System.exit(-1);
     }
-
-    if (opts.minRow >= opts.maxRow) {
+    if (env.getRowMin() >= env.getRowMax()) {
       System.err.println("ERROR: min >= max");
       System.exit(-1);
     }
 
+    conn.tableOperations().create(tableName);
+
+    SortedSet<Text> splits = new TreeSet<>();
     int numSplits = numTablets - 1;
-    long distance = ((opts.maxRow - opts.minRow) / numTablets) + 1;
+    long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
     long split = distance;
     for (int i = 0; i < numSplits; i++) {
-
-      String s = String.format("%016x", split + opts.minRow);
-
+      String s = String.format("%016x", split + env.getRowMin());
       while (s.charAt(s.length() - 1) == '0') {
         s = s.substring(0, s.length() - 1);
       }
-
-      System.out.println(s);
+      splits.add(new Text(s));
       split += distance;
     }
+
+    conn.tableOperations().addSplits(tableName, splits);
+    System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
   }
 }

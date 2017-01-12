@@ -31,7 +31,7 @@ import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.impl.Tables;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
@@ -42,10 +42,10 @@ public class ImageFixture extends Fixture {
   String indexTableName;
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {
+  public void setUp(State state, RandWalkEnv env) throws Exception {
 
-    Connector conn = env.getConnector();
-    Instance instance = env.getInstance();
+    Connector conn = env.getAccumuloConnector();
+    Instance instance = env.getAccumuloInstance();
 
     SortedSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 256; i++) {
@@ -107,7 +107,7 @@ public class ImageFixture extends Fixture {
   }
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {
+  public void tearDown(State state, RandWalkEnv env) throws Exception {
     // We have resources we need to clean up
     if (env.isMultiTableBatchWriterInitialized()) {
       MultiTableBatchWriter mtbw = env.getMultiTableBatchWriter();
@@ -124,7 +124,7 @@ public class ImageFixture extends Fixture {
     // Now we can safely delete the tables
     log.debug("Dropping tables: " + imageTableName + " " + indexTableName);
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     conn.tableOperations().delete(imageTableName);
     conn.tableOperations().delete(indexTableName);

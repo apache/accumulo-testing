@@ -29,7 +29,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.ColumnSliceFilter;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
@@ -39,9 +39,9 @@ import org.apache.accumulo.testing.core.randomwalk.Test;
 public class Verify extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     int numAccts = (Integer) state.get("numAccts");
 

@@ -25,20 +25,20 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
 
 public class ConsistencyCheck extends SelectiveBulkTest {
 
   @Override
-  protected void runLater(State state, Environment env) throws Exception {
+  protected void runLater(State state, RandWalkEnv env) throws Exception {
     Random rand = (Random) state.get("rand");
     Text row = Merge.getRandomRow(rand);
     log.info("Checking " + row);
-    String user = env.getConnector().whoami();
-    Authorizations auths = env.getConnector().securityOperations().getUserAuthorizations(user);
-    try (Scanner scanner = new IsolatedScanner(env.getConnector().createScanner(Setup.getTableName(), auths))) {
+    String user = env.getAccumuloConnector().whoami();
+    Authorizations auths = env.getAccumuloConnector().securityOperations().getUserAuthorizations(user);
+    try (Scanner scanner = new IsolatedScanner(env.getAccumuloConnector().createScanner(Setup.getTableName(), auths))) {
       scanner.setRange(new Range(row));
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       Value v = null;

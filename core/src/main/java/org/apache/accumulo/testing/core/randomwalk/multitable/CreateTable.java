@@ -23,7 +23,7 @@ import java.util.TreeSet;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.impl.Tables;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -40,8 +40,8 @@ public class CreateTable extends Test {
   }
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
-    Connector conn = env.getConnector();
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
+    Connector conn = env.getAccumuloConnector();
 
     int nextId = ((Integer) state.get("nextId")).intValue();
     String tableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
@@ -49,7 +49,7 @@ public class CreateTable extends Test {
       conn.tableOperations().create(tableName);
       // Add some splits to make the server's life easier
       conn.tableOperations().addSplits(tableName, splits);
-      String tableId = Tables.getNameToIdMap(env.getInstance()).get(tableName);
+      String tableId = Tables.getNameToIdMap(env.getAccumuloInstance()).get(tableName);
       log.debug("created " + tableName + " (id:" + tableId + ")");
       // Add some splits to make the server's life easier
       conn.tableOperations().addSplits(tableName, splits);

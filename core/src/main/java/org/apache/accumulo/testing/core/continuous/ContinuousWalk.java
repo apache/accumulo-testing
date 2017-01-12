@@ -18,106 +18,49 @@ package org.apache.accumulo.testing.core.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Random;
 import java.util.zip.CRC32;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.trace.Span;
 import org.apache.accumulo.core.trace.Trace;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
 
-import com.beust.jcommander.IStringConverter;
-import com.beust.jcommander.Parameter;
-
 public class ContinuousWalk {
-
-  static public class Opts extends ContinuousQuery.Opts {
-    class RandomAuthsConverter implements IStringConverter<RandomAuths> {
-      @Override
-      public RandomAuths convert(String value) {
-        try {
-          return new RandomAuths(value);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-
-    @Parameter(names = "--authsFile", description = "read the authorities to use from a file")
-    RandomAuths randomAuths = new RandomAuths();
-  }
 
   static class BadChecksumException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public BadChecksumException(String msg) {
+    BadChecksumException(String msg) {
       super(msg);
     }
 
   }
 
-  static class RandomAuths {
-    private List<Authorizations> auths;
-
-    RandomAuths() {
-      auths = Collections.singletonList(Authorizations.EMPTY);
-    }
-
-    RandomAuths(String file) throws IOException {
-      if (file == null) {
-        auths = Collections.singletonList(Authorizations.EMPTY);
-        return;
-      }
-
-      auths = new ArrayList<>();
-
-      FileSystem fs = FileSystem.get(new Configuration());
-      BufferedReader in = new BufferedReader(new InputStreamReader(fs.open(new Path(file)), UTF_8));
-      try {
-        String line;
-        while ((line = in.readLine()) != null) {
-          auths.add(new Authorizations(line.split(",")));
-        }
-      } finally {
-        in.close();
-      }
-    }
-
-    Authorizations getAuths(Random r) {
-      return auths.get(r.nextInt(auths.size()));
-    }
-  }
-
   public static void main(String[] args) throws Exception {
-    Opts opts = new Opts();
-    ClientOnDefaultTable clientOpts = new ClientOnDefaultTable("ci");
-    clientOpts.parseArgs(ContinuousWalk.class.getName(), args, opts);
 
-    Connector conn = clientOpts.getConnector();
+    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(props);
+
+    Connector conn = env.getAccumuloConnector();
 
     Random r = new Random();
 
     ArrayList<Value> values = new ArrayList<>();
 
+    int sleepTime = Integer.parseInt(props.getProperty(TestProps.CI_WALKER_SLEEP_MS));
+
     while (true) {
-      Scanner scanner = ContinuousUtil.createScanner(conn, clientOpts.getTableName(), opts.randomAuths.getAuths(r));
-      String row = findAStartRow(opts.min, opts.max, scanner, r);
+      Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), env.getRandomAuthorizations());
+      String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, r);
 
       while (row != null) {
 
@@ -146,12 +89,12 @@ public class ContinuousWalk {
           row = null;
         }
 
-        if (opts.sleepTime > 0)
-          Thread.sleep(opts.sleepTime);
+        if (sleepTime > 0)
+          Thread.sleep(sleepTime);
       }
 
-      if (opts.sleepTime > 0)
-        Thread.sleep(opts.sleepTime);
+      if (sleepTime > 0)
+        Thread.sleep(sleepTime);
     }
   }
 
@@ -197,7 +140,7 @@ public class ContinuousWalk {
     return -1;
   }
 
-  static String getPrevRow(Value value) {
+  private static String getPrevRow(Value value) {
 
     byte[] val = value.get();
     int offset = getPrevRowOffset(val);
@@ -208,7 +151,7 @@ public class ContinuousWalk {
     return null;
   }
 
-  static int getChecksumOffset(byte val[]) {
+  private static int getChecksumOffset(byte val[]) {
     if (val[val.length - 1] != ':') {
       if (val[val.length - 9] != ':')
         throw new IllegalArgumentException(new String(val, UTF_8));

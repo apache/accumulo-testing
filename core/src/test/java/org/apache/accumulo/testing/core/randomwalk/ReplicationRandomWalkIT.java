@@ -43,19 +43,19 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
   public void runReplicationRandomWalkStep() throws Exception {
     Replication r = new Replication();
 
-    Environment env = new Environment(new Properties()) {
+    RandWalkEnv env = new RandWalkEnv(new Properties()) {
       @Override
-      public String getUserName() {
+      public String getAccumuloUserName() {
         return "root";
       }
 
       @Override
-      public String getPassword() {
+      public String getAccumuloPassword() {
         return ROOT_PASSWORD;
       }
 
       @Override
-      public Connector getConnector() throws AccumuloException, AccumuloSecurityException {
+      public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
         return ReplicationRandomWalkIT.this.getConnector();
       }
 

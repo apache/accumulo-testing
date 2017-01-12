@@ -19,12 +19,11 @@ package org.apache.accumulo.testing.core.continuous;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.MapReduceClientOnDefaultTable;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
@@ -34,6 +33,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.util.CachedConfiguration;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.Text;
@@ -43,13 +43,11 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.validators.PositiveInteger;
-
 /**
- * A map only job that reads a table created by continuous ingest and creates doubly linked list. This map reduce job tests the ability of a map only job to
- * read and write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
- *
+ * A map only job that reads a table created by continuous ingest and creates doubly linked list.
+ * This map reduce job tests the ability of a map only job to read and write to accumulo at the
+ * same time. This map reduce job mutates the table in such a way that it should not create any
+ * undefined nodes.
  */
 public class ContinuousMoru extends Configured implements Tool {
   private static final String PREFIX = ContinuousMoru.class.getSimpleName() + ".";
@@ -59,8 +57,8 @@ public class ContinuousMoru extends Configured implements Tool {
   private static final String MIN = PREFIX + "MIN";
   private static final String CI_ID = PREFIX + "CI_ID";
 
-  static enum Counts {
-    SELF_READ;
+  enum Counts {
+    SELF_READ
   }
 
   public static class CMapper extends Mapper<Key,Value,Text,Mutation> {
@@ -105,43 +103,36 @@ public class ContinuousMoru extends Configured implements Tool {
         if (offset > 0) {
           long rowLong = Long.parseLong(new String(val, offset, 16, UTF_8), 16);
           Mutation m = ContinuousIngest.genMutation(rowLong, random.nextInt(max_cf), random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData()
-              .toArray(), random, true);
+              .toArray(), true);
           context.write(null, m);
         }
 
       } else {
-        context.getCounter(Counts.SELF_READ).increment(1l);
+        context.getCounter(Counts.SELF_READ).increment(1L);
       }
     }
   }
 
-  static class Opts extends ContinuousOpts {
-    @Parameter(names = "--maxColF", description = "maximum column family value to use", converter = ShortConverter.class)
-    short maxColF = Short.MAX_VALUE;
-
-    @Parameter(names = "--maxColQ", description = "maximum column qualifier value to use", converter = ShortConverter.class)
-    short maxColQ = Short.MAX_VALUE;
-
-    @Parameter(names = "--maxMappers", description = "the maximum number of mappers to use", required = true, validateWith = PositiveInteger.class)
-    int maxMaps = 0;
-  }
-
   @Override
   public int run(String[] args) throws IOException, InterruptedException, ClassNotFoundException, AccumuloSecurityException {
-    Opts opts = new Opts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    MapReduceClientOnDefaultTable clientOpts = new MapReduceClientOnDefaultTable("ci");
-    clientOpts.parseArgs(ContinuousMoru.class.getName(), args, bwOpts, opts);
+
+    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(props);
 
     Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
-    clientOpts.setAccumuloConfigs(job);
+
+    AccumuloInputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());
+    AccumuloInputFormat.setInputTableName(job, env.getAccumuloTableName());
+    AccumuloInputFormat.setZooKeeperInstance(job, env.getClientConfiguration());
+
+    int maxMaps = Integer.parseInt(props.getProperty(TestProps.CI_VERIFY_MAX_MAPS));
 
     // set up ranges
     try {
-      Set<Range> ranges = clientOpts.getConnector().tableOperations().splitRangeByTablets(clientOpts.getTableName(), new Range(), opts.maxMaps);
+      Set<Range> ranges = env.getAccumuloConnector().tableOperations().splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
       AccumuloInputFormat.setRanges(job, ranges);
       AccumuloInputFormat.setAutoAdjustRanges(job, false);
     } catch (Exception e) {
@@ -149,31 +140,28 @@ public class ContinuousMoru extends Configured implements Tool {
     }
 
     job.setMapperClass(CMapper.class);
-
     job.setNumReduceTasks(0);
-
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setBatchWriterOptions(job, bwOpts.getBatchWriterConfig());
+    AccumuloOutputFormat.setBatchWriterOptions(job, env.getBatchWriterConfig());
+    AccumuloOutputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());
+    AccumuloOutputFormat.setCreateTables(job, true);
+    AccumuloOutputFormat.setDefaultTableName(job, env.getAccumuloTableName());
+    AccumuloOutputFormat.setZooKeeperInstance(job, env.getClientConfiguration());
 
     Configuration conf = job.getConfiguration();
-    conf.setLong(MIN, opts.min);
-    conf.setLong(MAX, opts.max);
-    conf.setInt(MAX_CF, opts.maxColF);
-    conf.setInt(MAX_CQ, opts.maxColQ);
+    conf.setLong(MIN, env.getRowMin());
+    conf.setLong(MAX, env.getRowMax());
+    conf.setInt(MAX_CF, env.getMaxColF());
+    conf.setInt(MAX_CQ, env.getMaxColQ());
     conf.set(CI_ID, UUID.randomUUID().toString());
 
     job.waitForCompletion(true);
-    clientOpts.stopTracing();
     return job.isSuccessful() ? 0 : 1;
   }
 
-  /**
-   *
-   * @param args
-   *          instanceName zookeepers username password table columns outputpath
-   */
   public static void main(String[] args) throws Exception {
-    int res = ToolRunner.run(CachedConfiguration.getInstance(), new ContinuousMoru(), args);
+    ContinuousEnv env = new ContinuousEnv(TestProps.loadFromFile(args[0]));
+    int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousMoru(), args);
     if (res != 0)
       System.exit(res);
   }

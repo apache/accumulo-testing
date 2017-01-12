@@ -31,7 +31,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVWriter;
 import org.apache.accumulo.core.file.rfile.RFile;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -57,7 +57,7 @@ public class BulkPlusOne extends BulkImportTest {
 
   private static final Value ONE = new Value("1".getBytes());
 
-  static void bulkLoadLots(Logger log, State state, Environment env, Value value) throws Exception {
+  static void bulkLoadLots(Logger log, State state, RandWalkEnv env, Value value) throws Exception {
     final Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
     final Path fail = new Path(dir.toString() + "_fail");
     final DefaultConfiguration defaultConfiguration = AccumuloConfiguration.getDefaultConfiguration();
@@ -97,7 +97,7 @@ public class BulkPlusOne extends BulkImportTest {
       }
       f.close();
     }
-    env.getConnector().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
+    env.getAccumuloConnector().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
     fs.delete(dir, true);
     FileStatus[] failures = fs.listStatus(fail);
     if (failures != null && failures.length > 0) {
@@ -109,7 +109,7 @@ public class BulkPlusOne extends BulkImportTest {
   }
 
   @Override
-  protected void runLater(State state, Environment env) throws Exception {
+  protected void runLater(State state, RandWalkEnv env) throws Exception {
     log.info("Incrementing");
     bulkLoadLots(log, state, env, ONE);
   }

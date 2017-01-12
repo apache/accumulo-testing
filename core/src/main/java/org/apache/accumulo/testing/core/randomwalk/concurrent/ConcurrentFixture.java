@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
@@ -34,10 +34,10 @@ import org.apache.hadoop.io.Text;
 public class ConcurrentFixture extends Fixture {
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {}
+  public void setUp(State state, RandWalkEnv env) throws Exception {}
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {}
+  public void tearDown(State state, RandWalkEnv env) throws Exception {}
 
   /**
    *

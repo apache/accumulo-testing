@@ -66,7 +66,7 @@ public class Module extends Node {
     }
 
     @Override
-    public void visit(State state, Environment env, Properties props) {
+    public void visit(State state, RandWalkEnv env, Properties props) {
       String print;
       if ((print = props.getProperty("print")) != null) {
         switch (print) {
@@ -98,7 +98,7 @@ public class Module extends Node {
     }
 
     @Override
-    public void visit(State state, Environment env, Properties props) throws Exception {
+    public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
       throw new Exception("You don't visit aliases!");
     }
 
@@ -185,7 +185,7 @@ public class Module extends Node {
   }
 
   @Override
-  public void visit(final State state, final Environment env, Properties props) throws Exception {
+  public void visit(final State state, final RandWalkEnv env, Properties props) throws Exception {
     int maxHops, maxSec;
     boolean teardown;
 
@@ -321,7 +321,7 @@ public class Module extends Node {
           if (test)
             stopTimer(nextNode);
         } catch (Exception e) {
-          log.debug("Connector belongs to user: " + env.getConnector().whoami());
+          log.debug("Connector belongs to user: " + env.getAccumuloConnector().whoami());
           log.debug("Exception occured at: " + System.currentTimeMillis());
           log.debug("Properties for node: " + nextNodeId);
           for (Entry<Object,Object> entry : nodeProps.entrySet()) {

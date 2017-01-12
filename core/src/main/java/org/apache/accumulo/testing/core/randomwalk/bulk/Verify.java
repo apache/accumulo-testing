@@ -31,7 +31,7 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -41,7 +41,7 @@ public class Verify extends Test {
   static byte[] zero = new byte[] {'0'};
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     ThreadPoolExecutor threadPool = Setup.getThreadPool(state);
     threadPool.shutdown();
     int lastSize = 0;
@@ -58,9 +58,9 @@ public class Verify extends Test {
       return;
     }
 
-    String user = env.getConnector().whoami();
-    Authorizations auths = env.getConnector().securityOperations().getUserAuthorizations(user);
-    Scanner scanner = env.getConnector().createScanner(Setup.getTableName(), auths);
+    String user = env.getAccumuloConnector().whoami();
+    Authorizations auths = env.getAccumuloConnector().securityOperations().getUserAuthorizations(user);
+    Scanner scanner = env.getAccumuloConnector().createScanner(Setup.getTableName(), auths);
     scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
     for (Entry<Key,Value> entry : scanner) {
       byte[] value = entry.getValue().get();
@@ -100,7 +100,7 @@ public class Verify extends Test {
     }
 
     log.info("Test successful on table " + Setup.getTableName());
-    env.getConnector().tableOperations().delete(Setup.getTableName());
+    env.getAccumuloConnector().tableOperations().delete(Setup.getTableName());
   }
 
   public static void main(String args[]) throws Exception {

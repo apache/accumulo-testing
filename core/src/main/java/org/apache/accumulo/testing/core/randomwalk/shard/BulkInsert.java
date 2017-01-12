@@ -36,9 +36,8 @@ import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.accumulo.core.util.TextUtil;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.conf.Configuration;
@@ -96,7 +95,7 @@ public class BulkInsert extends Test {
   }
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
@@ -139,14 +138,14 @@ public class BulkInsert extends Test {
     fs.delete(new Path(rootDir), true);
   }
 
-  private void bulkImport(FileSystem fs, State state, Environment env, String tableName, String rootDir, String prefix) throws Exception {
+  private void bulkImport(FileSystem fs, State state, RandWalkEnv env, String tableName, String rootDir, String prefix) throws Exception {
     while (true) {
       String bulkDir = rootDir + "/" + prefix + "_bulk";
       String failDir = rootDir + "/" + prefix + "_failure";
       Path failPath = new Path(failDir);
       fs.delete(failPath, true);
       fs.mkdirs(failPath);
-      env.getConnector().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
+      env.getAccumuloConnector().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
 
       FileStatus[] failures = fs.listStatus(failPath);
       if (failures != null && failures.length > 0) {
@@ -164,12 +163,12 @@ public class BulkInsert extends Test {
     }
   }
 
-  private void sort(State state, Environment env, FileSystem fs, String tableName, String seqFile, String outputDir, String workDir, int maxSplits)
+  private void sort(State state, RandWalkEnv env, FileSystem fs, String tableName, String seqFile, String outputDir, String workDir, int maxSplits)
       throws Exception {
 
     PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))), false, UTF_8.name());
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     Collection<Text> splits = conn.tableOperations().listSplits(tableName, maxSplits);
     for (Text split : splits)

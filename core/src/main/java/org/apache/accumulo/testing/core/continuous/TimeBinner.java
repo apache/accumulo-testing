@@ -75,7 +75,7 @@ public class TimeBinner {
 
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in, UTF_8));
 
-    String line = null;
+    String line;
 
     HashMap<Long,DoubleWrapper> aggregation1 = new HashMap<>();
     HashMap<Long,DoubleWrapper> aggregation2 = new HashMap<>();

@@ -22,15 +22,15 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
 public class CreateUser extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
-    Connector conn = env.getInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
+    Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
 
     String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
@@ -47,7 +47,7 @@ public class CreateUser extends Test {
           else {
             // create user anyway for sake of state
             if (!exists) {
-              env.getConnector().securityOperations().createLocalUser(tableUserName, tabUserPass);
+              env.getAccumuloConnector().securityOperations().createLocalUser(tableUserName, tabUserPass);
               WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
               Thread.sleep(1000);
             }

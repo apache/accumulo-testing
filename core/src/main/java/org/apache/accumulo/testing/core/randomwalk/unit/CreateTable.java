@@ -19,12 +19,12 @@ package org.apache.accumulo.testing.core.randomwalk.unit;
 
 import java.util.Properties;
 
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
 public class CreateTable extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {}
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {}
 }

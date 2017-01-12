@@ -24,7 +24,7 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
@@ -32,7 +32,7 @@ import org.apache.hadoop.io.Text;
 public class TableOp extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
     // choose a table
     Random rand = new Random();
@@ -44,7 +44,7 @@ public class TableOp extends Test {
     }
 
     // check if chosen table exists
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
     TableOperations tableOps = conn.tableOperations();
     if (tableOps.exists(tableName) == false) {
       log.error("Table " + tableName + " does not exist!");

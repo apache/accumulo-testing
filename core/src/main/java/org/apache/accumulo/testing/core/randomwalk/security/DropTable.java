@@ -26,18 +26,18 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.impl.Credentials;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
 public class DropTable extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     dropTable(state, env, props);
   }
 
-  public static void dropTable(State state, Environment env, Properties props) throws Exception {
+  public static void dropTable(State state, RandWalkEnv env, Properties props) throws Exception {
     String sourceUser = props.getProperty("source", "system");
     String principal;
     AuthenticationToken token;
@@ -48,14 +48,14 @@ public class DropTable extends Test {
       principal = WalkingSecurity.get(state, env).getSysUserName();
       token = WalkingSecurity.get(state, env).getSysToken();
     }
-    Connector conn = env.getInstance().getConnector(principal, token);
+    Connector conn = env.getAccumuloInstance().getConnector(principal, token);
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
     String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getInstance()), tableName,
-        namespaceName);
+    boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), tableName,
+                                                                           namespaceName);
 
     try {
       conn.tableOperations().delete(tableName);
@@ -65,7 +65,7 @@ public class DropTable extends Test {
           throw new AccumuloException("Got a security exception when I should have had permission.", ae);
         else {
           // Drop anyway for sake of state
-          env.getConnector().tableOperations().delete(tableName);
+          env.getAccumuloConnector().tableOperations().delete(tableName);
           WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
           return;
         }

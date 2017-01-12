@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.slf4j.Logger;
@@ -34,12 +34,12 @@ import org.slf4j.Logger;
 public class Validate extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     validate(state, env, log);
   }
 
-  public static void validate(State state, Environment env, Logger log) throws Exception {
-    Connector conn = env.getConnector();
+  public static void validate(State state, RandWalkEnv env, Logger log) throws Exception {
+    Connector conn = env.getAccumuloConnector();
 
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
     boolean cloudTableExists = conn.tableOperations().list().contains(WalkingSecurity.get(state, env).getTableName());
@@ -53,9 +53,9 @@ public class Validate extends Test {
 
     Properties props = new Properties();
     props.setProperty("target", "system");
-    Authenticate.authenticate(env.getUserName(), env.getToken(), state, env, props);
+    Authenticate.authenticate(env.getAccumuloUserName(), env.getToken(), state, env, props);
     props.setProperty("target", "table");
-    Authenticate.authenticate(env.getUserName(), env.getToken(), state, env, props);
+    Authenticate.authenticate(env.getAccumuloUserName(), env.getToken(), state, env, props);
 
     for (String user : new String[] {WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getTabUserName()}) {
       for (SystemPermission sp : SystemPermission.values()) {

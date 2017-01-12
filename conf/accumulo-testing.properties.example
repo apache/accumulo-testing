@@ -31,14 +31,77 @@ test.common.zookeepers=localhost:2181
 test.common.yarn.container.memory.mb=1024
 # Number of cores given to each container (if running in YARN)
 test.common.yarn.container.cores=1
+# Max memory (in bytes) each batch writer will use to buffer writes
+test.common.bw.max.memory.bytes=100000000
+# Max latency (in milliseconds) that each batch writer will buffer data
+test.common.bw.max.latency.ms=600000
+# Number of write thread for each batch writer
+test.common.bw.num.threads=4
+# Number of threads used by batch scanner
+test.common.bs.num.threads=8
+# Number of key/value entries to pull during scan
+test.common.scanner.batch.size=1000
 
-########################
-# Random walk properties
-########################
+###################################
+# Continuous ingest test properties
+###################################
 
-# Max memory for multi-table batch writer
-test.randomwalk.bw.max.mem=100000000
-# Max latency in milliseconds for multi-table batch writer
-test.randomwalk.bw.max.latency=600000
-# Number of write thread for multi-table batch writer
-test.randomwalk.bw.num.threads=4
+# Common
+# ------
+# Accumulo table used by continuous tests
+test.ci.common.accumulo.table=ci
+# Number of tablets that should exist in Accumulo table when created
+test.ci.common.accumulo.num.tablets=20
+# Optional authorizations that if specified will be randomly selected by scanners and walkers
+# Format: a,b|a,b,c|c
+test.ci.common.auths=
+
+# Ingest
+# ------
+# Number of entries each ingest client should write
+test.ci.ingest.client.entries=9223372036854775807
+# Minimum random row to generate
+test.ci.ingest.row.min=0
+# Maximum random row to generate
+test.ci.ingest.row.max=9223372036854775807
+# Maximum number of random column families to generate
+test.ci.ingest.max.cf=32767
+# Maximum number of random column qualifiers to generate
+test.ci.ingest.max.cq=32767
+# Optional visibilities (in CSV format) that if specified will be randomly selected by ingesters for
+# each linked list
+test.ci.ingest.visibilities=
+# Checksums will be generated during ingest if set to true
+test.ci.ingest.checksum=true
+
+# Batch walker
+# ------------
+# Sleep time between batch scans (in ms)
+test.ci.batch.walker.sleep.ms=10000
+# Scan batch size
+test.ci.batch.walker.batch.size=10000
+
+# Walker
+# ------
+# Sleep time between scans (in ms)
+test.ci.walker.sleep.ms=10000
+
+# Scanner
+# -------
+# Sleep time between scans (in ms)
+test.ci.scanner.sleep.ms=10000
+# Scanner entries
+test.ci.scanner.entries=5000
+
+# Verify
+# -----
+# Maximum number of mapreduce mappers
+test.ci.verify.max.maps=64
+# Number of mapreduce reducers
+test.ci.verify.reducers=64
+# Perform the verification directly on the files while the table is offline
+test.ci.verify.scan.offline=false
+# Comma separated list of auths to use for verify
+test.ci.verify.auths=
+# Location in HDFS to store output. Must not exist.
+test.ci.verify.output.dir=/tmp/ci-verify

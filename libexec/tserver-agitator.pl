@@ -118,7 +118,7 @@ while(1){
 
     print STDERR "$t Killing tserver on $server\n";
     # We're the accumulo user, just run the commandj
-    system("$ACCUMULO_HOME/bin/stop-server.sh $server 'accumulo-start.jar' tserver KILL");
+    system("ssh $server '$ACCUMULO_HOME/bin/accumulo-service tserver stop'");
   }
 
   $nextsleep2 = int(rand($sleep2max - $sleep2)) + $sleep2;
@@ -126,7 +126,7 @@ while(1){
   $t = strftime "%Y%m%d %H:%M:%S", localtime;
   print STDERR "$t Running tup\n";
   # restart the as them as the accumulo user
-  system("$ACCUMULO_HOME/bin/tup.sh");
+  system("$ACCUMULO_HOME/libexec/cluster.sh start-tservers");
 
   $nextsleep1 = int(rand($sleep1max - $sleep1)) + $sleep1;
   sleep($nextsleep1 * 60);

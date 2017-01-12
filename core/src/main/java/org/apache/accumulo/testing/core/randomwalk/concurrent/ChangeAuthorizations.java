@@ -26,15 +26,15 @@ import java.util.Random;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 
 public class ChangeAuthorizations extends Test {
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
-    Connector conn = env.getConnector();
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
+    Connector conn = env.getAccumuloConnector();
 
     Random rand = (Random) state.get("rand");
 

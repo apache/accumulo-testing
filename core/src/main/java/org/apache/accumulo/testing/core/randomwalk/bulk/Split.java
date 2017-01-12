@@ -20,21 +20,21 @@ import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
 
 public class Split extends SelectiveBulkTest {
 
   @Override
-  protected void runLater(State state, Environment env) throws Exception {
+  protected void runLater(State state, RandWalkEnv env) throws Exception {
     SortedSet<Text> splits = new TreeSet<>();
     Random rand = (Random) state.get("rand");
     int count = rand.nextInt(20);
     for (int i = 0; i < count; i++)
       splits.add(new Text(String.format(BulkPlusOne.FMT, (rand.nextLong() & 0x7fffffffffffffffl) % BulkPlusOne.LOTS)));
     log.info("splitting " + splits);
-    env.getConnector().tableOperations().addSplits(Setup.getTableName(), splits);
+    env.getAccumuloConnector().tableOperations().addSplits(Setup.getTableName(), splits);
     log.info("split for " + splits + " finished");
   }
 

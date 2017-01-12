@@ -18,18 +18,15 @@ package org.apache.accumulo.testing.core.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
@@ -40,9 +37,7 @@ import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.trace.CountSampler;
 import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.core.util.FastFormat;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
 
 public class ContinuousIngest {
@@ -51,49 +46,44 @@ public class ContinuousIngest {
 
   private static List<ColumnVisibility> visibilities;
 
-  private static void initVisibilities(ContinuousOpts opts) throws Exception {
-    if (opts.visFile == null) {
-      visibilities = Collections.singletonList(new ColumnVisibility());
-      return;
-    }
-
-    visibilities = new ArrayList<>();
-
-    FileSystem fs = FileSystem.get(new Configuration());
-    BufferedReader in = new BufferedReader(new InputStreamReader(fs.open(new Path(opts.visFile)), UTF_8));
-
-    String line;
-
-    while ((line = in.readLine()) != null) {
-      visibilities.add(new ColumnVisibility(line));
-    }
-
-    in.close();
-  }
-
   private static ColumnVisibility getVisibility(Random rand) {
     return visibilities.get(rand.nextInt(visibilities.size()));
   }
 
   public static void main(String[] args) throws Exception {
 
-    ContinuousOpts opts = new ContinuousOpts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    ClientOnDefaultTable clientOpts = new ClientOnDefaultTable("ci");
-    clientOpts.parseArgs(ContinuousIngest.class.getName(), args, bwOpts, opts);
+    if (args.length != 1) {
+      System.err.println("Usage: ContinuousIngest <propsPath>");
+      System.exit(-1);
+    }
 
-    initVisibilities(opts);
+    Properties props = TestProps.loadFromFile(args[0]);
 
-    if (opts.min < 0 || opts.max < 0 || opts.max <= opts.min) {
+    String vis = props.getProperty(TestProps.CI_INGEST_VISIBILITIES);
+    if (vis == null) {
+      visibilities = Collections.singletonList(new ColumnVisibility());
+    } else {
+      visibilities = new ArrayList<>();
+      for (String v : vis.split(",")) {
+        visibilities.add(new ColumnVisibility(v.trim()));
+      }
+    }
+
+    ContinuousEnv env = new ContinuousEnv(props);
+
+    long rowMin = env.getRowMin();
+    long rowMax = env.getRowMax();
+    if (rowMin < 0 || rowMax < 0 || rowMax <= rowMin) {
       throw new IllegalArgumentException("bad min and max");
     }
-    Connector conn = clientOpts.getConnector();
 
-    if (!conn.tableOperations().exists(clientOpts.getTableName())) {
-      throw new TableNotFoundException(null, clientOpts.getTableName(), "Consult the README and create the table before starting ingest.");
+    Connector conn = env.getAccumuloConnector();
+    String tableName = env.getAccumuloTableName();
+    if (!conn.tableOperations().exists(tableName)) {
+      throw new TableNotFoundException(null, tableName, "Consult the README and create the table before starting ingest.");
     }
 
-    BatchWriter bw = conn.createBatchWriter(clientOpts.getTableName(), bwOpts.getBatchWriterConfig());
+    BatchWriter bw = conn.createBatchWriter(tableName, env.getBatchWriterConfig());
     bw = Trace.wrapAll(bw, new CountSampler(1024));
 
     Random r = new Random();
@@ -117,61 +107,65 @@ public class ContinuousIngest {
 
     long lastFlushTime = System.currentTimeMillis();
 
+    int maxColF = env.getMaxColF();
+    int maxColQ = env.getMaxColQ();
+    boolean checksum = Boolean.parseBoolean(props.getProperty(TestProps.CI_INGEST_CHECKSUM));
+    long numEntries = Long.parseLong(props.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+
     out: while (true) {
       // generate first set of nodes
       ColumnVisibility cv = getVisibility(r);
 
       for (int index = 0; index < flushInterval; index++) {
-        long rowLong = genLong(opts.min, opts.max, r);
+        long rowLong = genLong(rowMin, rowMax, r);
         prevRows[index] = rowLong;
         firstRows[index] = rowLong;
 
-        int cf = r.nextInt(opts.maxColF);
-        int cq = r.nextInt(opts.maxColQ);
+        int cf = r.nextInt(maxColF);
+        int cq = r.nextInt(maxColQ);
 
         firstColFams[index] = cf;
         firstColQuals[index] = cq;
 
-        Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, r, opts.checksum);
+        Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null,
+                                 checksum);
         count++;
         bw.addMutation(m);
       }
 
       lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-      if (count >= opts.num)
+      if (count >= numEntries)
         break out;
 
       // generate subsequent sets of nodes that link to previous set of nodes
       for (int depth = 1; depth < maxDepth; depth++) {
         for (int index = 0; index < flushInterval; index++) {
-          long rowLong = genLong(opts.min, opts.max, r);
+          long rowLong = genLong(rowMin, rowMax, r);
           byte[] prevRow = genRow(prevRows[index]);
           prevRows[index] = rowLong;
-          Mutation m = genMutation(rowLong, r.nextInt(opts.maxColF), r.nextInt(opts.maxColQ), cv, ingestInstanceId, count, prevRow, r, opts.checksum);
+          Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv, ingestInstanceId, count, prevRow, checksum);
           count++;
           bw.addMutation(m);
         }
 
         lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-        if (count >= opts.num)
+        if (count >= numEntries)
           break out;
       }
 
       // create one big linked list, this makes all of the first inserts
       // point to something
       for (int index = 0; index < flushInterval - 1; index++) {
-        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv, ingestInstanceId, count, genRow(prevRows[index + 1]), r,
-            opts.checksum);
+        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv, ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
         count++;
         bw.addMutation(m);
       }
       lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-      if (count >= opts.num)
+      if (count >= numEntries)
         break out;
     }
 
     bw.close();
-    clientOpts.stopTracing();
   }
 
   private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime) throws MutationsRejectedException {
@@ -183,8 +177,9 @@ public class ContinuousIngest {
     return lastFlushTime;
   }
 
-  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv, byte[] ingestInstanceId, long count, byte[] prevRow, Random r,
-      boolean checksum) {
+  static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
+                              byte[] ingestInstanceId, long count, byte[] prevRow,
+                              boolean checksum) {
     // Adler32 is supposed to be faster, but according to wikipedia is not good for small data.... so used CRC32 instead
     CRC32 cksum = null;
 
@@ -207,15 +202,15 @@ public class ContinuousIngest {
     return m;
   }
 
-  public static final long genLong(long min, long max, Random r) {
-    return ((r.nextLong() & 0x7fffffffffffffffl) % (max - min)) + min;
+  static long genLong(long min, long max, Random r) {
+    return ((r.nextLong() & 0x7fffffffffffffffL) % (max - min)) + min;
   }
 
-  static final byte[] genRow(long min, long max, Random r) {
+  static byte[] genRow(long min, long max, Random r) {
     return genRow(genLong(min, max, r));
   }
 
-  static final byte[] genRow(long rowLong) {
+  static byte[] genRow(long rowLong) {
     return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
   }
 

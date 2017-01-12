@@ -37,7 +37,7 @@ public abstract class Node {
    * @param env
    *          test environment
    */
-  public abstract void visit(State state, Environment env, Properties props) throws Exception;
+  public abstract void visit(State state, RandWalkEnv env, Properties props) throws Exception;
 
   @Override
   public boolean equals(Object o) {

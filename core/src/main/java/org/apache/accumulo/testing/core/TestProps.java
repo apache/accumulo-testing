@@ -17,11 +17,21 @@
 
 package org.apache.accumulo.testing.core;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 public class TestProps {
 
   private static final String PREFIX = "test.";
-  private static final String RANDOMWALK = PREFIX + "randomwalk.";
   private static final String COMMON = PREFIX + "common.";
+  private static final String CI = PREFIX + "ci.";
+  private static final String CI_COMMON = CI + "common.";
+  private static final String CI_INGEST = CI + "ingest.";
+  private static final String CI_WALKER = CI + "walker.";
+  private static final String CI_BW = CI + "batch.walker.";
+  private static final String CI_SCANNER = CI + "scanner.";
+  private static final String CI_VERIFY = CI + "verify.";
 
   /** Common properties **/
   // Zookeeper connection string
@@ -38,16 +48,80 @@ public class TestProps {
   public static final String YARN_CONTAINER_MEMORY_MB = COMMON + "yarn.container.memory.mb";
   // Number of cores given to each YARN container
   public static final String YARN_CONTAINER_CORES = COMMON + "yarn.container.cores";
+  // Max memory (in bytes) each batch writer will use to buffer writes
+  public static final String BW_MAX_MEM_BYTES = COMMON + "bw.max.memory.bytes";
+  // Max the maximum time (in ms) each batch writer will buffer data
+  public static final String BW_MAX_LATENCY_MS = COMMON + "bw.max.latency.ms";
+  // Number of threads each batch writer will use to write data
+  public static final String BW_NUM_THREADS = COMMON + "bw.num.threads";
+  // Number of thread for each batch scanner
+  public static final String BS_NUM_THREADS = COMMON + "bw.num.threads";
+  // Number of key/value entries to pull during scan
+  public static final String SCANNER_BATCH_SIZE = COMMON + "scanner.batch.size";
 
+  /** Continuous ingest test properties **/
+  /** Common **/
+  // Accumulo table used by continuous ingest tests
+  public static final String CI_COMMON_ACCUMULO_TABLE = CI_COMMON + "accumulo.table";
+  // Number of tablets that should exist in Accumulo table when created
+  public static final String CI_COMMON_ACCUMULO_NUM_TABLETS = CI_COMMON + "accumulo.num.tablets";
+  // Optional authorizations (in CSV format) that if specified will be randomly selected by scanners
+  // and walkers
+  public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
 
-  /** Random walk properties **/
-  // Number of random walker (if running in YARN)
-  public static final String RW_NUM_WALKERS = RANDOMWALK + "num.walkers";
-  // Max memory for multi-table batch writer
-  public static final String RW_BW_MAX_MEM = RANDOMWALK + "bw.max.mem";
-  // Max latency in milliseconds for multi-table batch writer
-  public static final String RW_BW_MAX_LATENCY = RANDOMWALK + "bw.max.latency";
-  // Number of write thread for multi-table batch writer
-  public static final String RW_BW_NUM_THREADS = RANDOMWALK + "bw.num.threads";
+  /** Ingest **/
+  // Number of entries each ingest client should write
+  public static final String CI_INGEST_CLIENT_ENTRIES = CI_INGEST + "client.entries";
+  // Minimum random row to generate
+  public static final String CI_INGEST_ROW_MIN = CI_INGEST + "row.min";
+  // Maximum random row to generate
+  public static final String CI_INGEST_ROW_MAX = CI_INGEST + "row.max";
+  // Maximum number of random column families to generate
+  public static final String CI_INGEST_MAX_CF = CI_INGEST + "max.cf";
+  // Maximum number of random column qualifiers to generate
+  public static final String CI_INGEST_MAX_CQ = CI_INGEST + "max.cq";
+  // Optional visibilities (in CSV format) that if specified will be randomly selected by ingesters for
+  // each linked list
+  public static final String CI_INGEST_VISIBILITIES = CI_INGEST + "visibilities";
+  // Checksums will be generated during ingest if set to true
+  public static final String CI_INGEST_CHECKSUM = CI_INGEST + "checksum";
 
+  /** Batch Walker **/
+  // Sleep time between batch scans (in ms)
+  public static final String CI_BW_SLEEP_MS = CI_BW + "sleep.ms";
+  // Scan batch size
+  public static final String CI_BW_BATCH_SIZE = CI_BW + "batch.size";
+
+  /** Walker **/
+  // Sleep time between scans (in ms)
+  public static final String CI_WALKER_SLEEP_MS = CI_WALKER + "sleep.ms";
+
+  /** Scanner **/
+  // Sleep time between scans (in ms)
+  public static final String CI_SCANNER_SLEEP_MS = CI_SCANNER + "sleep.ms";
+  // Scanner entries
+  public static final String CI_SCANNER_ENTRIES = CI_SCANNER + "entries";
+
+  /** Verify **/
+  // Maximum number of mapreduce mappers
+  public static final String CI_VERIFY_MAX_MAPS = CI_VERIFY + "max.maps";
+  // Number of mapreduce reducers
+  public static final String CI_VERIFY_REDUCERS = CI_VERIFY + "reducers";
+  // Perform the verification directly on the files while the table is offline"
+  public static final String CI_VERIFY_SCAN_OFFLINE = CI_VERIFY + "scan.offline";
+  // Comma separated list of auths to use for verify
+  public static final String CI_VERIFY_AUTHS = CI_VERIFY + "auths";
+  // Location in HDFS to store output
+  public static final String CI_VERIFY_OUTPUT_DIR = CI_VERIFY + "output.dir";
+
+  public static Properties loadFromFile(String propsFilePath) throws IOException {
+    return loadFromStream(new FileInputStream(propsFilePath));
+  }
+
+  public static Properties loadFromStream(FileInputStream fis) throws IOException {
+    Properties props = new Properties();
+    props.load(fis);
+    fis.close();
+    return props;
+  }
 }

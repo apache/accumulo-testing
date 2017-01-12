@@ -49,7 +49,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.replication.ReplicationTable;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.accumulo.tserver.replication.AccumuloReplicaSystem;
@@ -61,8 +61,8 @@ public class Replication extends Test {
   final int COLS = 50;
 
   @Override
-  public void visit(State state, Environment env, Properties props) throws Exception {
-    final Connector c = env.getConnector();
+  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
+    final Connector c = env.getAccumuloConnector();
     final Instance inst = c.getInstance();
     final String instName = inst.getInstanceName();
     final InstanceOperations iOps = c.instanceOperations();
@@ -71,8 +71,8 @@ public class Replication extends Test {
     // Replicate to ourselves
     iOps.setProperty(REPLICATION_NAME.getKey(), instName);
     iOps.setProperty(REPLICATION_PEERS.getKey() + instName, getPeerConfigurationValue(AccumuloReplicaSystem.class, instName + "," + inst.getZooKeepers()));
-    iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getUserName());
-    iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getPassword());
+    iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getAccumuloUserName());
+    iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getAccumuloPassword());
     // Tweak some replication parameters to make the replication go faster
     iOps.setProperty(MASTER_REPLICATION_SCAN_INTERVAL.getKey(), "1s");
     iOps.setProperty(REPLICATION_WORK_ASSIGNMENT_SLEEP.getKey(), "1s");

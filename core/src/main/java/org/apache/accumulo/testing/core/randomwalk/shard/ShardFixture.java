@@ -25,7 +25,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.conf.Property;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.io.Text;
@@ -49,8 +49,8 @@ public class ShardFixture extends Fixture {
     return splits;
   }
 
-  static void createIndexTable(Logger log, State state, Environment env, String suffix, Random rand) throws Exception {
-    Connector conn = env.getConnector();
+  static void createIndexTable(Logger log, State state, RandWalkEnv env, String suffix, Random rand) throws Exception {
+    Connector conn = env.getAccumuloConnector();
     String name = (String) state.get("indexTableName") + suffix;
     int numPartitions = (Integer) state.get("numPartitions");
     boolean enableCache = (Boolean) state.get("cacheIndex");
@@ -73,7 +73,7 @@ public class ShardFixture extends Fixture {
   }
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {
+  public void setUp(State state, RandWalkEnv env) throws Exception {
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
     String pid = env.getPid();
 
@@ -88,7 +88,7 @@ public class ShardFixture extends Fixture {
     state.set("rand", rand);
     state.set("nextDocID", Long.valueOf(0));
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     createIndexTable(this.log, state, env, "", rand);
 
@@ -110,7 +110,7 @@ public class ShardFixture extends Fixture {
   }
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {
+  public void tearDown(State state, RandWalkEnv env) throws Exception {
     // We have resources we need to clean up
     if (env.isMultiTableBatchWriterInitialized()) {
       MultiTableBatchWriter mtbw = env.getMultiTableBatchWriter();
@@ -124,7 +124,7 @@ public class ShardFixture extends Fixture {
       env.resetMultiTableBatchWriter();
     }
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     log.info("Deleting index and doc tables");
 

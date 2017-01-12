@@ -24,7 +24,7 @@ import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.impl.Tables;
-import org.apache.accumulo.testing.core.randomwalk.Environment;
+import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
 
@@ -33,10 +33,10 @@ public class SequentialFixture extends Fixture {
   String seqTableName;
 
   @Override
-  public void setUp(State state, Environment env) throws Exception {
+  public void setUp(State state, RandWalkEnv env) throws Exception {
 
-    Connector conn = env.getConnector();
-    Instance instance = env.getInstance();
+    Connector conn = env.getAccumuloConnector();
+    Instance instance = env.getAccumuloInstance();
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -57,7 +57,7 @@ public class SequentialFixture extends Fixture {
   }
 
   @Override
-  public void tearDown(State state, Environment env) throws Exception {
+  public void tearDown(State state, RandWalkEnv env) throws Exception {
     // We have resources we need to clean up
     if (env.isMultiTableBatchWriterInitialized()) {
       MultiTableBatchWriter mtbw = env.getMultiTableBatchWriter();
@@ -73,7 +73,7 @@ public class SequentialFixture extends Fixture {
 
     log.debug("Dropping tables: " + seqTableName);
 
-    Connector conn = env.getConnector();
+    Connector conn = env.getAccumuloConnector();
 
     conn.tableOperations().delete(seqTableName);
   }
