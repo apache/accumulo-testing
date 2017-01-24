@@ -177,7 +177,7 @@ public class ContinuousIngest {
     return lastFlushTime;
   }
 
-  static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
+  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
                               byte[] ingestInstanceId, long count, byte[] prevRow,
                               boolean checksum) {
     // Adler32 is supposed to be faster, but according to wikipedia is not good for small data.... so used CRC32 instead
@@ -202,7 +202,7 @@ public class ContinuousIngest {
     return m;
   }
 
-  static long genLong(long min, long max, Random r) {
+  public static long genLong(long min, long max, Random r) {
     return ((r.nextLong() & 0x7fffffffffffffffL) % (max - min)) + min;
   }
 
