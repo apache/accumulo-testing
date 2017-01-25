@@ -44,10 +44,8 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * A map only job that reads a table created by continuous ingest and creates doubly linked list.
- * This map reduce job tests the ability of a map only job to read and write to accumulo at the
- * same time. This map reduce job mutates the table in such a way that it should not create any
- * undefined nodes.
+ * A map only job that reads a table created by continuous ingest and creates doubly linked list. This map reduce job tests the ability of a map only job to
+ * read and write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
  */
 public class ContinuousMoru extends Configured implements Tool {
   private static final String PREFIX = ContinuousMoru.class.getSimpleName() + ".";

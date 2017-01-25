@@ -32,9 +32,9 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.test.replication.merkle.MerkleTree;
-import org.apache.accumulo.test.replication.merkle.MerkleTreeNode;
-import org.apache.accumulo.test.replication.merkle.RangeSerialization;
+import org.apache.accumulo.testing.core.merkle.MerkleTree;
+import org.apache.accumulo.testing.core.merkle.MerkleTreeNode;
+import org.apache.accumulo.testing.core.merkle.RangeSerialization;
 import org.apache.commons.codec.binary.Hex;
 
 import com.beust.jcommander.Parameter;
@@ -74,7 +74,8 @@ public class ComputeRootHash {
   }
 
   protected ArrayList<MerkleTreeNode> getLeaves(Connector conn, String tableName) throws TableNotFoundException {
-    // TODO make this a bit more resilient to very large merkle trees by lazily reading more data from the table when necessary
+    // TODO make this a bit more resilient to very large merkle trees by
+    // lazily reading more data from the table when necessary
     final Scanner s = conn.createScanner(tableName, Authorizations.EMPTY);
     final ArrayList<MerkleTreeNode> leaves = new ArrayList<>();
 

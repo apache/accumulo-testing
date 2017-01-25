@@ -37,8 +37,10 @@ public abstract class BulkImportTest extends BulkTest {
      */
 
     String lastImportSkipped = state.getString(SKIPPED_IMPORT);
-    // We have a marker in the state for the previous insert, we have to balance skipping BulkPlusOne
-    // with skipping the new BulkMinusOne to make sure that we maintain consistency
+    // We have a marker in the state for the previous insert, we have to
+    // balance skipping BulkPlusOne
+    // with skipping the new BulkMinusOne to make sure that we maintain
+    // consistency
     if (null != lastImportSkipped) {
       if (!getClass().equals(BulkMinusOne.class)) {
         throw new IllegalStateException("Should not have a skipped import marker for a class other than " + BulkMinusOne.class.getName() + " but was "
@@ -49,7 +51,8 @@ public abstract class BulkImportTest extends BulkTest {
         log.debug("Last import was skipped, skipping this import to ensure consistency");
         state.remove(SKIPPED_IMPORT);
 
-        // Wait 30s to balance the skip of a BulkPlusOne/BulkMinusOne pair
+        // Wait 30s to balance the skip of a BulkPlusOne/BulkMinusOne
+        // pair
         log.debug("Waiting 30s before continuing");
         try {
           Thread.sleep(30 * 1000);
@@ -67,12 +70,14 @@ public abstract class BulkImportTest extends BulkTest {
     } else {
       log.debug("Not queuing more imports this round because too many are already queued");
       state.set(SKIPPED_IMPORT, TRUE);
-      // Don't sleep here, let the sleep happen when we skip the next BulkMinusOne
+      // Don't sleep here, let the sleep happen when we skip the next
+      // BulkMinusOne
     }
   }
 
   private boolean shouldQueueMoreImports(State state, RandWalkEnv env) throws Exception {
-    // Only selectively import when it's BulkPlusOne. If we did a BulkPlusOne,
+    // Only selectively import when it's BulkPlusOne. If we did a
+    // BulkPlusOne,
     // we must also do a BulkMinusOne to keep the table consistent
     if (getClass().equals(BulkPlusOne.class)) {
       // Only queue up more imports if the number of queued tasks already

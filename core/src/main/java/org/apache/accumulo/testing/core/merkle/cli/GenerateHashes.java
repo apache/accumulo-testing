@@ -48,8 +48,8 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.test.replication.merkle.RangeSerialization;
-import org.apache.accumulo.test.replication.merkle.skvi.DigestIterator;
+import org.apache.accumulo.testing.core.merkle.RangeSerialization;
+import org.apache.accumulo.testing.core.merkle.skvi.DigestIterator;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
@@ -192,7 +192,8 @@ public class GenerateHashes {
               cfg.addOption(DigestIterator.HASH_NAME_KEY, digestName);
               s.addScanIterator(cfg);
 
-              // The scanner should only ever return us one Key-Value, otherwise this approach won't work
+              // The scanner should only ever return us one
+              // Key-Value, otherwise this approach won't work
               Entry<Key,Value> entry = Iterables.getOnlyElement(s);
 
               v = entry.getValue();
@@ -243,7 +244,8 @@ public class GenerateHashes {
         }
       }
     } finally {
-      // We can only safely close this when we're exiting or we've completely all tasks
+      // We can only safely close this when we're exiting or we've
+      // completely all tasks
       bw.close();
     }
   }

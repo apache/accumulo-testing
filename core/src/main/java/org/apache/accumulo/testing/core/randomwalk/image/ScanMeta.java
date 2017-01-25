@@ -42,7 +42,8 @@ public class ScanMeta extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    // scan just the metadata of the images table to find N hashes... use the batch scanner to lookup those N hashes in the index table
+    // scan just the metadata of the images table to find N hashes... use
+    // the batch scanner to lookup those N hashes in the index table
     // this scan will test locality groups....
 
     String indexTableName = state.getString("indexTableName");

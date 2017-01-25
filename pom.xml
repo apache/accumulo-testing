@@ -45,6 +45,7 @@
     <twill.version>0.9.0</twill.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <formatter.config>${project.parent.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</formatter.config>
   </properties>
 
   <dependencyManagement>
@@ -222,7 +223,22 @@
         <configuration>
           <cleanupDaemonThreads>false</cleanupDaemonThreads>
         </configuration>
-      </plugin>  
+      </plugin>
+      <plugin>
+        <groupId>net.revelc.code</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
+        <version>0.5.2</version>
+        <configuration>
+          <configFile>${formatter.config}</configFile>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

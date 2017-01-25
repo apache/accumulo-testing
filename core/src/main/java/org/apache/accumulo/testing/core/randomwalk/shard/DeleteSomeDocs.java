@@ -36,7 +36,8 @@ public class DeleteSomeDocs extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    // delete documents that where the document id matches a given pattern from doc and index table
+    // delete documents that where the document id matches a given pattern
+    // from doc and index table
     // using the batch deleter
 
     Random rand = (Random) state.get("rand");

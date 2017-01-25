@@ -31,7 +31,8 @@ public class TestEnv {
   /**
    * Creates new test environment using provided properties
    *
-   * @param p Properties
+   * @param p
+   *          Properties
    */
   public TestEnv(Properties p) {
     requireNonNull(p);
@@ -50,7 +51,8 @@ public class TestEnv {
   /**
    * Gets a configuration property.
    *
-   * @param key key
+   * @param key
+   *          key
    * @return property value
    */
   public String getConfigProperty(String key) {
@@ -93,12 +95,13 @@ public class TestEnv {
     return ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
   }
 
-
   public Configuration getHadoopConfiguration() {
     Configuration config = new Configuration();
     config.set("mapreduce.framework.name", "yarn");
-    // Setting below are required due to bundled jar breaking default config.
-    // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+    // Setting below are required due to bundled jar breaking default
+    // config.
+    // See
+    // http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
     config.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
     config.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
     return config;
@@ -137,8 +140,7 @@ public class TestEnv {
   }
 
   public ClientConfiguration getClientConfiguration() {
-    return ClientConfiguration.loadDefault().withInstance(getAccumuloInstanceName())
-        .withZkHosts(getZookeepers());
+    return ClientConfiguration.loadDefault().withInstance(getAccumuloInstanceName()).withZkHosts(getZookeepers());
   }
 
   /**

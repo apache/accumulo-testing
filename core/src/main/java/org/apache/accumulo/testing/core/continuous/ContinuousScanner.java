@@ -76,7 +76,8 @@ public class ContinuousScanner {
 
       long t2 = System.currentTimeMillis();
 
-      // System.out.println("P1 " +count +" "+((1-delta) * numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
+      // System.out.println("P1 " +count +" "+((1-delta) *
+      // numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
 
       if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
         if (count == 0) {
@@ -90,7 +91,8 @@ public class ContinuousScanner {
           distance = (long) (ratio * distance);
         }
 
-        // System.out.println("P2 "+delta +" "+numToScan+" "+distance+"  "+((double)numToScan/count ));
+        // System.out.println("P2 "+delta
+        // +" "+numToScan+" "+distance+"  "+((double)numToScan/count ));
       }
 
       System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);

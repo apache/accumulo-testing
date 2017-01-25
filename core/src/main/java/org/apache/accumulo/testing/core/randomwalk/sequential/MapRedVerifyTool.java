@@ -117,7 +117,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
         ZooKeeperInstance inst = new ZooKeeperInstance(clientConf);
         Connector conn = inst.getConnector(newPrincipal, token);
 
-        // Do the explicit check to see if the user has the permission to get a delegation token
+        // Do the explicit check to see if the user has the permission
+        // to get a delegation token
         if (!conn.securityOperations().hasSystemPermission(conn.whoami(), SystemPermission.OBTAIN_DELEGATION_TOKEN)) {
           log.error(newPrincipal + " doesn't have the " + SystemPermission.OBTAIN_DELEGATION_TOKEN.name()
               + " SystemPermission neccesary to obtain a delegation token. MapReduce tasks cannot automatically use the client's"

@@ -53,7 +53,8 @@ public class ExportIndex extends Test {
     fs.delete(new Path("/tmp/shard_export/" + indexTableName), true);
     fs.delete(new Path("/tmp/shard_export/" + tmpIndexTableName), true);
 
-    // disable spits, so that splits can be compared later w/o worrying one table splitting and the other not
+    // disable spits, so that splits can be compared later w/o worrying one
+    // table splitting and the other not
     env.getAccumuloConnector().tableOperations().setProperty(indexTableName, Property.TABLE_SPLIT_THRESHOLD.getKey(), "20G");
 
     long t1 = System.currentTimeMillis();

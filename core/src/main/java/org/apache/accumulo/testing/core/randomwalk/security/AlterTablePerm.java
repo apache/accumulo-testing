@@ -77,7 +77,7 @@ public class AlterTablePerm extends Test {
     Connector conn = env.getAccumuloInstance().getConnector(sourceUser, sourceToken);
 
     canGive = WalkingSecurity.get(state, env).canGrantTable(new Credentials(sourceUser, sourceToken).toThrift(env.getAccumuloInstance()), target,
-                                                            WalkingSecurity.get(state, env).getTableName(), WalkingSecurity.get(state, env).getNamespaceName());
+        WalkingSecurity.get(state, env).getTableName(), WalkingSecurity.get(state, env).getNamespaceName());
 
     // toggle
     if (!"take".equals(action) && !"give".equals(action)) {

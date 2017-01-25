@@ -36,7 +36,8 @@ import org.xml.sax.SAXException;
 
 public class FrameworkTest {
 
-  // Need to use fully qualified name here because of conflict with org.apache.accumulo.testing.core.randomwalk.Test
+  // Need to use fully qualified name here because of conflict with
+  // org.apache.accumulo.testing.core.randomwalk.Test
   @org.junit.Test
   public void testXML() throws SAXException, URISyntaxException, ParserConfigurationException, IOException {
     SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);

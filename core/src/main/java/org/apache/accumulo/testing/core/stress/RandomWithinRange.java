@@ -44,7 +44,8 @@ public class RandomWithinRange {
     if (min == max) {
       return min;
     } else {
-      // we pick a random number that's between 0 and (max - min), then add
+      // we pick a random number that's between 0 and (max - min), then
+      // add
       // min as an offset to get a random number that's [min, max)
       return random.nextInt(max - min) + min;
     }

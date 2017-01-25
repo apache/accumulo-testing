@@ -171,7 +171,7 @@ public class ContinuousVerify extends Configured implements Tool {
       ranges = conn.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
       AccumuloInputFormat.setInputTableName(job, tableName);
     }
-    
+
     AccumuloInputFormat.setRanges(job, ranges);
     AccumuloInputFormat.setAutoAdjustRanges(job, false);
     AccumuloInputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());

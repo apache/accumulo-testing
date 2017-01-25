@@ -51,8 +51,8 @@ public class SetAuths extends Test {
     Connector conn = env.getAccumuloInstance().getConnector(authPrincipal, authToken);
 
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
-    boolean hasPermission = WalkingSecurity.get(state, env).canChangeAuthorizations(new Credentials(authPrincipal, authToken).toThrift(env.getAccumuloInstance()),
-        target);
+    boolean hasPermission = WalkingSecurity.get(state, env).canChangeAuthorizations(
+        new Credentials(authPrincipal, authToken).toThrift(env.getAccumuloInstance()), target);
 
     Authorizations auths;
     if (authsString.equals("_random")) {

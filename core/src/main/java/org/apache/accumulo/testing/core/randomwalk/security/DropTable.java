@@ -55,7 +55,7 @@ public class DropTable extends Test {
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
     boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), tableName,
-                                                                           namespaceName);
+        namespaceName);
 
     try {
       conn.tableOperations().delete(tableName);

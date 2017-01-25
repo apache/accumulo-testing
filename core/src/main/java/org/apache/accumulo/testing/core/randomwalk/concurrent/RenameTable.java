@@ -63,7 +63,8 @@ public class RenameTable extends Test {
     } catch (TableNotFoundException e) {
       Throwable cause = e.getCause();
       if (null != cause) {
-        // Rename has to have failed on the destination namespace, because the source namespace
+        // Rename has to have failed on the destination namespace,
+        // because the source namespace
         // couldn't be deleted with our table in it
         if (cause.getClass().isAssignableFrom(NamespaceNotFoundException.class)) {
           log.debug("Rename failed because new namespace doesn't exist: " + newNamespace, cause);
@@ -76,7 +77,8 @@ public class RenameTable extends Test {
     } catch (IllegalArgumentException e) {
       log.debug("Rename: " + e.toString());
     } catch (AccumuloException e) {
-      // Catch the expected failure when we try to rename a table into a new namespace
+      // Catch the expected failure when we try to rename a table into a
+      // new namespace
       if (!srcNamespace.equals(newNamespace)) {
         return;
       }

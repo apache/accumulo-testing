@@ -70,12 +70,24 @@ public class Module extends Node {
       String print;
       if ((print = props.getProperty("print")) != null) {
         switch (print) {
-          case "TRACE": log.trace(name); break;
-          case "DEBUG": log.debug(name); break;
-          case "INFO": log.info(name); break;
-          case "WARN": log.warn(name); break;
-          case "ERROR": log.error(name); break;
-          default: log.info(name); break;
+          case "TRACE":
+            log.trace(name);
+            break;
+          case "DEBUG":
+            log.debug(name);
+            break;
+          case "INFO":
+            log.info(name);
+            break;
+          case "WARN":
+            log.warn(name);
+            break;
+          case "ERROR":
+            log.error(name);
+            break;
+          default:
+            log.info(name);
+            break;
         }
       }
     }
@@ -279,7 +291,8 @@ public class Module extends Node {
             test = true;
           }
 
-          // Wrap the visit of the next node in the module in a callable that returns a thrown exception
+          // Wrap the visit of the next node in the module in a
+          // callable that returns a thrown exception
           FutureTask<Exception> task = new FutureTask<>(new Callable<Exception>() {
 
             @Override
@@ -312,7 +325,8 @@ public class Module extends Node {
             break;
           }
 
-          // The RandomWalk node throw an Exception that that Callable handed back
+          // The RandomWalk node throw an Exception that that Callable
+          // handed back
           // Throw it and let the Module perform cleanup
           if (null != nodeException) {
             throw nodeException;

@@ -39,7 +39,7 @@ public class CreateTable {
     Connector conn = env.getAccumuloConnector();
     String tableName = env.getAccumuloTableName();
     if (conn.tableOperations().exists(tableName)) {
-      System.err.println("ERROR: Accumulo table '"+ tableName + "' already exists");
+      System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
       System.exit(-1);
     }
 

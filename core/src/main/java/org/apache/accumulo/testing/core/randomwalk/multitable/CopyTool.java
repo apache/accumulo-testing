@@ -74,8 +74,10 @@ public class CopyTool extends Configured implements Tool {
     final String principal;
     final AuthenticationToken token;
     if (clientConf.getBoolean(ClientProperty.INSTANCE_RPC_SASL_ENABLED.getKey(), false)) {
-      // Use the Kerberos creds to request a DelegationToken for MapReduce to use
-      // We could use the specified keytab (args[1]), but we're already logged in and don't need to, so we can just use the current user
+      // Use the Kerberos creds to request a DelegationToken for MapReduce
+      // to use
+      // We could use the specified keytab (args[1]), but we're already
+      // logged in and don't need to, so we can just use the current user
       KerberosToken kt = new KerberosToken();
       try {
         UserGroupInformation user = UserGroupInformation.getCurrentUser();
@@ -90,7 +92,8 @@ public class CopyTool extends Configured implements Tool {
         ZooKeeperInstance inst = new ZooKeeperInstance(clientConf);
         Connector conn = inst.getConnector(principal, kt);
 
-        // Do the explicit check to see if the user has the permission to get a delegation token
+        // Do the explicit check to see if the user has the permission
+        // to get a delegation token
         if (!conn.securityOperations().hasSystemPermission(conn.whoami(), SystemPermission.OBTAIN_DELEGATION_TOKEN)) {
           log.error(principal + " doesn't have the " + SystemPermission.OBTAIN_DELEGATION_TOKEN.name()
               + " SystemPermission neccesary to obtain a delegation token. MapReduce tasks cannot automatically use the client's"

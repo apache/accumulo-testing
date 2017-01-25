@@ -26,9 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The test environment that is available for randomwalk tests. This includes configuration
- * properties that are available to any randomwalk test and facilities for creating client-side
- * objects. This class is not thread-safe.
+ * The test environment that is available for randomwalk tests. This includes configuration properties that are available to any randomwalk test and facilities
+ * for creating client-side objects. This class is not thread-safe.
  */
 public class RandWalkEnv extends TestEnv {
 
@@ -39,7 +38,8 @@ public class RandWalkEnv extends TestEnv {
   /**
    * Creates a new test environment.
    *
-   * @param p configuration properties
+   * @param p
+   *          configuration properties
    */
   public RandWalkEnv(Properties p) {
     super(p);

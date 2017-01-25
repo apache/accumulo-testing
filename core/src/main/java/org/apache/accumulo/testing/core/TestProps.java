@@ -65,7 +65,8 @@ public class TestProps {
   public static final String CI_COMMON_ACCUMULO_TABLE = CI_COMMON + "accumulo.table";
   // Number of tablets that should exist in Accumulo table when created
   public static final String CI_COMMON_ACCUMULO_NUM_TABLETS = CI_COMMON + "accumulo.num.tablets";
-  // Optional authorizations (in CSV format) that if specified will be randomly selected by scanners
+  // Optional authorizations (in CSV format) that if specified will be
+  // randomly selected by scanners
   // and walkers
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
 
@@ -80,7 +81,8 @@ public class TestProps {
   public static final String CI_INGEST_MAX_CF = CI_INGEST + "max.cf";
   // Maximum number of random column qualifiers to generate
   public static final String CI_INGEST_MAX_CQ = CI_INGEST + "max.cq";
-  // Optional visibilities (in CSV format) that if specified will be randomly selected by ingesters for
+  // Optional visibilities (in CSV format) that if specified will be randomly
+  // selected by ingesters for
   // each linked list
   public static final String CI_INGEST_VISIBILITIES = CI_INGEST + "visibilities";
   // Checksums will be generated during ingest if set to true
@@ -107,7 +109,8 @@ public class TestProps {
   public static final String CI_VERIFY_MAX_MAPS = CI_VERIFY + "max.maps";
   // Number of mapreduce reducers
   public static final String CI_VERIFY_REDUCERS = CI_VERIFY + "reducers";
-  // Perform the verification directly on the files while the table is offline"
+  // Perform the verification directly on the files while the table is
+  // offline"
   public static final String CI_VERIFY_SCAN_OFFLINE = CI_VERIFY + "scan.offline";
   // Comma separated list of auths to use for verify
   public static final String CI_VERIFY_AUTHS = CI_VERIFY + "auths";

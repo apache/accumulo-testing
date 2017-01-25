@@ -166,8 +166,10 @@ public class TableOp extends Test {
             writer.addMutation(m);
             writer.close();
           } catch (MutationsRejectedException mre) {
-            // Currently no method for detecting reason for mre. Waiting on ACCUMULO-670
-            // For now, just wait a second and go again if they can write!
+            // Currently no method for detecting reason for mre.
+            // Waiting on ACCUMULO-670
+            // For now, just wait a second and go again if they can
+            // write!
             if (!canWrite)
               return;
 

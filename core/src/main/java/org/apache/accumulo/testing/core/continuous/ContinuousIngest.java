@@ -96,9 +96,12 @@ public class ContinuousIngest {
     final int flushInterval = 1000000;
     final int maxDepth = 25;
 
-    // always want to point back to flushed data. This way the previous item should
-    // always exist in accumulo when verifying data. To do this make insert N point
-    // back to the row from insert (N - flushInterval). The array below is used to keep
+    // always want to point back to flushed data. This way the previous item
+    // should
+    // always exist in accumulo when verifying data. To do this make insert
+    // N point
+    // back to the row from insert (N - flushInterval). The array below is
+    // used to keep
     // track of this.
     long prevRows[] = new long[flushInterval];
     long firstRows[] = new long[flushInterval];
@@ -127,8 +130,7 @@ public class ContinuousIngest {
         firstColFams[index] = cf;
         firstColQuals[index] = cq;
 
-        Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null,
-                                 checksum);
+        Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
         count++;
         bw.addMutation(m);
       }
@@ -137,7 +139,8 @@ public class ContinuousIngest {
       if (count >= numEntries)
         break out;
 
-      // generate subsequent sets of nodes that link to previous set of nodes
+      // generate subsequent sets of nodes that link to previous set of
+      // nodes
       for (int depth = 1; depth < maxDepth; depth++) {
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
@@ -156,7 +159,8 @@ public class ContinuousIngest {
       // create one big linked list, this makes all of the first inserts
       // point to something
       for (int index = 0; index < flushInterval - 1; index++) {
-        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv, ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
+        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv, ingestInstanceId, count, genRow(prevRows[index + 1]),
+            checksum);
         count++;
         bw.addMutation(m);
       }
@@ -177,10 +181,10 @@ public class ContinuousIngest {
     return lastFlushTime;
   }
 
-  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
-                              byte[] ingestInstanceId, long count, byte[] prevRow,
-                              boolean checksum) {
-    // Adler32 is supposed to be faster, but according to wikipedia is not good for small data.... so used CRC32 instead
+  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv, byte[] ingestInstanceId, long count, byte[] prevRow,
+      boolean checksum) {
+    // Adler32 is supposed to be faster, but according to wikipedia is not
+    // good for small data.... so used CRC32 instead
     CRC32 cksum = null;
 
     byte[] rowString = genRow(rowLong);

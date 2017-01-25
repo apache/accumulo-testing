@@ -91,7 +91,8 @@ public class RandomWorkload {
         // Choose a random value between [0,100)
         int deleteValue = deleteRand.nextInt(100);
 
-        // putDelete if the value we chose is less than our delete percentage
+        // putDelete if the value we chose is less than our delete
+        // percentage
         if (deleteValue < deletePercent) {
           m.putDelete(cf, cq);
         } else {

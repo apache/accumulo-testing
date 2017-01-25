@@ -164,7 +164,8 @@ public class CompareTables {
       if (null == previousHash) {
         previousHash = entry.getValue();
       } else if (hashesEqual) {
-        // If the hashes are still equal, check that the new hash is also equal
+        // If the hashes are still equal, check that the new hash is
+        // also equal
         hashesEqual = previousHash.equals(entry.getValue());
       }
 

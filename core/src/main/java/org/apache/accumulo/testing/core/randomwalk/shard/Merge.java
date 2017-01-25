@@ -40,7 +40,8 @@ public class Merge extends Test {
     merge.mergomatic(env.getAccumuloConnector(), indexTableName, null, null, 256 * 1024 * 1024, true);
     splits = env.getAccumuloConnector().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
-      // throw an excpetion so that test will die an no further changes to table will occur...
+      // throw an excpetion so that test will die an no further changes to
+      // table will occur...
       // this way table is left as is for debugging.
       throw new Exception("There are more tablets after a merge: " + splits.size() + " was " + splitSet.size());
     }
