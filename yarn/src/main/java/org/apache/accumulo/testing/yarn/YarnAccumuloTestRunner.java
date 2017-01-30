@@ -20,6 +20,7 @@ package org.apache.accumulo.testing.yarn;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Preconditions;
+import org.apache.accumulo.testing.core.TestEnv;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.twill.api.ResourceReport;
@@ -36,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -125,16 +126,18 @@ public class YarnAccumuloTestRunner {
     verifyPath(opts.testProps);
     verifyPath(opts.logProps);
 
+    String jarFileName = Paths.get(opts.jarPath).getFileName().toString();
+
     String[] mainArgs = opts.mainArgs.stream().toArray(String[]::new);
-    BundledJarRunner.Arguments arguments = new BundledJarRunner.Arguments(opts.jarPath, "/lib", opts.mainClass, mainArgs);
+    BundledJarRunner.Arguments arguments = new BundledJarRunner.Arguments(jarFileName, "/lib",
+                                                                          opts.mainClass, mainArgs);
 
-    Properties props = new Properties();
-    FileInputStream fis = new FileInputStream(opts.testProps);
-    props.load(fis);
-    fis.close();
-    String zookeepers = props.getProperty(TestProps.ZOOKEEPERS);
+    Properties props = TestProps.loadFromFile(opts.testProps);
+    TestEnv env = new TestEnv(props);
 
-    final TwillRunnerService twillRunner = new YarnTwillRunnerService(new YarnConfiguration(), zookeepers);
+    YarnConfiguration yarnConfig = new YarnConfiguration(env.getHadoopConfiguration());
+
+    TwillRunnerService twillRunner = new YarnTwillRunnerService(yarnConfig, env.getZookeepers());
     twillRunner.start();
 
     TwillController controller = twillRunner.prepare(new YarnTestApp(opts, props))

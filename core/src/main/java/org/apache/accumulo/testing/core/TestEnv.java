@@ -19,7 +19,7 @@ import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.KerberosToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.tools.CLI;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 
 public class TestEnv {
@@ -27,6 +27,7 @@ public class TestEnv {
   protected final Properties p;
   private Instance instance = null;
   private Connector connector = null;
+  private Configuration hadoopConfig = null;
 
   /**
    * Creates new test environment using provided properties
@@ -96,15 +97,17 @@ public class TestEnv {
   }
 
   public Configuration getHadoopConfiguration() {
-    Configuration config = new Configuration();
-    config.set("mapreduce.framework.name", "yarn");
-    // Setting below are required due to bundled jar breaking default
-    // config.
-    // See
-    // http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
-    config.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-    config.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-    return config;
+    if (hadoopConfig == null) {
+      hadoopConfig = new Configuration();
+      hadoopConfig.set("fs.defaultFS", getHdfsRoot());
+      // Below is required due to bundled jar breaking default config.
+      // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+      hadoopConfig.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+      hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+      hadoopConfig.set("mapreduce.framework.name", "yarn");
+      hadoopConfig.set("yarn.resourcemanager.hostname", getYarnResourceManager());
+    }
+    return hadoopConfig;
   }
 
   /**
@@ -133,6 +136,14 @@ public class TestEnv {
 
   public String getAccumuloInstanceName() {
     return p.getProperty(TestProps.ACCUMULO_INSTANCE);
+  }
+
+  public String getHdfsRoot() {
+    return p.getProperty(TestProps.HDFS_ROOT);
+  }
+
+  public String getYarnResourceManager() {
+    return p.getProperty(TestProps.YARN_RESOURCE_MANAGER);
   }
 
   public String getZookeepers() {
@@ -164,9 +175,9 @@ public class TestEnv {
   }
 
   public BatchWriterConfig getBatchWriterConfig() {
-    int numThreads = Integer.parseInt(p.getProperty(TestProps.BW_NUM_THREADS));
-    long maxLatency = Long.parseLong(p.getProperty(TestProps.BW_MAX_LATENCY_MS));
-    long maxMemory = Long.parseLong(p.getProperty(TestProps.BW_MAX_MEM_BYTES));
+    int numThreads = Integer.parseInt(p.getProperty(TestProps.ACCUMULO_BW_NUM_THREADS));
+    long maxLatency = Long.parseLong(p.getProperty(TestProps.ACCUMULO_BW_MAX_LATENCY_MS));
+    long maxMemory = Long.parseLong(p.getProperty(TestProps.ACCUMULO_BW_MAX_MEM_BYTES));
 
     BatchWriterConfig config = new BatchWriterConfig();
     config.setMaxWriteThreads(numThreads);
@@ -176,6 +187,6 @@ public class TestEnv {
   }
 
   public int getScannerBatchSize() {
-    return Integer.parseInt(p.getProperty(TestProps.SCANNER_BATCH_SIZE));
+    return Integer.parseInt(p.getProperty(TestProps.ACCUMULO_SCANNER_BATCH_SIZE));
   }
 }

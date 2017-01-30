@@ -54,7 +54,7 @@ public class ContinuousBatchWalker {
 
     Random r = new Random();
 
-    int scanThreads = Integer.parseInt(props.getProperty(TestProps.BS_NUM_THREADS));
+    int scanThreads = Integer.parseInt(props.getProperty(TestProps.ACCUMULO_BS_NUM_THREADS));
 
     while (true) {
       BatchScanner bs = conn.createBatchScanner(env.getAccumuloTableName(), auths, scanThreads);
