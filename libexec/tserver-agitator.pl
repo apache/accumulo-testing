@@ -24,15 +24,15 @@ if(scalar(@ARGV) != 4 && scalar(@ARGV) != 2){
   exit(1);
 }
 
-my $ACCUMULO_HOME;
+my $accumuloHome;
 if( defined $ENV{'ACCUMULO_HOME'} ){
-  $ACCUMULO_HOME = $ENV{'ACCUMULO_HOME'};
+  $accumuloHome = $ENV{'ACCUMULO_HOME'};
 } else {
-  $cwd=Cwd::cwd();
-  $ACCUMULO_HOME=$cwd . '/../../..';
+  print "ERROR: ACCUMULO_HOME needs to be set!";
+  exit(1);
 }
 
-print "ACCUMULO_HOME=$ACCUMULO_HOME\n";
+print "ACCUMULO_HOME=$accumuloHome\n";
 
 @sleeprange1 = split(/:/, $ARGV[0]);
 $sleep1 = $sleeprange1[0];
@@ -60,11 +60,7 @@ if($sleep2 > $sleep2max){
   die("sleep2 > sleep2max $sleep2 > $sleep2max");
 }
 
-if(defined $ENV{'ACCUMULO_CONF_DIR'}){
-  $ACCUMULO_CONF_DIR = $ENV{'ACCUMULO_CONF_DIR'};
-}else{
-  $ACCUMULO_CONF_DIR = $ACCUMULO_HOME . '/conf';
-}
+$accumuloConfDir = $accumuloHome . '/conf';
 
 if(scalar(@ARGV) == 4){
   $minKill = $ARGV[2];
@@ -78,7 +74,7 @@ if($minKill > $maxKill){
   die("minKill > maxKill $minKill > $maxKill");
 }
 
-@tserversRaw = `cat $ACCUMULO_CONF_DIR/tservers`;
+@tserversRaw = `cat $accumuloConfDir/tservers`;
 chomp(@tserversRaw);
 
 for $tserver (@tserversRaw){
@@ -118,7 +114,7 @@ while(1){
 
     print STDERR "$t Killing tserver on $server\n";
     # We're the accumulo user, just run the commandj
-    system("ssh $server '$ACCUMULO_HOME/bin/accumulo-service tserver stop'");
+    system("ssh $server '$accumuloHome/bin/accumulo-service tserver kill'");
   }
 
   $nextsleep2 = int(rand($sleep2max - $sleep2)) + $sleep2;
@@ -126,7 +122,7 @@ while(1){
   $t = strftime "%Y%m%d %H:%M:%S", localtime;
   print STDERR "$t Running tup\n";
   # restart the as them as the accumulo user
-  system("$ACCUMULO_HOME/libexec/cluster.sh start-tservers");
+  system("$accumuloHome/bin/accumulo-cluster start-tservers");
 
   $nextsleep1 = int(rand($sleep1max - $sleep1)) + $sleep1;
   sleep($nextsleep1 * 60);

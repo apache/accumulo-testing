@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 use POSIX qw(strftime);
 use Cwd qw();
 
@@ -24,24 +23,20 @@ if(scalar(@ARGV) != 2){
 	exit(1);
 }
 
-my $ACCUMULO_HOME;
+my $accumuloHome;
 if( defined $ENV{'ACCUMULO_HOME'} ){
-  $ACCUMULO_HOME = $ENV{'ACCUMULO_HOME'};
+  $accumuloHome = $ENV{'ACCUMULO_HOME'};
 } else {
-  $cwd=Cwd::cwd();
-  $ACCUMULO_HOME=$cwd . '/../../..';
+  print "ERROR: ACCUMULO_HOME needs to be set!";
+  exit(1);
 }
 
-if(defined $ENV{'ACCUMULO_CONF_DIR'}){
-        $ACCUMULO_CONF_DIR = $ENV{'ACCUMULO_CONF_DIR'};
-}else{
-	$ACCUMULO_CONF_DIR = $ACCUMULO_HOME . '/conf';
-}
+$accumuloConfDir = $accumuloHome . '/conf';
 
 $sleep1 = $ARGV[0];
 $sleep2 = $ARGV[1];
 
-@mastersRaw = `cat $ACCUMULO_CONF_DIR/masters`;
+@mastersRaw = `cat $accumuloConfDir/masters`;
 chomp(@mastersRaw);
 
 for $master (@mastersRaw){
@@ -64,18 +59,18 @@ while(1){
 		system($cmd);
 	}else{
 		print STDERR "$t Killing all masters\n";
-		$cmd = "pssh -h $ACCUMULO_CONF_DIR/masters \"pkill -f '[ ]org.apache.accumulo.start.*master'\" < /dev/null";
+		$cmd = "pssh -h $accumuloConfDir/masters \"pkill -f '[ ]org.apache.accumulo.start.*master'\" < /dev/null";
 		print "$t $cmd\n";
 		system($cmd);
 
 		$file = '';
-		if (-e "$ACCUMULO_CONF_DIR/gc") {
+		if (-e "$accumuloConfDir/gc") {
 			$file = 'gc';
 		} else {
 			$file = 'masters';
 		}
 
-		$cmd = "pssh -h $ACCUMULO_CONF_DIR/$file \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
+		$cmd = "pssh -h $accumuloConfDir/$file \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
 		print "$t $cmd\n";
 		system($cmd);
 	}
@@ -84,7 +79,7 @@ while(1){
 	$t = strftime "%Y%m%d %H:%M:%S", localtime;
 	print STDERR "$t Running start-all\n";
 
-	$cmd = "pssh -h $ACCUMULO_CONF_DIR/masters \"$ACCUMULO_HOME/bin/accumulo-service master start\" < /dev/null";
+	$cmd = "pssh -h $accumuloConfDir/masters \"$accumuloHome/bin/accumulo-service master start\" < /dev/null";
 	print "$t $cmd\n";
 	system($cmd);
 }

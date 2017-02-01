@@ -116,6 +116,8 @@ function determine_mapred_main() {
 }
 
 function start_agitator() {
+  hash pssh 2>/dev/null || { echo >&2 "The agitator requires pssh to be installed. Aborting."; exit 1; }
+
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"
   libexec="${at_home}/libexec"
@@ -132,17 +134,23 @@ function start_agitator() {
     su -c "$master_cmd >${master_log}.out 2>${master_log}.err" & -m - "$AGTR_ACCUMULO_USER"
     su -c "$tserver_cmd >${tserver_log}.out 2>${tserver_log}.err" & -m - "$AGTR_ACCUMULO_USER"
     su -c "$datanode_cmd >${datanode_log}.out 2>${datanode_log}.err" & -m - "$AGTR_HDFS_USER"
-  elif [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
-    echo "Running master-agitator and tserver-agitator as $AGITATOR_USER Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-    $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
-    $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
-    sudo -u "$AGTR_HDFS_USER" "$datanode_cmd" > "${datanode_log}.out" 2> "${datanode_log}.err" &
   else
-    echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo. Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-    # Not root, and not the accumulo user, hope you can sudo to it
-    sudo -u "$AGTR_ACCUMULO_USER" "$master_cmd" > "${master_log}.out" 2> "${master_log}.err" &
-    sudo -u "$AGTR_ACCUMULO_USER" "$tserver_cmd" > "${tserver_log}.out" 2> "${tserver_log}.err" &
-    sudo -u "$AGTR_HDFS_USER" "$datanode_cmd" > "${datanode_log}.out" 2> "${datanode_log}.err" & -m - "$AGTR_HDFS_USER"
+    if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
+      echo "Running master-agitator and tserver-agitator as $AGITATOR_USER"
+      $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
+      $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
+    else 
+      echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
+      sudo -u "$AGTR_ACCUMULO_USER" $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
+      sudo -u "$AGTR_ACCUMULO_USER" $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
+    fi
+    if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
+      echo "Running datanode-agitator as $AGITATOR_USER"
+      $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
+    else
+      echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
+      sudo -u "$AGTR_HDFS_USER" $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
+    fi
   fi
 
   if ${AGTR_HDFS:-false} ; then

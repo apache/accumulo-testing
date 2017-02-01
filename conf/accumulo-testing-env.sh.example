@@ -13,20 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Hadoop
-# ======
+# General
+# =======
 test -z "$HADOOP_PREFIX" && export HADOOP_PREFIX=/path/to/hadoop
-test -z "$HADOOP_CONF_DIR" && export HADOOP_CONF_DIR=/path/to/hadoop/etc/hadoop
-
-# Accumulo
-# ========
-# Set the Accumulo version that should be included in the shaded jar
+# Versions set below will be what is included in the shaded jar
 export ACCUMULO_VERSION=`accumulo version`
 export HADOOP_VERSION=`hadoop version | head -n1 | awk '{print $2}'`
 export ZOOKEEPER_VERSION=3.4.9
 
 # Agitator
 # ========
+# Agitator needs know where Accumulo is installed
+test -z "$ACCUMULO_HOME" && export ACCUMULO_HOME=/path/to/accumulo
 # Accumulo user
 AGTR_ACCUMULO_USER=$(whoami)
 # Time (in minutes) between killing Accumulo masters

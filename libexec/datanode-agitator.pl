@@ -24,16 +24,16 @@ if(scalar(@ARGV) != 5 && scalar(@ARGV) != 3){
   exit(1);
 }
 
-my $ACCUMULO_HOME;
+my $accumuloHome;
 if( defined $ENV{'ACCUMULO_HOME'} ){
-  $ACCUMULO_HOME = $ENV{'ACCUMULO_HOME'};
+  $accumuloHome = $ENV{'ACCUMULO_HOME'};
 } else {
-  $cwd=Cwd::cwd();
-  $ACCUMULO_HOME=$cwd . '/../../..';
+  print "ERROR: ACCUMULO_HOME needs to be set!";
+  exit(1);
 }
 $HADOOP_PREFIX=$ARGV[2];
 
-print "ACCUMULO_HOME=$ACCUMULO_HOME\n";
+print "ACCUMULO_HOME=$accumuloHome\n";
 print "HADOOP_PREFIX=$HADOOP_PREFIX\n";
 
 @sleeprange1 = split(/:/, $ARGV[0]);
@@ -62,11 +62,7 @@ if($sleep2 > $sleep2max){
   die("sleep2 > sleep2max $sleep2 > $sleep2max");
 }
 
-if(defined $ENV{'ACCUMULO_CONF_DIR'}){
-  $ACCUMULO_CONF_DIR = $ENV{'ACCUMULO_CONF_DIR'};
-}else{
-  $ACCUMULO_CONF_DIR = $ACCUMULO_HOME . '/conf';
-}
+$accumuloConfDir = $accumuloHome . '/conf';
 
 if(scalar(@ARGV) == 5){
   $minKill = $ARGV[3];
@@ -80,7 +76,7 @@ if($minKill > $maxKill){
   die("minKill > maxKill $minKill > $maxKill");
 }
 
-@tserversRaw = `cat $ACCUMULO_CONF_DIR/tservers`;
+@tserversRaw = `cat $accumuloConfDir/tservers`;
 chomp(@tserversRaw);
 
 for $tserver (@tserversRaw){
