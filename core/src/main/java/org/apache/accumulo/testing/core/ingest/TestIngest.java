@@ -36,6 +36,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.impl.TabletServerBatchWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -219,7 +220,7 @@ public class TestIngest {
     if (opts.outputFile != null) {
       Configuration conf = CachedConfiguration.getInstance();
       writer = FileOperations.getInstance().newWriterBuilder().forFile(opts.outputFile + "." + RFile.EXTENSION, fs, conf)
-          .withTableConfiguration(AccumuloConfiguration.getDefaultConfiguration()).build();
+          .withTableConfiguration(DefaultConfiguration.getInstance()).build();
       writer.startDefaultLocalityGroup();
     } else {
       bw = connector.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());

@@ -49,7 +49,7 @@ public class CreateTable extends Test {
       conn.tableOperations().create(tableName);
       // Add some splits to make the server's life easier
       conn.tableOperations().addSplits(tableName, splits);
-      String tableId = Tables.getNameToIdMap(env.getAccumuloInstance()).get(tableName);
+      String tableId = conn.tableOperations().tableIdMap().get(tableName);
       log.debug("created " + tableName + " (id:" + tableId + ")");
       // Add some splits to make the server's life easier
       conn.tableOperations().addSplits(tableName, splits);

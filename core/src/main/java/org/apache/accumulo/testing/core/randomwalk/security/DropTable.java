@@ -24,6 +24,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.impl.Credentials;
+import org.apache.accumulo.core.client.impl.Namespace;
+import org.apache.accumulo.core.client.impl.Table;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -52,10 +54,12 @@ public class DropTable extends Test {
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
     String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
+    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
+    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(namespaceName));
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), tableName,
-        namespaceName);
+    boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), tableId,
+        namespaceId);
 
     try {
       conn.tableOperations().delete(tableName);

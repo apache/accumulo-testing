@@ -30,6 +30,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.impl.Credentials;
+import org.apache.accumulo.core.client.impl.Namespace;
 import org.apache.accumulo.core.client.impl.thrift.SecurityErrorCode;
 import org.apache.accumulo.core.client.impl.thrift.ThriftSecurityException;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
@@ -83,7 +84,7 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   public WalkingSecurity(State state2, RandWalkEnv env2) {
-    super(new AccumuloServerContext(new ServerConfigurationFactory(HdfsZooInstance.getInstance())));
+    super(new AccumuloServerContext(HdfsZooInstance.getInstance(), new ServerConfigurationFactory(HdfsZooInstance.getInstance())));
     this.state = state2;
     this.env = env2;
     authorizor = this;
@@ -217,13 +218,13 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   @Override
-  public boolean hasNamespacePermission(String user, String namespace, NamespacePermission permission) throws AccumuloSecurityException,
+  public boolean hasNamespacePermission(String user, Namespace.ID namespace, NamespacePermission permission) throws AccumuloSecurityException,
       NamespaceNotFoundException {
     return Boolean.parseBoolean(state.getString("Nsp-" + user + '-' + permission.name()));
   }
 
   @Override
-  public boolean hasCachedNamespacePermission(String user, String namespace, NamespacePermission permission) throws AccumuloSecurityException,
+  public boolean hasCachedNamespacePermission(String user, Namespace.ID namespace, NamespacePermission permission) throws AccumuloSecurityException,
       NamespaceNotFoundException {
     return hasNamespacePermission(user, namespace, permission);
   }
@@ -263,12 +264,12 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   @Override
-  public void grantNamespacePermission(String user, String namespace, NamespacePermission permission) throws AccumuloSecurityException,
+  public void grantNamespacePermission(String user, Namespace.ID namespace, NamespacePermission permission) throws AccumuloSecurityException,
       NamespaceNotFoundException {
     setNspPerm(state, user, permission, namespace, true);
   }
 
-  private void setNspPerm(State state, String userName, NamespacePermission tnp, String namespace, boolean value) {
+  private void setNspPerm(State state, String userName, NamespacePermission tnp, Namespace.ID namespace, boolean value) {
     if (namespace.equals(userName))
       throw new RuntimeException("I don't even know");
     log.debug((value ? "Gave" : "Took") + " the table permission " + tnp.name() + (value ? " to" : " from") + " user " + userName);
@@ -278,7 +279,7 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   @Override
-  public void revokeNamespacePermission(String user, String namespace, NamespacePermission permission) throws AccumuloSecurityException,
+  public void revokeNamespacePermission(String user, Namespace.ID namespace, NamespacePermission permission) throws AccumuloSecurityException,
       NamespaceNotFoundException {
     setNspPerm(state, user, permission, namespace, false);
   }
@@ -294,7 +295,7 @@ public class WalkingSecurity extends SecurityOperation implements Authorizor, Au
   }
 
   @Override
-  public void cleanNamespacePermissions(String namespace) throws AccumuloSecurityException, NamespaceNotFoundException {
+  public void cleanNamespacePermissions(Namespace.ID namespace) throws AccumuloSecurityException, NamespaceNotFoundException {
     for (String user : new String[] {getSysUserName(), getNspUserName()}) {
       for (NamespacePermission tnp : NamespacePermission.values()) {
         revokeNamespacePermission(user, namespace, tnp);

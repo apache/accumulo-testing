@@ -34,8 +34,10 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.impl.Namespace;
+import org.apache.accumulo.core.client.impl.Table;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
-import org.apache.accumulo.core.conf.AccumuloConfiguration;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -70,10 +72,12 @@ public class TableOp extends Test {
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
     String tableName = WalkingSecurity.get(state, env).getTableName();
     String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
+    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
+    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(namespaceName));
 
     switch (tp) {
       case READ: {
-        boolean canRead = WalkingSecurity.get(state, env).canScan(WalkingSecurity.get(state, env).getTabCredentials(), tableName, namespaceName);
+        boolean canRead = WalkingSecurity.get(state, env).canScan(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId);
         Authorizations auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
         boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(conn.whoami());
@@ -144,7 +148,7 @@ public class TableOp extends Test {
         break;
       }
       case WRITE:
-        boolean canWrite = WalkingSecurity.get(state, env).canWrite(WalkingSecurity.get(state, env).getTabCredentials(), tableName, namespaceName);
+        boolean canWrite = WalkingSecurity.get(state, env).canWrite(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId);
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
 
         String key = WalkingSecurity.get(state, env).getLastKey() + "1";
@@ -206,7 +210,7 @@ public class TableOp extends Test {
         Path fail = new Path(dir.toString() + "_fail");
         FileSystem fs = WalkingSecurity.get(state, env).getFs();
         FileSKVWriter f = FileOperations.getInstance().newWriterBuilder().forFile(dir + "/securityBulk." + RFile.EXTENSION, fs, fs.getConf())
-            .withTableConfiguration(AccumuloConfiguration.getDefaultConfiguration()).build();
+            .withTableConfiguration(DefaultConfiguration.getInstance()).build();
         f.startDefaultLocalityGroup();
         fs.mkdirs(fail);
         for (Key k : keys)
@@ -220,7 +224,7 @@ public class TableOp extends Test {
           return;
         } catch (AccumuloSecurityException ae) {
           if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
-            if (WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableName, namespaceName))
+            if (WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId))
               throw new AccumuloException("Bulk Import failed when it should have worked: " + tableName);
             return;
           } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
@@ -234,12 +238,12 @@ public class TableOp extends Test {
         fs.delete(dir, true);
         fs.delete(fail, true);
 
-        if (!WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableName, namespaceName))
+        if (!WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId))
           throw new AccumuloException("Bulk Import succeeded when it should have failed: " + dir + " table " + tableName);
         break;
       case ALTER_TABLE:
         AlterTable.renameTable(conn, state, env, tableName, tableName + "plus",
-            WalkingSecurity.get(state, env).canAlterTable(WalkingSecurity.get(state, env).getTabCredentials(), tableName, namespaceName), tableExists);
+            WalkingSecurity.get(state, env).canAlterTable(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId), tableExists);
         break;
 
       case GRANT:

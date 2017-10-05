@@ -301,7 +301,8 @@ public class UndefinedAnalyzer {
     bscanner.close();
 
     IngestInfo ingestInfo = new IngestInfo(opts.logDir);
-    TabletHistory tabletHistory = new TabletHistory(Tables.getTableId(conn.getInstance(), opts.getTableName()), opts.logDir);
+    String tableId = conn.tableOperations().tableIdMap().get(opts.getTableName());
+    TabletHistory tabletHistory = new TabletHistory(tableId, opts.logDir);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 

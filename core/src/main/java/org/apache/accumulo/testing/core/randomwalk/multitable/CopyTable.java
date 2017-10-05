@@ -76,7 +76,7 @@ public class CopyTable extends Test {
       return;
     }
 
-    String tableId = Tables.getNameToIdMap(env.getAccumuloInstance()).get(dstTableName);
+    String tableId = env.getAccumuloConnector().tableOperations().tableIdMap().get(dstTableName);
     log.debug("copied " + srcTableName + " to " + dstTableName + " (id - " + tableId + " )");
 
     tables.add(dstTableName);

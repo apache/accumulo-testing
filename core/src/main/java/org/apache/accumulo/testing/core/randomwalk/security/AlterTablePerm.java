@@ -23,6 +23,8 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.impl.Credentials;
+import org.apache.accumulo.core.client.impl.Namespace;
+import org.apache.accumulo.core.client.impl.Table;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -75,9 +77,11 @@ public class AlterTablePerm extends Test {
       sourceToken = env.getToken();
     }
     Connector conn = env.getAccumuloInstance().getConnector(sourceUser, sourceToken);
+    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
+    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(WalkingSecurity.get(state, env).getNamespaceName()));
 
-    canGive = WalkingSecurity.get(state, env).canGrantTable(new Credentials(sourceUser, sourceToken).toThrift(env.getAccumuloInstance()), target,
-        WalkingSecurity.get(state, env).getTableName(), WalkingSecurity.get(state, env).getNamespaceName());
+    canGive = WalkingSecurity.get(state, env).canGrantTable(new Credentials(sourceUser, sourceToken).toThrift(env.getAccumuloInstance()), target, tableId,
+        namespaceId);
 
     // toggle
     if (!"take".equals(action) && !"give".equals(action)) {
