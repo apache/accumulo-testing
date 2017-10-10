@@ -22,9 +22,9 @@ import java.util.Random;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.Credentials;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -51,8 +51,7 @@ public class SetAuths extends Test {
     Connector conn = env.getAccumuloInstance().getConnector(authPrincipal, authToken);
 
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
-    boolean hasPermission = WalkingSecurity.get(state, env).canChangeAuthorizations(
-        new Credentials(authPrincipal, authToken).toThrift(env.getAccumuloInstance()), target);
+    boolean hasPermission = conn.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
 
     Authorizations auths;
     if (authsString.equals("_random")) {

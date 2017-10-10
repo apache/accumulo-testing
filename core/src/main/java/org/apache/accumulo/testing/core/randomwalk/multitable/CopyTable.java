@@ -21,7 +21,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.impl.Tables;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;

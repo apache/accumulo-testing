@@ -25,8 +25,6 @@ import java.util.Random;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.thrift.TableOperationExceptionType;
-import org.apache.accumulo.core.client.impl.thrift.ThriftTableOperationException;
 import org.apache.accumulo.core.security.NamespacePermission;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
@@ -62,17 +60,8 @@ public class ChangePermissions extends Test {
         changeTablePermission(conn, rand, userName, tableName);
       else if (dice == 2)
         changeNamespacePermission(conn, rand, userName, namespace);
-    } catch (AccumuloSecurityException ex) {
+    } catch (AccumuloSecurityException | AccumuloException ex) {
       log.debug("Unable to change user permissions: " + ex.getCause());
-    } catch (AccumuloException ex) {
-      Throwable cause = ex.getCause();
-      if (cause != null && cause instanceof ThriftTableOperationException) {
-        ThriftTableOperationException toe = (ThriftTableOperationException) cause.getCause();
-        if (toe.type == TableOperationExceptionType.NAMESPACE_NOTFOUND) {
-          log.debug("Unable to change user permissions: " + toe);
-          return;
-        }
-      }
     }
   }
 

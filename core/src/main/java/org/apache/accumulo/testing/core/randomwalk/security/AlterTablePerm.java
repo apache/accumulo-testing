@@ -21,11 +21,10 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.Credentials;
-import org.apache.accumulo.core.client.impl.Namespace;
-import org.apache.accumulo.core.client.impl.Table;
+import org.apache.accumulo.core.client.Connector;;
+import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -77,11 +76,10 @@ public class AlterTablePerm extends Test {
       sourceToken = env.getToken();
     }
     Connector conn = env.getAccumuloInstance().getConnector(sourceUser, sourceToken);
-    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
-    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(WalkingSecurity.get(state, env).getNamespaceName()));
+    SecurityOperations secOps = conn.securityOperations();
 
-    canGive = WalkingSecurity.get(state, env).canGrantTable(new Credentials(sourceUser, sourceToken).toThrift(env.getAccumuloInstance()), target, tableId,
-        namespaceId);
+    canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE)
+            || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
 
     // toggle
     if (!"take".equals(action) && !"give".equals(action)) {

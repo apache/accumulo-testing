@@ -26,9 +26,9 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.accumulo.server.cli.ClientOnRequiredTable;
 import org.apache.accumulo.server.client.HdfsZooInstance;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
@@ -45,7 +45,7 @@ public class BulkImportDirectory {
   }
 
   public static void main(String[] args) throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    final FileSystem fs = FileSystem.get(CachedConfiguration.getInstance());
+    final FileSystem fs = FileSystem.get(new Configuration());
     Opts opts = new Opts();
     if (args.length == 5) {
       System.err.println("Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");

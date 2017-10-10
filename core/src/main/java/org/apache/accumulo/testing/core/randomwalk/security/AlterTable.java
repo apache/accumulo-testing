@@ -24,9 +24,8 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.impl.Namespace;
-import org.apache.accumulo.core.client.impl.Table;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
+import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -38,12 +37,10 @@ public class AlterTable extends Test {
     Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
-    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
-    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(namespaceName));
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = WalkingSecurity.get(state, env).canAlterTable(WalkingSecurity.get(state, env).getSysCredentials(), tableId, namespaceId);
+    boolean hasPermission = conn.securityOperations().hasTablePermission(WalkingSecurity.get(state, env).getSysUserName(), tableName,
+        TablePermission.ALTER_TABLE);
     String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_"), env.getPid(),
         System.currentTimeMillis());
 

@@ -30,7 +30,6 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.impl.Tables;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -64,7 +63,7 @@ public class ImageFixture extends Fixture {
     try {
       conn.tableOperations().create(imageTableName);
       conn.tableOperations().addSplits(imageTableName, splits);
-      log.debug("Created table " + imageTableName + " (id:" + Tables.getNameToIdMap(instance).get(imageTableName) + ")");
+      log.debug("Created table " + imageTableName);
     } catch (TableExistsException e) {
       log.error("Table " + imageTableName + " already exists.");
       throw e;
@@ -72,7 +71,7 @@ public class ImageFixture extends Fixture {
 
     try {
       conn.tableOperations().create(indexTableName);
-      log.debug("Created table " + indexTableName + " (id:" + Tables.getNameToIdMap(instance).get(indexTableName) + ")");
+      log.debug("Created table " + indexTableName);
     } catch (TableExistsException e) {
       log.error("Table " + imageTableName + " already exists.");
       throw e;

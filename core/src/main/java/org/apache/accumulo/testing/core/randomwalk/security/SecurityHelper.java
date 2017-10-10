@@ -18,16 +18,13 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.accumulo.testing.core.randomwalk.State;
-import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,23 +181,6 @@ public class SecurityHelper {
       getAuthsMap(state).put(s, curVal);
     }
     curVal += increment;
-  }
-
-  public static FileSystem getFs(State state) {
-    FileSystem fs = null;
-    try {
-      fs = (FileSystem) state.get(filesystem);
-    } catch (RuntimeException re) {}
-
-    if (fs == null) {
-      try {
-        fs = FileSystem.get(CachedConfiguration.getInstance());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      state.set(filesystem, fs);
-    }
-    return fs;
   }
 
   public static boolean inAmbiguousZone(State state, String userName, TablePermission tp) {
