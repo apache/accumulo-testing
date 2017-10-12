@@ -229,7 +229,7 @@ rw-local)
     exit 1
   fi
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" -cp "$at_shaded_jar" "$randomwalk_main" "$at_props" "$2"
+  java -Dlog4j.configuration="file:$log4j_config" -cp "$at_shaded_jar:$HADOOP_CONF_DIR" "$randomwalk_main" "$at_props" "$2"
   ;;
 rw-yarn)
   if [ -z "$2" ]; then
