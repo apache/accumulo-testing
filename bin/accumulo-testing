@@ -70,6 +70,7 @@ fi
 
 function build_shade_jar() {
   export at_shaded_jar="$at_home/core/target/accumulo-testing-core-$at_version-shaded.jar"
+  export CLASSPATH="$at_shaded_jar:$CLASSPATH"
   if [ ! -f "$at_shaded_jar" ]; then
     echo "Building $at_shaded_jar"
     cd "$at_home" || exit 1
@@ -185,7 +186,7 @@ randomwalk_main="org.apache.accumulo.testing.core.randomwalk.Framework"
 case "$1" in
 ci-createtable)
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" -cp "$at_shaded_jar" org.apache.accumulo.testing.core.continuous.CreateTable "$at_props"
+  java -Dlog4j.configuration="file:$log4j_config" org.apache.accumulo.testing.core.continuous.CreateTable "$at_props"
   ;;
 ci-local)
   if [ -z "$2" ]; then
@@ -195,7 +196,7 @@ ci-local)
   fi
   determine_app_main "$2"
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" -cp "$at_shaded_jar" "$ci_main" "$at_props"
+  java -Dlog4j.configuration="file:$log4j_config" "$ci_main" "$at_props"
   ;;
 ci-yarn)
   if [ -z "$2" ]; then
@@ -229,7 +230,7 @@ rw-local)
     exit 1
   fi
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" -cp "$at_shaded_jar:$HADOOP_CONF_DIR" "$randomwalk_main" "$at_props" "$2"
+  java -Dlog4j.configuration="file:$log4j_config" "$randomwalk_main" "$at_props" "$2"
   ;;
 rw-yarn)
   if [ -z "$2" ]; then

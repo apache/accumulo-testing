@@ -20,6 +20,8 @@ test -z "$HADOOP_PREFIX" && export HADOOP_PREFIX=/path/to/hadoop
 export ACCUMULO_VERSION=`accumulo version`
 export HADOOP_VERSION=`hadoop version | head -n1 | awk '{print $2}'`
 export ZOOKEEPER_VERSION=3.4.9
+# Make sure Hadoop configuration directory is on the classpath
+export CLASSPATH=$HADOOP_PREFIX/etc/hadoop
 
 # Agitator
 # ========
