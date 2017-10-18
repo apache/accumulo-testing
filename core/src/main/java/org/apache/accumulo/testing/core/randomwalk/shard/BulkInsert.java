@@ -36,6 +36,7 @@ import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.util.TextUtil;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -171,7 +172,7 @@ public class BulkInsert extends Test {
 
     Collection<Text> splits = conn.tableOperations().listSplits(tableName, maxSplits);
     for (Text split : splits)
-      out.println(Base64.getEncoder().encodeToString(split.getBytes()));
+      out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
 
     out.close();
 

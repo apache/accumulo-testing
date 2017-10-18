@@ -20,8 +20,8 @@ import java.util.Properties;
 import java.util.SortedSet;
 
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.NamespaceNotFoundException;
-import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.impl.thrift.TableOperationExceptionType;
+import org.apache.accumulo.core.client.impl.thrift.ThriftTableOperationException;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -129,8 +129,10 @@ public class Config extends Test {
         try {
           env.getAccumuloConnector().tableOperations().setProperty(table, property.getKey(), property.getDefaultValue());
         } catch (AccumuloException ex) {
-          if (ex.getCause() instanceof TableNotFoundException) {
-            return;
+          if (ex.getCause() instanceof ThriftTableOperationException) {
+            ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
+            if (ttoe.type == TableOperationExceptionType.NOTFOUND)
+              return;
           }
           throw ex;
         }
@@ -147,8 +149,10 @@ public class Config extends Test {
         try {
           env.getAccumuloConnector().namespaceOperations().setProperty(namespace, property.getKey(), property.getDefaultValue());
         } catch (AccumuloException ex) {
-          if (ex.getCause() instanceof NamespaceNotFoundException) {
-            return;
+          if (ex.getCause() instanceof ThriftTableOperationException) {
+            ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
+            if (ttoe.type == TableOperationExceptionType.NAMESPACE_NOTFOUND)
+              return;
           }
           throw ex;
         }
@@ -186,8 +190,10 @@ public class Config extends Test {
     try {
       env.getAccumuloConnector().tableOperations().setProperty(table, setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
-      if (ex.getCause() instanceof TableNotFoundException) {
-        return;
+      if (ex.getCause() instanceof ThriftTableOperationException) {
+        ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
+        if (ttoe.type == TableOperationExceptionType.NOTFOUND)
+          return;
       }
       throw ex;
     }
@@ -211,8 +217,10 @@ public class Config extends Test {
     try {
       env.getAccumuloConnector().namespaceOperations().setProperty(namespace, setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
-      if (ex.getCause() instanceof NamespaceNotFoundException) {
-        return;
+      if (ex.getCause() instanceof ThriftTableOperationException) {
+        ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
+        if (ttoe.type == TableOperationExceptionType.NAMESPACE_NOTFOUND)
+          return;
       }
       throw ex;
     }
