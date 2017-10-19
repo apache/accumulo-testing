@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.core.continuous;
 
 import java.io.IOException;
 
-import org.apache.accumulo.core.Constants;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -35,7 +34,7 @@ public class ContinuousOpts {
   public static class DebugConverter implements IStringConverter<String> {
     @Override
     public String convert(String debugLog) {
-      Logger logger = Logger.getLogger(Constants.CORE_PACKAGE_NAME);
+      Logger logger = Logger.getLogger("org.apache.accumulo.core");
       logger.setLevel(Level.TRACE);
       logger.setAdditivity(false);
       try {

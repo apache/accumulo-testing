@@ -29,15 +29,12 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
-import org.apache.accumulo.core.conf.AccumuloConfiguration;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
-import org.apache.accumulo.core.file.rfile.RFile;
-import org.apache.accumulo.core.file.streams.PositionedOutputs;
+import org.apache.accumulo.core.client.rfile.RFile;
+import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -49,13 +46,10 @@ public class BulkImport extends Test {
 
   public static class RFileBatchWriter implements BatchWriter {
 
-    RFile.Writer writer;
+    RFileWriter writer;
 
     public RFileBatchWriter(Configuration conf, FileSystem fs, String file) throws IOException {
-      AccumuloConfiguration aconf = DefaultConfiguration.getInstance();
-      CachableBlockFile.Writer cbw = new CachableBlockFile.Writer(PositionedOutputs.wrap(fs.create(new Path(file), false,
-          conf.getInt("io.file.buffer.size", 4096), (short) conf.getInt("dfs.replication", 3), conf.getLong("dfs.block.size", 1 << 26))), "gz", conf, aconf);
-      writer = new RFile.Writer(cbw, 100000);
+      writer = RFile.newWriter().to(file).withFileSystem(fs).build();
       writer.startDefaultLocalityGroup();
     }
 

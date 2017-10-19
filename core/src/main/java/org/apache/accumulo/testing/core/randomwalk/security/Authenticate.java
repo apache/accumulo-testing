@@ -22,9 +22,9 @@ import java.util.Properties;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.Credentials;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -52,7 +52,7 @@ public class Authenticate extends Test {
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
     // Copy so if failed it doesn't mess with the password stored in state
     byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target), WalkingSecurity.get(state, env).getUserPassword(target).length);
-    boolean hasPermission = WalkingSecurity.get(state, env).canAskAboutUser(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), target);
+    boolean hasPermission = conn.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM);
 
     if (!success)
       for (int i = 0; i < password.length; i++)

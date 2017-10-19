@@ -172,7 +172,7 @@ public class BulkInsert extends Test {
 
     Collection<Text> splits = conn.tableOperations().listSplits(tableName, maxSplits);
     for (Text split : splits)
-      out.println(Base64.getEncoder().encodeToString(TextUtil.getBytes(split)));
+      out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
 
     out.close();
 

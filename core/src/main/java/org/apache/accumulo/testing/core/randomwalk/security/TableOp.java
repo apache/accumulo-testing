@@ -34,16 +34,14 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.impl.Namespace;
-import org.apache.accumulo.core.client.impl.Table;
+import org.apache.accumulo.core.client.admin.SecurityOperations;
+import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.client.rfile.RFile;
+import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.file.FileOperations;
-import org.apache.accumulo.core.file.FileSKVWriter;
-import org.apache.accumulo.core.file.rfile.RFile;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.security.TablePermission;
@@ -59,6 +57,9 @@ public class TableOp extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getTabUserName(), WalkingSecurity.get(state, env).getTabToken());
+    TableOperations tableOps = conn.tableOperations();
+    SecurityOperations secOps = conn.securityOperations();
+    String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
 
     String action = props.getProperty("action", "_random");
     TablePermission tp;
@@ -71,20 +72,17 @@ public class TableOp extends Test {
 
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
-    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
-    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(namespaceName));
 
     switch (tp) {
       case READ: {
-        boolean canRead = WalkingSecurity.get(state, env).canScan(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId);
+        boolean canRead = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.READ);
         Authorizations auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
         boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(conn.whoami());
 
         Scanner scan = null;
         try {
-          scan = conn.createScanner(tableName, conn.securityOperations().getUserAuthorizations(conn.whoami()));
+          scan = conn.createScanner(tableName, secOps.getUserAuthorizations(conn.whoami()));
           int seen = 0;
           Iterator<Entry<Key,Value>> iter = scan.iterator();
           while (iter.hasNext()) {
@@ -148,7 +146,7 @@ public class TableOp extends Test {
         break;
       }
       case WRITE:
-        boolean canWrite = WalkingSecurity.get(state, env).canWrite(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId);
+        boolean canWrite = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.WRITE);
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
 
         String key = WalkingSecurity.get(state, env).getLastKey() + "1";
@@ -209,22 +207,21 @@ public class TableOp extends Test {
         Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
         Path fail = new Path(dir.toString() + "_fail");
         FileSystem fs = WalkingSecurity.get(state, env).getFs();
-        FileSKVWriter f = FileOperations.getInstance().newWriterBuilder().forFile(dir + "/securityBulk." + RFile.EXTENSION, fs, fs.getConf())
-            .withTableConfiguration(DefaultConfiguration.getInstance()).build();
-        f.startDefaultLocalityGroup();
+        RFileWriter rFileWriter = RFile.newWriter().to(dir + "/securityBulk.rf").withFileSystem(fs).build();
+        rFileWriter.startDefaultLocalityGroup();
         fs.mkdirs(fail);
         for (Key k : keys)
-          f.append(k, new Value("Value".getBytes(UTF_8)));
-        f.close();
+          rFileWriter.append(k, new Value("Value".getBytes(UTF_8)));
+        rFileWriter.close();
         try {
-          conn.tableOperations().importDirectory(tableName, dir.toString(), fail.toString(), true);
+          tableOps.importDirectory(tableName, dir.toString(), fail.toString(), true);
         } catch (TableNotFoundException tnfe) {
           if (tableExists)
             throw new AccumuloException("Table didn't exist when it should have: " + tableName);
           return;
         } catch (AccumuloSecurityException ae) {
           if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
-            if (WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId))
+            if (secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
               throw new AccumuloException("Bulk Import failed when it should have worked: " + tableName);
             return;
           } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
@@ -238,12 +235,12 @@ public class TableOp extends Test {
         fs.delete(dir, true);
         fs.delete(fail, true);
 
-        if (!WalkingSecurity.get(state, env).canBulkImport(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId))
+        if (!secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
           throw new AccumuloException("Bulk Import succeeded when it should have failed: " + dir + " table " + tableName);
         break;
       case ALTER_TABLE:
         AlterTable.renameTable(conn, state, env, tableName, tableName + "plus",
-            WalkingSecurity.get(state, env).canAlterTable(WalkingSecurity.get(state, env).getTabCredentials(), tableId, namespaceId), tableExists);
+            secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.ALTER_TABLE), tableExists);
         break;
 
       case GRANT:

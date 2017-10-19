@@ -24,13 +24,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.accumulo.core.client.IteratorSetting.Column;
-import org.apache.accumulo.core.conf.AccumuloConfiguration;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
+import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.file.FileOperations;
-import org.apache.accumulo.core.file.FileSKVWriter;
-import org.apache.accumulo.core.file.rfile.RFile;
+import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.hadoop.fs.FileStatus;
@@ -60,7 +57,6 @@ public class BulkPlusOne extends BulkImportTest {
   static void bulkLoadLots(Logger log, State state, RandWalkEnv env, Value value) throws Exception {
     final Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
     final Path fail = new Path(dir.toString() + "_fail");
-    final DefaultConfiguration defaultConfiguration = DefaultConfiguration.getInstance();
     final Random rand = (Random) state.get("rand");
     final FileSystem fs = (FileSystem) state.get("fs");
     fs.mkdirs(fail);
@@ -82,20 +78,20 @@ public class BulkPlusOne extends BulkImportTest {
     rows.add(LOTS);
 
     for (int i = 0; i < parts; i++) {
-      String fileName = dir + "/" + String.format("part_%d.", i) + RFile.EXTENSION;
-      FileSKVWriter f = FileOperations.getInstance().newWriterBuilder().forFile(fileName, fs, fs.getConf()).withTableConfiguration(defaultConfiguration)
-          .build();
-      f.startDefaultLocalityGroup();
+      String fileName = dir + "/" + String.format("part_%d.rf", i);
+
+      RFileWriter writer = RFile.newWriter().to(fileName).withFileSystem(fs).build();
+      writer.startDefaultLocalityGroup();
       int start = rows.get(i);
       int end = rows.get(i + 1);
       for (int j = start; j < end; j++) {
         Text row = new Text(String.format(FMT, j));
         for (Column col : COLNAMES) {
-          f.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), value);
+          writer.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), value);
         }
-        f.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
+        writer.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
       }
-      f.close();
+      writer.close();
     }
     env.getAccumuloConnector().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
     fs.delete(dir, true);

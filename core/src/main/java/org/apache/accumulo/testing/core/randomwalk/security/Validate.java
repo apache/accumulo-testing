@@ -21,7 +21,6 @@ import java.util.Properties;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.thrift.ThriftSecurityException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -103,20 +102,9 @@ public class Validate extends Test {
 
     }
 
-    Authorizations accuAuths;
-    Authorizations auths;
-    try {
-      auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
-      accuAuths = conn.securityOperations().getUserAuthorizations(WalkingSecurity.get(state, env).getTabUserName());
-    } catch (ThriftSecurityException ae) {
-      if (ae.getCode() == org.apache.accumulo.core.client.impl.thrift.SecurityErrorCode.USER_DOESNT_EXIST) {
-        if (tableUserExists)
-          throw new AccumuloException("Table user didn't exist when they should.", ae);
-        else
-          return;
-      }
-      throw new AccumuloException("Unexpected exception!", ae);
-    }
+    Authorizations accuAuths = conn.securityOperations().getUserAuthorizations(WalkingSecurity.get(state, env).getTabUserName());
+    Authorizations auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
+
     if (!auths.equals(accuAuths))
       throw new AccumuloException("Table User authorizations out of sync");
   }

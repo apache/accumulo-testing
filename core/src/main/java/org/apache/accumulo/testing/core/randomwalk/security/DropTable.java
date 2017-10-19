@@ -23,11 +23,9 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.impl.Credentials;
-import org.apache.accumulo.core.client.impl.Namespace;
-import org.apache.accumulo.core.client.impl.Table;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -53,13 +51,9 @@ public class DropTable extends Test {
     Connector conn = env.getAccumuloInstance().getConnector(principal, token);
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    String namespaceName = WalkingSecurity.get(state, env).getNamespaceName();
-    Table.ID tableId = Table.ID.of(conn.tableOperations().tableIdMap().get(tableName));
-    Namespace.ID namespaceId = Namespace.ID.of(conn.namespaceOperations().namespaceIdMap().get(namespaceName));
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = WalkingSecurity.get(state, env).canDeleteTable(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), tableId,
-        namespaceId);
+    boolean hasPermission = conn.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE);
 
     try {
       conn.tableOperations().delete(tableName);
@@ -80,7 +74,7 @@ public class DropTable extends Test {
       throw new AccumuloException("Got unexpected ae error code", ae);
     } catch (TableNotFoundException tnfe) {
       if (exists)
-        throw new TableExistsException(null, tableName, "Got a TableNotFOundException but it should have existed", tnfe);
+        throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", tnfe);
       else
         return;
     }

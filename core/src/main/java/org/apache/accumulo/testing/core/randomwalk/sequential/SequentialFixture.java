@@ -23,7 +23,6 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.impl.Tables;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.Fixture;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -36,7 +35,6 @@ public class SequentialFixture extends Fixture {
   public void setUp(State state, RandWalkEnv env) throws Exception {
 
     Connector conn = env.getAccumuloConnector();
-    Instance instance = env.getAccumuloInstance();
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -45,7 +43,7 @@ public class SequentialFixture extends Fixture {
 
     try {
       conn.tableOperations().create(seqTableName);
-      log.debug("Created table " + seqTableName + " (id:" + Tables.getNameToIdMap(instance).get(seqTableName) + ")");
+      log.debug("Created table " + seqTableName + " (id:" + conn.tableOperations().tableIdMap().get(seqTableName) + ")");
     } catch (TableExistsException e) {
       log.warn("Table " + seqTableName + " already exists!");
       throw e;

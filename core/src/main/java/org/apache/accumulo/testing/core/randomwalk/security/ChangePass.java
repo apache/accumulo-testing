@@ -22,9 +22,9 @@ import java.util.Random;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.impl.Credentials;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -56,7 +56,7 @@ public class ChangePass extends Test {
 
     targetExists = WalkingSecurity.get(state, env).userExists(target);
 
-    hasPerm = WalkingSecurity.get(state, env).canChangePassword(new Credentials(principal, token).toThrift(env.getAccumuloInstance()), target);
+    hasPerm = conn.securityOperations().hasSystemPermission(target, SystemPermission.ALTER_USER);
 
     Random r = new Random();
 
