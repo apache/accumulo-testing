@@ -33,8 +33,9 @@ Possible commands:
                                 Applications: ingest, walk, batchwalk, scan
   ci-mapred <application>       Runs continuous ingest mapreduce <application>
                                 Applications: verify, moru  
-  rw-local <module>             Runs randomwalk <module> in local java process
-  rw-yarn <num> <module>        Runs randomwalk <module> in <num> containers on YARN
+  rw-local <module>*            Runs randomwalk <module> in local java process
+  rw-yarn <num> <module>*       Runs randomwalk <module> in <num> containers on YARN
+                                *Modules located in core/src/main/resources/randomwalk/modules
 EOF
 }
 
