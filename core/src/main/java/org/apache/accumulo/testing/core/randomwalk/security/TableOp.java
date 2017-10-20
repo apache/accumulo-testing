@@ -56,10 +56,10 @@ public class TableOp extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getTabUserName(), WalkingSecurity.get(state, env).getTabToken());
+    String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
+    Connector conn = env.getAccumuloInstance().getConnector(tablePrincipal, WalkingSecurity.get(state, env).getTabToken());
     TableOperations tableOps = conn.tableOperations();
     SecurityOperations secOps = conn.securityOperations();
-    String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
 
     String action = props.getProperty("action", "_random");
     TablePermission tp;
@@ -76,7 +76,7 @@ public class TableOp extends Test {
     switch (tp) {
       case READ: {
         boolean canRead = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.READ);
-        Authorizations auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
+        Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
         boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(conn.whoami());
 
