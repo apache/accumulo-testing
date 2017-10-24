@@ -25,6 +25,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -34,13 +35,26 @@ public class AlterTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
+    String systemUser = WalkingSecurity.get(state, env).getSysUserName();
+    Connector conn = env.getAccumuloInstance().getConnector(systemUser, WalkingSecurity.get(state, env).getSysToken());
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = conn.securityOperations().hasTablePermission(WalkingSecurity.get(state, env).getSysUserName(), tableName,
-        TablePermission.ALTER_TABLE);
+    boolean hasPermission;
+    try {
+      hasPermission = conn.securityOperations().hasTablePermission(systemUser, tableName, TablePermission.ALTER_TABLE)
+          || conn.securityOperations().hasSystemPermission(systemUser, SystemPermission.ALTER_TABLE);
+    } catch (AccumuloSecurityException ae) {
+      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
+        if (exists)
+          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+        else
+          return;
+      } else {
+        throw new AccumuloException("Got unexpected ae error code", ae);
+      }
+    }
     String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_"), env.getPid(),
         System.currentTimeMillis());
 

@@ -287,6 +287,9 @@ public class WalkingSecurity {
   }
 
   public FileSystem getFs() {
+    Configuration hadoopConfig = new Configuration();
+    hadoopConfig.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+    hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
     FileSystem fs = null;
     try {
       fs = (FileSystem) state.get(filesystem);
@@ -294,7 +297,7 @@ public class WalkingSecurity {
 
     if (fs == null) {
       try {
-        fs = FileSystem.get(new Configuration());
+        fs = FileSystem.get(hadoopConfig);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

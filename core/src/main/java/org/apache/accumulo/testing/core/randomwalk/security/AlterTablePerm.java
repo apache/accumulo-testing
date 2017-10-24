@@ -52,6 +52,8 @@ public class AlterTablePerm extends Test {
 
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
+    if(!tableExists)
+      return;
 
     TablePermission tabPerm;
     if (perm.equals("random")) {

@@ -33,9 +33,11 @@ import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.client.impl.thrift.ThriftSecurityException;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -75,7 +77,14 @@ public class TableOp extends Test {
 
     switch (tp) {
       case READ: {
-        boolean canRead = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.READ);
+        boolean canRead;
+        try {
+          canRead = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.READ);
+        } catch (AccumuloSecurityException ase) {
+          if (tableExists)
+            throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
+          return;
+        }
         Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
         boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(conn.whoami());
@@ -146,7 +155,14 @@ public class TableOp extends Test {
         break;
       }
       case WRITE:
-        boolean canWrite = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.WRITE);
+        boolean canWrite;
+        try {
+          canWrite = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.WRITE);
+        } catch (AccumuloSecurityException ase) {
+          if (tableExists)
+            throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
+          return;
+        }
         boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
 
         String key = WalkingSecurity.get(state, env).getLastKey() + "1";
@@ -239,8 +255,15 @@ public class TableOp extends Test {
           throw new AccumuloException("Bulk Import succeeded when it should have failed: " + dir + " table " + tableName);
         break;
       case ALTER_TABLE:
-        AlterTable.renameTable(conn, state, env, tableName, tableName + "plus",
-            secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.ALTER_TABLE), tableExists);
+        boolean tablePerm;
+        try {
+          tablePerm = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.ALTER_TABLE);
+        } catch (AccumuloSecurityException ase) {
+          if (tableExists)
+            throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
+          return;
+        }
+        AlterTable.renameTable(conn, state, env, tableName, tableName + "plus", tablePerm, tableExists);
         break;
 
       case GRANT:
