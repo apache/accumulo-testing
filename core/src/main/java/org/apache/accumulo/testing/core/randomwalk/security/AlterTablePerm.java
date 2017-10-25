@@ -44,7 +44,6 @@ public class AlterTablePerm extends Test {
     String perm = props.getProperty("perm", "random");
     String sourceUserProp = props.getProperty("source", "system");
     String targetUser = props.getProperty("target", "table");
-    boolean tabExists = WalkingSecurity.get(state, env).getTableExists();
 
     String target;
     if ("table".equals(targetUser))
@@ -52,7 +51,7 @@ public class AlterTablePerm extends Test {
     else
       target = WalkingSecurity.get(state, env).getSysUserName();
 
-    boolean exists = WalkingSecurity.get(state, env).userExists(target);
+    boolean userExists = WalkingSecurity.get(state, env).userExists(target);
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
 
     TablePermission tabPerm;
@@ -85,7 +84,7 @@ public class AlterTablePerm extends Test {
               || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
-        if (exists)
+        if (tableExists)
           throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
         else
           return;
@@ -109,13 +108,13 @@ public class AlterTablePerm extends Test {
       } catch (AccumuloSecurityException ae) {
         switch (ae.getSecurityErrorCode()) {
           case USER_DOESNT_EXIST:
-            if (exists)
+            if (userExists)
               throw new AccumuloException("Framework and Accumulo are out of sync, we think user exists", ae);
             else
               return;
           case TABLE_DOESNT_EXIST:
-            if (tabExists)
-              throw new AccumuloException(conn.whoami(), ae);
+            if (tableExists)
+              throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
             else
               return;
           default:
@@ -137,7 +136,7 @@ public class AlterTablePerm extends Test {
               throw new AccumuloException(conn.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
             return;
           case USER_DOESNT_EXIST:
-            if (exists)
+            if (userExists)
               throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
             return;
           case TABLE_DOESNT_EXIST:
@@ -165,7 +164,7 @@ public class AlterTablePerm extends Test {
               throw new AccumuloException(conn.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
             return;
           case USER_DOESNT_EXIST:
-            if (exists)
+            if (userExists)
               throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
             return;
           case TABLE_DOESNT_EXIST:
@@ -183,10 +182,10 @@ public class AlterTablePerm extends Test {
       WalkingSecurity.get(state, env).grantTablePermission(target, tableName, tabPerm);
     }
 
-    if (!exists)
-      throw new AccumuloException("User shouldn't have existed, but apparantly does");
+    if (!userExists)
+      throw new AccumuloException("User shouldn't have existed, but apparently does");
     if (!tableExists)
-      throw new AccumuloException("Table shouldn't have existed, but apparantly does");
+      throw new AccumuloException("Table shouldn't have existed, but apparently does");
     if (!canGive)
       throw new AccumuloException(conn.whoami() + " shouldn't have been able to grant privilege");
 
