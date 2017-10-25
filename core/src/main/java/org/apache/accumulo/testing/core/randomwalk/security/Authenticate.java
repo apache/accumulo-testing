@@ -52,7 +52,7 @@ public class Authenticate extends Test {
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
     // Copy so if failed it doesn't mess with the password stored in state
     byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target), WalkingSecurity.get(state, env).getUserPassword(target).length);
-    boolean hasPermission = conn.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM);
+    boolean hasPermission = conn.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM) || principal.equals(target);
 
     if (!success)
       for (int i = 0; i < password.length; i++)

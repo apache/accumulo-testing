@@ -56,7 +56,7 @@ public class ChangePass extends Test {
 
     targetExists = WalkingSecurity.get(state, env).userExists(target);
 
-    hasPerm = conn.securityOperations().hasSystemPermission(target, SystemPermission.ALTER_USER);
+    hasPerm = conn.securityOperations().hasSystemPermission(principal, SystemPermission.ALTER_USER) || principal.equals(target);
 
     Random r = new Random();
 

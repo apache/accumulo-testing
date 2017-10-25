@@ -25,6 +25,7 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -41,6 +42,7 @@ public class DropTable extends Test {
     String sourceUser = props.getProperty("source", "system");
     String principal;
     AuthenticationToken token;
+    boolean hasPermission = false;
     if (sourceUser.equals("table")) {
       principal = WalkingSecurity.get(state, env).getTabUserName();
       token = WalkingSecurity.get(state, env).getTabToken();
@@ -53,12 +55,18 @@ public class DropTable extends Test {
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = conn.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE);
 
     try {
+      hasPermission = conn.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
+          || conn.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
       conn.tableOperations().delete(tableName);
     } catch (AccumuloSecurityException ae) {
-      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
+      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
+        if (exists)
+          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", ae);
+        else
+          return;
+      } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
         if (hasPermission)
           throw new AccumuloException("Got a security exception when I should have had permission.", ae);
         else {

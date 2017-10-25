@@ -21,6 +21,7 @@ import java.util.Properties;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -29,12 +30,13 @@ public class DropUser extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
+    String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
+    Connector conn = env.getAccumuloInstance().getConnector(sysPrincipal, WalkingSecurity.get(state, env).getSysToken());
 
     String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
     boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
-    boolean hasPermission = WalkingSecurity.get(state, env).canDropUser(WalkingSecurity.get(state, env).getSysCredentials(), tableUserName);
+    boolean hasPermission = conn.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.DROP_USER);
 
     try {
       conn.securityOperations().dropLocalUser(tableUserName);

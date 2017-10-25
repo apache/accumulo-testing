@@ -101,12 +101,6 @@ public class Validate extends Test {
       }
 
     }
-
-    Authorizations accuAuths = conn.securityOperations().getUserAuthorizations(WalkingSecurity.get(state, env).getTabUserName());
-    Authorizations auths = WalkingSecurity.get(state, env).getUserAuthorizations(WalkingSecurity.get(state, env).getTabCredentials());
-
-    if (!auths.equals(accuAuths))
-      throw new AccumuloException("Table User authorizations out of sync");
   }
 
 }

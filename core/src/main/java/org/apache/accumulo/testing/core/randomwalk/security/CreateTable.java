@@ -23,6 +23,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
+import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -37,7 +38,7 @@ public class CreateTable extends Test {
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = WalkingSecurity.get(state, env).canCreateTable(WalkingSecurity.get(state, env).getSysCredentials(), null, null);
+    boolean hasPermission = conn.securityOperations().hasSystemPermission(WalkingSecurity.get(state, env).getSysUserName(), SystemPermission.CREATE_TABLE);
 
     try {
       conn.tableOperations().create(tableName);
