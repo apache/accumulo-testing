@@ -19,6 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
@@ -161,7 +162,6 @@ public class TableOp extends Test {
             throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
           return;
         }
-        boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
 
         String key = WalkingSecurity.get(state, env).getLastKey() + "1";
         Mutation m = new Mutation(new Text(key));
@@ -182,24 +182,15 @@ public class TableOp extends Test {
             writer.addMutation(m);
             writer.close();
           } catch (MutationsRejectedException mre) {
-            // Currently no method for detecting reason for mre.
-            // Waiting on ACCUMULO-670
-            // For now, just wait a second and go again if they can
-            // write!
-            if (!canWrite)
-              return;
-
-            if (ambiguousZone) {
-              Thread.sleep(1000);
-              try {
-                writer = conn.createBatchWriter(tableName, new BatchWriterConfig().setMaxWriteThreads(1));
-                writer.addMutation(m);
-                writer.close();
-                writer = null;
-              } catch (MutationsRejectedException mre2) {
-                throw new AccumuloException("Mutation exception!", mre2);
+            if (mre.getSecurityErrorCodes().size() == 1) {
+              // TabletServerBatchWriter will log the error automatically so make sure its the error we expect
+              SecurityErrorCode errorCode = mre.getSecurityErrorCodes().entrySet().iterator().next().getValue().iterator().next();
+              if (errorCode.equals(SecurityErrorCode.PERMISSION_DENIED) && !canWrite) {
+                log.info("Caught MutationsRejectedException({}) in TableOp.WRITE as expected.", errorCode);
+                return;
               }
             }
+            throw new AccumuloException("Unexpected MutationsRejectedException in TableOp.WRITE", mre);
           }
           if (works)
             for (String s : WalkingSecurity.get(state, env).getAuthsArray())
