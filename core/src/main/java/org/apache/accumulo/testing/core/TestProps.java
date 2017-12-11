@@ -25,6 +25,7 @@ public class TestProps {
 
   private static final String PREFIX = "test.";
   private static final String COMMON = PREFIX + "common.";
+
   private static final String CI = PREFIX + "ci.";
   private static final String CI_COMMON = CI + "common.";
   private static final String CI_INGEST = CI + "ingest.";
@@ -32,6 +33,14 @@ public class TestProps {
   private static final String CI_BW = CI + "batch.walker.";
   private static final String CI_SCANNER = CI + "scanner.";
   private static final String CI_VERIFY = CI + "verify.";
+
+  private static final String BL = PREFIX + "ci.";
+  private static final String BL_COMMON = BL + "common.";
+  private static final String BL_INGEST = BL + "ingest.";
+  private static final String BL_WALKER = BL + "walker.";
+  private static final String BL_BW = BL + "batch.walker.";
+  private static final String BL_SCANNER = BL + "scanner.";
+  private static final String BL_VERIFY = BL + "verify.";
 
   /** Common properties **/
   // Zookeeper connection string
@@ -121,6 +130,64 @@ public class TestProps {
   public static final String CI_VERIFY_AUTHS = CI_VERIFY + "auths";
   // Location in HDFS to store output
   public static final String CI_VERIFY_OUTPUT_DIR = CI_VERIFY + "output.dir";
+
+  /** Bulk load test properties **/
+  /** Common **/
+  // Accumulo table used by continuous ingest tests
+  public static final String BL_COMMON_ACCUMULO_TABLE = BL_COMMON + "accumulo.table";
+  // Number of tablets that should exist in Accumulo table when created
+  public static final String BL_COMMON_ACCUMULO_NUM_TABLETS = BL_COMMON + "accumulo.num.tablets";
+  // Optional authorizations (in CSV format) that if specified will be
+  // randomly selected by scanners
+  // and walkers
+  public static final String BL_COMMON_AUTHS = BL_COMMON + "auths";
+
+  /** Ingest **/
+  // Number of entries each ingest client should write
+  public static final String BL_INGEST_CLIENT_ENTRIES = BL_INGEST + "client.entries";
+  // Minimum random row to generate
+  public static final String BL_INGEST_ROW_MIN = BL_INGEST + "row.min";
+  // Maximum random row to generate
+  public static final String BL_INGEST_ROW_MAX = BL_INGEST + "row.max";
+  // Maximum number of random column families to generate
+  public static final String BL_INGEST_MAX_CF = BL_INGEST + "max.cf";
+  // Maximum number of random column qualifiers to generate
+  public static final String BL_INGEST_MAX_CQ = BL_INGEST + "max.cq";
+  // Optional visibilities (in CSV format) that if specified will be randomly
+  // selected by ingesters for
+  // each linked list
+  public static final String BL_INGEST_VISIBILITIES = BL_INGEST + "visibilities";
+  // Checksums will be generated during ingest if set to true
+  public static final String BL_INGEST_CHECKSUM = BL_INGEST + "checksum";
+
+  /** Batch Walker **/
+  // Sleep time between batch scans (in ms)
+  public static final String BL_BW_SLEEP_MS = BL_BW + "sleep.ms";
+  // Scan batch size
+  public static final String BL_BW_BATCH_SIZE = BL_BW + "batch.size";
+
+  /** Walker **/
+  // Sleep time between scans (in ms)
+  public static final String BL_WALKER_SLEEP_MS = BL_WALKER + "sleep.ms";
+
+  /** Scanner **/
+  // Sleep time between scans (in ms)
+  public static final String BL_SCANNER_SLEEP_MS = BL_SCANNER + "sleep.ms";
+  // Scanner entries
+  public static final String BL_SCANNER_ENTRIES = BL_SCANNER + "entries";
+
+  /** Verify **/
+  // Maximum number of mapreduce mappers
+  public static final String BL_VERIFY_MAX_MAPS = BL_VERIFY + "max.maps";
+  // Number of mapreduce reducers
+  public static final String BL_VERIFY_REDUCERS = BL_VERIFY + "reducers";
+  // Perform the verification directly on the files while the table is
+  // offline"
+  public static final String BL_VERIFY_SCAN_OFFLINE = BL_VERIFY + "scan.offline";
+  // Comma separated list of auths to use for verify
+  public static final String BL_VERIFY_AUTHS = BL_VERIFY + "auths";
+  // Location in HDFS to store output
+  public static final String BL_VERIFY_OUTPUT_DIR = BL_VERIFY + "output.dir";
 
   public static Properties loadFromFile(String propsFilePath) throws IOException {
     return loadFromStream(new FileInputStream(propsFilePath));

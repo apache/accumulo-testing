@@ -109,3 +109,67 @@ test.ci.verify.scan.offline=false
 test.ci.verify.auths=
 # Location in HDFS to store output. Must not exist.
 test.ci.verify.output.dir=/tmp/ci-verify
+
+###################################
+# Bulk loading test properties
+###################################
+
+# Common
+# ------
+# Accumulo table used by continuous tests
+test.bl.common.accumulo.table=bl
+# Number of tablets that should exist in Accumulo table when created
+test.bl.common.accumulo.num.tablets=20
+# Optional authorizations that if specified will be randomly selected by scanners and walkers
+# Format: a,b|a,b,c|c
+test.bl.common.auths=
+
+# Ingest
+# ------
+# Number of entries each ingest client should write
+test.bl.ingest.client.entries=9223372036854775807
+# Minimum random row to generate
+test.bl.ingest.row.min=0
+# Maximum random row to generate
+test.bl.ingest.row.max=9223372036854775807
+# Maximum number of random column families to generate
+test.bl.ingest.max.cf=32767
+# Maximum number of random column qualifiers to generate
+test.bl.ingest.max.cq=32767
+# Optional visibilities (in CSV format) that if specified will be randomly selected by ingesters for
+# each linked list
+test.bl.ingest.visibilities=
+# Checksums will be generated during ingest if set to true
+test.bl.ingest.checksum=true
+
+# Batch walker
+# ------------
+# Sleep time between batch scans (in ms)
+test.bl.batch.walker.sleep.ms=10000
+# Scan batch size
+test.bl.batch.walker.batch.size=10000
+
+# Walker
+# ------
+# Sleep time between scans (in ms)
+test.bl.walker.sleep.ms=10000
+
+# Scanner
+# -------
+# Sleep time between scans (in ms)
+test.bl.scanner.sleep.ms=10000
+# Scanner entries
+test.bl.scanner.entries=5000
+
+# Verify
+# -----
+# Maximum number of mapreduce mappers
+test.bl.verify.max.maps=64
+# Number of mapreduce reducers
+test.bl.verify.reducers=64
+# Perform the verification directly on the files while the table is offline
+test.bl.verify.scan.offline=false
+# Comma separated list of auths to use for verify
+test.bl.verify.auths=
+# Location in HDFS to store output. Must not exist.
+test.bl.verify.output.dir=/tmp/ci-verify
