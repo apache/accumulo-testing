@@ -50,5 +50,49 @@ public class BulkScanner {
     Authorizations auths = env.getRandomAuthorizations();
     Scanner scanner = BulkUtil.createScanner(conn, env.getAccumuloTableName(), auths);
     scanner.setBatchSize(env.getScannerBatchSize());
+
+    int numToScan = Integer.parseInt(props.getProperty(TestProps.BL_SCANNER_ENTRIES));
+    int scannerSleepMs = Integer.parseInt(props.getProperty(TestProps.BL_SCANNER_SLEEP_MS));
+
+    double delta = Math.min(.05, .05 / (numToScan / 1000.0));
+
+    while (true) {
+      long startRow = BulkInjest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
+      byte[] scanStart = BulkInjest.genRow(startRow);
+      byte[] scanStop = BulkInjest.genRow(startRow + distance);
+
+      scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
+
+      int count = 0;
+      Iterator<Entry<Key,Value>> iter = scanner.iterator();
+
+      long t1 = System.currentTimeMillis();
+
+      while (iter.hasNext()) {
+        Entry<Key,Value> entry = iter.next();
+        BulkWalk.validate(entry.getKey(), entry.getValue());
+        count++;
+      }
+
+      long t2 = System.currentTimeMillis();
+
+      if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
+        if (count == 0) {
+          distance = distance * 10;
+          if (distance < 0)
+            distance = 1000000000000l;
+        } else {
+          double ratio = (double) numToScan / count;
+          ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
+          distance = (long) (ratio * distance);
+        }
+      }
+
+      System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);
+
+      if (scannerSleepMs > 0) {
+        sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+      }
+    }
   }
 }
