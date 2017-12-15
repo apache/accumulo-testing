@@ -155,7 +155,7 @@ public class BulkBatchWalker {
 
     Iterator<Text> iter = rowsToQuery.iterator();
 
-    for (int i = 0l i < batchSize; i++) {
+    for (int i = 0; i < batchSize; i++) {
       ret.add(iter.next());
       iter.remove();
     }
