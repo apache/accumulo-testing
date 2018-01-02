@@ -32,7 +32,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.trace.Span;
 import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.testing.core.TestProps;
-import org.apache.accumulo.testing.core.randomwalk.Test;
 import org.apache.hadoop.io.Text;
 
 public class BulkWalk {

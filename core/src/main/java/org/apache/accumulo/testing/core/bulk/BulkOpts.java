@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.core.bulk;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
-import org.apache.accumulo.testing.core.continuous.ContinuousOpts;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -29,7 +28,7 @@ import java.io.IOException;
 /**
  * Common BL arguments for the Bulk Loading suite.
  */
-public class BulkOpts {
+class BulkOpts {
 
   public static class DebugConverter implements IStringConverter<String> {
     @Override

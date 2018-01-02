@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BulkVerify extends Configured implements Tool {
 
-    public static final VLongWritable DEF = new VLongWritable(-1);
+    static final VLongWritable DEF = new VLongWritable(-1);
 
     public static class CMapper extends Mapper<Key, Value, LongWritable, VLongWritable> {
 

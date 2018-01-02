@@ -70,7 +70,7 @@ public class BulkMoru extends Configured implements Tool {
     private static final ColumnVisibility EMPTY_VIS = new ColumnVisibility();
 
     @Override
-    public void setup(Context context) throws IOException, InterruptedException {
+    public void setup(Context context) {
       int max_cf = context.getConfiguration().getInt(MAX_CF, -1);
       int max_cq = context.getConfiguration().getInt(MAX_CQ, -1);
 

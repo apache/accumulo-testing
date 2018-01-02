@@ -44,7 +44,7 @@ public class BulkScanner {
 
     Random r = new Random();
 
-    long distance = 1000000000000l;
+    long distance = 1000000000000L;
 
     Connector conn = env.getAccumuloConnector();
     Authorizations auths = env.getRandomAuthorizations();
@@ -80,7 +80,7 @@ public class BulkScanner {
         if (count == 0) {
           distance = distance * 10;
           if (distance < 0)
-            distance = 1000000000000l;
+            distance = 1000000000000L;
         } else {
           double ratio = (double) numToScan / count;
           ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
