@@ -27,7 +27,7 @@ import org.apache.log4j.PatternLayout;
 import java.io.IOException;
 
 /**
- * Common CLI arguments for the Continuous Ingest suite.
+ * Common BL arguments for the Bulk Loading suite.
  */
 public class BulkOpts {
 
@@ -59,16 +59,16 @@ public class BulkOpts {
   @Parameter(names = "--max", description = "maximum random row number to use")
   long max = Long.MAX_VALUE;
 
-  @Parameter(names = "--debugLog", description = "file to write debugging output", converter = ContinuousOpts.DebugConverter.class)
+  @Parameter(names = "--debugLog", description = "file to write debugging output", converter = BulkOpts.DebugConverter.class)
   String debugLog = null;
 
   @Parameter(names = "--num", description = "the number of entries to ingest")
   long num = Long.MAX_VALUE;
 
-  @Parameter(names = "--maxColF", description = "maximum column family value to use", converter = ContinuousOpts.ShortConverter.class)
+  @Parameter(names = "--maxColF", description = "maximum column family value to use", converter = BulkOpts.ShortConverter.class)
   short maxColF = Short.MAX_VALUE;
 
-  @Parameter(names = "--maxColQ", description = "maximum column qualifier value to use", converter = ContinuousOpts.ShortConverter.class)
+  @Parameter(names = "--maxColQ", description = "maximum column qualifier value to use", converter = BulkOpts.ShortConverter.class)
   short maxColQ = Short.MAX_VALUE;
 
   @Parameter(names = "--addCheckSum", description = "turn on checksums")

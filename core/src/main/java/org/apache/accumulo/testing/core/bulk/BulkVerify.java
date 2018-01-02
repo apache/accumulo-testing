@@ -32,7 +32,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.core.TestProps;
-//import org.apache.accumulo.testing.core.bulk.BulkWalk.BadChecksumException;
+import org.apache.accumulo.testing.core.bulk.BulkWalk.BadChecksumException;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -87,7 +87,7 @@ public class BulkVerify extends Configured implements Tool {
             context.write(row, DEF);
             byte[] val = data.get();
 
-            //int offset = BulkWalk.getPrevRowOffset(val);
+            int offset = BulkWalk.getPrevRowOffset(val);
             if (offset > 0) {
                 ref.set(Long.parseLong(new String(val, offset, 16, UTF_8), 16));
                 vrow.set(r);
@@ -123,10 +123,10 @@ public class BulkVerify extends Configured implements Tool {
                 for (Long ref : refs) {
                     sb.append(comma);
                     comma = ",";
-                    //sb.append(new String(BulkIngest.genRow(ref), UTF_8));
+                    sb.append(new String(BulkIngest.genRow(ref), UTF_8));
                 }
 
-                //context.write(new Text(BulkIngest.genRow(key.get())), new Text(sb.toString()));
+                context.write(new Text(BulkIngest.genRow(key.get())), new Text(sb.toString()));
                 context.getCounter(Counts.UNDEFINED).increment(1L);
 
             } else if (defCount > 0 && refs.size() == 0) {

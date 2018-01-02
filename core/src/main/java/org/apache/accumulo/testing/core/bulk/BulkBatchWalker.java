@@ -76,7 +76,7 @@ public class BulkBatchWalker {
   private static void runBatchScan(int batchSize, BatchScanner bs, Set<Text> batch, List<Range> ranges) {
     bs.setRanges(ranges);
 
-    Set<Text> rowSeen = new HashSet<>();
+    Set<Text> rowsSeen = new HashSet<>();
 
     int count = 0;
 
@@ -95,12 +95,12 @@ public class BulkBatchWalker {
 
     long t2 = System.currentTimeMillis();
 
-    if (!rowSeen.equals(batch)) {
-      HashSet<Text> copy1 = new HashSet<>(rowSeen);
+    if (!rowsSeen.equals(batch)) {
+      HashSet<Text> copy1 = new HashSet<>(rowsSeen);
       HashSet<Text> copy2 = new HashSet<>(batch);
 
       copy1.removeAll(batch);
-      copy2.removeAll(rowSeen);
+      copy2.removeAll(rowsSeen);
 
       System.out.printf("DIF %d %d %d%n", t1, copy1.size(), copy2.size());
       System.err.printf("DIF %d %d %d%n", t1, copy1.size(), copy2.size());
@@ -111,7 +111,7 @@ public class BulkBatchWalker {
     }
   }
 
-  private static void addRow() {
+  private static void addRow(int batchSize, Value v) {
     byte[] val = v.get();
 
     int offset = BulkWalk.getPrevRowOffset(val);
