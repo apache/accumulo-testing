@@ -56,7 +56,9 @@ class ContinuousEnv extends TestEnv {
     return Integer.parseInt(p.getProperty(TestProps.CI_INGEST_MAX_CF));
   }
 
-  int getMaxColQ() { return Integer.parseInt(p.getProperty(TestProps.CI_INGEST_MAX_CQ)); }
+  int getMaxColQ() {
+    return Integer.parseInt(p.getProperty(TestProps.CI_INGEST_MAX_CQ));
+  }
 
   String getAccumuloTableName() {
     return p.getProperty(TestProps.CI_COMMON_ACCUMULO_TABLE);

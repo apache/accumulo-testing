@@ -26,49 +26,49 @@ import org.apache.hadoop.io.Text;
 
 public class CreateTable {
 
-    public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
 
-        if (args.length != 1) {
-            System.err.println("Usage: CreateTable <propsPath>");
-            System.exit(-1);
-        }
-
-        Properties props = TestProps.loadFromFile(args[0]);
-        BulkEnv env = new BulkEnv(props);
-
-        Connector conn = env.getAccumuloConnector();
-        String tableName = env.getAccumuloTableName();
-        if (conn.tableOperations().exists(tableName)) {
-            System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
-            System.exit(-1);
-        }
-
-        int numTablets = Integer.parseInt(props.getProperty(TestProps.BL_COMMON_ACCUMULO_NUM_TABLETS));
-        if (numTablets < 1) {
-            System.err.println("ERROR: numTablets < 1");
-            System.exit(-1);
-        }
-        if (env.getRowMin() >= env.getRowMax()) {
-            System.err.println("ERROR: min >= max");
-            System.exit(-1);
-        }
-
-        conn.tableOperations().create(tableName);
-
-        SortedSet<Text> splits = new TreeSet<>();
-        int numSplits = numTablets - 1;
-        long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
-        long split = distance;
-        for (int i = 0; i < numSplits; i++) {
-            String s = String.format("%016x", split + env.getRowMin());
-            while (s.charAt(s.length() - 1) == '0') {
-                s = s.substring(0, s.length() - 1);
-            }
-            splits.add(new Text(s));
-            split += distance;
-        }
-
-        conn.tableOperations().addSplits(tableName, splits);
-        System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
+    if (args.length != 1) {
+      System.err.println("Usage: CreateTable <propsPath>");
+      System.exit(-1);
     }
+
+    Properties props = TestProps.loadFromFile(args[0]);
+    BulkEnv env = new BulkEnv(props);
+
+    Connector conn = env.getAccumuloConnector();
+    String tableName = env.getAccumuloTableName();
+    if (conn.tableOperations().exists(tableName)) {
+      System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
+      System.exit(-1);
+    }
+
+    int numTablets = Integer.parseInt(props.getProperty(TestProps.BL_COMMON_ACCUMULO_NUM_TABLETS));
+    if (numTablets < 1) {
+      System.err.println("ERROR: numTablets < 1");
+      System.exit(-1);
+    }
+    if (env.getRowMin() >= env.getRowMax()) {
+      System.err.println("ERROR: min >= max");
+      System.exit(-1);
+    }
+
+    conn.tableOperations().create(tableName);
+
+    SortedSet<Text> splits = new TreeSet<>();
+    int numSplits = numTablets - 1;
+    long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
+    long split = distance;
+    for (int i = 0; i < numSplits; i++) {
+      String s = String.format("%016x", split + env.getRowMin());
+      while (s.charAt(s.length() - 1) == '0') {
+        s = s.substring(0, s.length() - 1);
+      }
+      splits.add(new Text(s));
+      split += distance;
+    }
+
+    conn.tableOperations().addSplits(tableName, splits);
+    System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
+  }
 }

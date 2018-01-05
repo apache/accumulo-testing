@@ -22,7 +22,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.security.Authorizations;
 
 /**
- * Useful utility methods common to the Continuous test suite.
+ * Useful utility methods common to the Bulk Loading test suite.
  */
 final class BulkUtil {
   private BulkUtil() {}

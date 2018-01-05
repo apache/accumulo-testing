@@ -43,8 +43,8 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * A map only job that reads a table created by bulk loading and creates doubly linked list. This map reduce job tests the ability of a map only job to
- * read and write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
+ * A map only job that reads a table created by bulk loading and creates doubly linked list. This map reduce job tests the ability of a map only job to read and
+ * write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
  */
 public class BulkMoru extends Configured implements Tool {
   private static final String PREFIX = BulkMoru.class.getSimpleName() + ".";
@@ -99,8 +99,8 @@ public class BulkMoru extends Configured implements Tool {
         int offset = BulkWalk.getPrevRowOffset(val);
         if (offset > 0) {
           long rowLong = Long.parseLong(new String(val, offset, 16, UTF_8), 16);
-          Mutation m = BulkIngest.genMutation(rowLong, random.nextInt(max_cf), random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData()
-              .toArray(), true);
+          Mutation m = BulkGenerator.genMutation(rowLong, random.nextInt(max_cf), random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData().toArray(),
+              true);
           context.write(null, m);
         }
 

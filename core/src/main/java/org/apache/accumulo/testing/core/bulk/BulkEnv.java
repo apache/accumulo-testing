@@ -28,55 +28,55 @@ import org.apache.accumulo.testing.core.TestProps;
 
 class BulkEnv extends TestEnv {
 
-    private List<Authorizations> authList;
+  private List<Authorizations> authList;
 
-    BulkEnv(Properties props) {
-        super(props);
-    }
+  BulkEnv(Properties props) {
+    super(props);
+  }
 
-    /**
-     * @return Accumulo authorizations list
-     */
-    private List<Authorizations> getAuthList() {
-        if (authList == null) {
-            String authValue = p.getProperty(TestProps.BL_COMMON_AUTHS);
-            if (authValue == null || authValue.trim().isEmpty()) {
-                authList = Collections.singletonList(Authorizations.EMPTY);
-            } else {
-                authList = new ArrayList<>();
-                for (String a : authValue.split("\\|")) {
-                    authList.add(new Authorizations(a.split(",")));
-                }
-            }
+  /**
+   * @return Accumulo authorizations list
+   */
+  private List<Authorizations> getAuthList() {
+    if (authList == null) {
+      String authValue = p.getProperty(TestProps.BL_COMMON_AUTHS);
+      if (authValue == null || authValue.trim().isEmpty()) {
+        authList = Collections.singletonList(Authorizations.EMPTY);
+      } else {
+        authList = new ArrayList<>();
+        for (String a : authValue.split("\\|")) {
+          authList.add(new Authorizations(a.split(",")));
         }
-        return authList;
+      }
     }
+    return authList;
+  }
 
-    /**
-     * @return random authorization
-     */
-    Authorizations getRandomAuthorizations() {
-        Random r = new Random();
-        return getAuthList().get(r.nextInt(getAuthList().size()));
-    }
+  /**
+   * @return random authorization
+   */
+  Authorizations getRandomAuthorizations() {
+    Random r = new Random();
+    return getAuthList().get(r.nextInt(getAuthList().size()));
+  }
 
-    long getRowMin() {
-        return Long.parseLong(p.getProperty(TestProps.BL_INGEST_ROW_MIN));
-    }
+  long getRowMin() {
+    return Long.parseLong(p.getProperty(TestProps.BL_INGEST_ROW_MIN));
+  }
 
-    long getRowMax() {
-        return Long.parseLong(p.getProperty(TestProps.BL_INGEST_ROW_MAX));
-    }
+  long getRowMax() {
+    return Long.parseLong(p.getProperty(TestProps.BL_INGEST_ROW_MAX));
+  }
 
-    int getMaxColF() {
-        return Integer.parseInt(p.getProperty(TestProps.BL_INGEST_MAX_CF));
-    }
+  int getMaxColF() {
+    return Integer.parseInt(p.getProperty(TestProps.BL_INGEST_MAX_CF));
+  }
 
-    int getMaxColQ() {
-        return Integer.parseInt(p.getProperty(TestProps.BL_INGEST_MAX_CQ));
-    }
+  int getMaxColQ() {
+    return Integer.parseInt(p.getProperty(TestProps.BL_INGEST_MAX_CQ));
+  }
 
-    String getAccumuloTableName() {
-        return p.getProperty(TestProps.BL_COMMON_ACCUMULO_TABLE);
-    }
+  String getAccumuloTableName() {
+    return p.getProperty(TestProps.BL_COMMON_ACCUMULO_TABLE);
+  }
 }

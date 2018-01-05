@@ -16,5 +16,15 @@
  */
 package org.apache.accumulo.testing.core.bulk;
 
+/*
+ * Move all files from dir A to dir B.
+ * Run a map reduce job to sort files in B into dir C. This step creates the rfiles needed for bulk import.
+ * Bulk import files in dir C into Accumulo
+ *
+ * */
 public class BulkLoader {
+
+  public static void main(String[] args) throws Exception {
+
+  }
 }

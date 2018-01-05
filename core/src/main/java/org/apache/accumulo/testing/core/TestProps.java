@@ -34,7 +34,7 @@ public class TestProps {
   private static final String CI_SCANNER = CI + "scanner.";
   private static final String CI_VERIFY = CI + "verify.";
 
-  private static final String BL = PREFIX + "ci.";
+  private static final String BL = PREFIX + "bl.";
   private static final String BL_COMMON = BL + "common.";
   private static final String BL_INGEST = BL + "ingest.";
   private static final String BL_WALKER = BL + "walker.";

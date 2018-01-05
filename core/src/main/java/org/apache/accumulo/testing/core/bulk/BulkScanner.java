@@ -57,9 +57,9 @@ public class BulkScanner {
     double delta = Math.min(.05, .05 / (numToScan / 1000.0));
 
     while (true) {
-      long startRow = BulkInjest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
-      byte[] scanStart = BulkInjest.genRow(startRow);
-      byte[] scanStop = BulkInjest.genRow(startRow + distance);
+      long startRow = BulkGenerator.genLong(env.getRowMin(), env.getRowMax() - distance, r);
+      byte[] scanStart = BulkGenerator.genRow(startRow);
+      byte[] scanStop = BulkGenerator.genRow(startRow + distance);
 
       scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
 

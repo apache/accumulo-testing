@@ -172,4 +172,4 @@ test.bl.verify.scan.offline=false
 # Comma separated list of auths to use for verify
 test.bl.verify.auths=
 # Location in HDFS to store output. Must not exist.
-test.bl.verify.output.dir=/tmp/ci-verify
+test.bl.verify.output.dir=/tmp/bl-verify

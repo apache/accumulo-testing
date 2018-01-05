@@ -38,7 +38,10 @@ public class BulkWalk {
 
   static class BadChecksumException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-    BadChecksumException(String msg) {super(msg);}
+
+    BadChecksumException(String msg) {
+      super(msg);
+    }
   }
 
   public static void main(String[] args) throws Exception {
@@ -97,7 +100,7 @@ public class BulkWalk {
 
   private static String findAStartRow(long min, long max, Scanner scanner, Random r) {
 
-    byte[] scanStart = BulkInjest.genRow(min, max, r);
+    byte[] scanStart = BulkGenerator.genRow(min, max, r);
     scanner.setRange(new Range(new Text(scanStart), null));
     scanner.setBatchSize(100);
 

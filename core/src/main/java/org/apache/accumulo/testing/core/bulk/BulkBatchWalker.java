@@ -129,7 +129,7 @@ public class BulkBatchWalker {
   private static Set<Text> getBatch(Scanner scanner, long min, long max, int batchSize, Random r) {
 
     while (rowsToQuery.size() < batchSize) {
-      byte[] scanStart = BulkInjest.genRow(min, max, r);
+      byte[] scanStart = BulkGenerator.genRow(min, max, r);
       scanner.setRange(new Range(new Text(scanStart), null));
 
       int count = 0;

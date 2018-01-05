@@ -35,8 +35,7 @@ import com.beust.jcommander.Parameter;
 public class TimeBinner {
 
   enum Operation {
-    AVG, SUM, MIN, MAX, COUNT, CUMULATIVE, AMM,
-    AMM_HACK1
+    AVG, SUM, MIN, MAX, COUNT, CUMULATIVE, AMM, AMM_HACK1
   }
 
   private static class DoubleWrapper {
