@@ -64,7 +64,7 @@ public class CopyTool extends Configured implements Tool {
       return 1;
     }
 
-    ClientConfiguration clientConf = new ClientConfiguration().withInstance(args[3]).withZkHosts(args[4]);
+    ClientConfiguration clientConf = ClientConfiguration.create().withInstance(args[3]).withZkHosts(args[4]);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
     AccumuloInputFormat.setInputTableName(job, args[2]);
@@ -73,7 +73,7 @@ public class CopyTool extends Configured implements Tool {
 
     final String principal;
     final AuthenticationToken token;
-    if (clientConf.getBoolean(ClientProperty.INSTANCE_RPC_SASL_ENABLED.getKey(), false)) {
+    if (Boolean.parseBoolean(clientConf.get(ClientProperty.INSTANCE_RPC_SASL_ENABLED))) {
       // Use the Kerberos creds to request a DelegationToken for MapReduce
       // to use
       // We could use the specified keytab (args[1]), but we're already

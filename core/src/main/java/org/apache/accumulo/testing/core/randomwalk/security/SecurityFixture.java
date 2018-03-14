@@ -37,7 +37,7 @@ public class SecurityFixture extends Fixture {
     String secTableName, systemUserName, tableUserName, secNamespaceName;
     // A best-effort sanity check to guard against not password-based auth
     ClientConfiguration clientConf = ClientConfiguration.loadDefault();
-    if (clientConf.getBoolean(ClientProperty.INSTANCE_RPC_SASL_ENABLED.getKey(), false)) {
+    if (Boolean.parseBoolean(clientConf.get(ClientProperty.INSTANCE_RPC_SASL_ENABLED))) {
       throw new IllegalStateException("Security module currently cannot support Kerberos/SASL instances");
     }
 

@@ -103,7 +103,7 @@ public class MapRedVerifyTool extends Configured implements Tool {
     AccumuloOutputFormat.setZooKeeperInstance(job, clientConf);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
-    if (clientConf.getBoolean(ClientProperty.INSTANCE_RPC_SASL_ENABLED.getKey(), false)) {
+    if (Boolean.parseBoolean(clientConf.get(ClientProperty.INSTANCE_RPC_SASL_ENABLED))) {
       // Better be logged in
       KerberosToken token = new KerberosToken();
       try {
