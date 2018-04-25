@@ -25,7 +25,6 @@ import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -164,17 +163,25 @@ public class UndefinedAnalyzer {
     List<TabletAssignment> assignments = new ArrayList<>();
 
     TabletHistory(String tableId, String acuLogDir) throws Exception {
+      // looks for a file called load_events.log... the expected format of lines in this file is
+      // <date> <time> <tablet> <tserver>
+      //
+      // These lines represent when tablets were loaded, this file may be produced from master logs
+      // with following command :
+      //
+      // grep -h "was loaded on" *master*debug* | cut -d ' ' -f 1,2,7,11 | sort > load_events.log
+      //
+      // The command may need to be adjusted if formatting changes.
+
       File dir = new File(acuLogDir);
       File[] masterLogs = dir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-          return name.matches("master.*debug.log.*");
+          return name.matches("load_events.log");
         }
       });
 
-      SimpleDateFormat sdf = new SimpleDateFormat("dd HH:mm:ss,SSS yyyy MM");
-      String currentYear = (Calendar.getInstance().get(Calendar.YEAR)) + "";
-      String currentMonth = (Calendar.getInstance().get(Calendar.MONTH) + 1) + "";
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
       if (masterLogs != null) {
         for (File masterLog : masterLogs) {
@@ -183,43 +190,42 @@ public class UndefinedAnalyzer {
           String line;
           try {
             while ((line = reader.readLine()) != null) {
-              if (line.contains("TABLET_LOADED")) {
-                String[] tokens = line.split("\\s+");
-                String tablet = tokens[8];
-                String server = tokens[10];
+              String[] tokens = line.split("\\s+");
+              String day = tokens[0];
+              String time = tokens[1];
+              String tablet = tokens[2];
+              String server = tokens[3];
 
-                int pos1 = -1;
-                int pos2 = -1;
-                int pos3 = -1;
+              int pos1 = -1;
+              int pos2 = -1;
+              int pos3 = -1;
 
-                for (int i = 0; i < tablet.length(); i++) {
-                  if (tablet.charAt(i) == '<' || tablet.charAt(i) == ';') {
-                    if (pos1 == -1) {
-                      pos1 = i;
-                    } else if (pos2 == -1) {
-                      pos2 = i;
-                    } else {
-                      pos3 = i;
-                    }
+              for (int i = 0; i < tablet.length(); i++) {
+                if (tablet.charAt(i) == '<' || tablet.charAt(i) == ';') {
+                  if (pos1 == -1) {
+                    pos1 = i;
+                  } else if (pos2 == -1) {
+                    pos2 = i;
+                  } else {
+                    pos3 = i;
                   }
                 }
+              }
 
-                if (pos1 > 0 && pos2 > 0 && pos3 == -1) {
-                  String tid = tablet.substring(0, pos1);
-                  String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000" : tablet.substring(pos1 + 1, pos2);
-                  String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
-                  if (tid.equals(tableId)) {
-                    // System.out.println(" "+server+" "+tid+" "+endRow+" "+prevEndRow);
-                    Date date = sdf.parse(tokens[0] + " " + tokens[1] + " " + currentYear + " " + currentMonth);
-                    // System.out.println(" "+date);
+              if (pos1 > 0 && pos2 > 0 && pos3 == -1) {
+                String tid = tablet.substring(0, pos1);
+                String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000" : tablet.substring(pos1 + 1, pos2);
+                String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
+                if (tid.equals(tableId)) {
+                  // System.out.println(" "+server+" "+tid+" "+endRow+" "+prevEndRow);
+                  Date date = sdf.parse(day + " " + time);
+                  // System.out.println(" "+date);
 
-                    assignments.add(new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
+                  assignments.add(new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
 
-                  }
-                } else if (!tablet.startsWith("!0")) {
-                  System.err.println("Cannot parse tablet " + tablet);
                 }
-
+              } else if (!tablet.startsWith("!0")) {
+                System.err.println("Cannot parse tablet " + tablet);
               }
             }
           } finally {

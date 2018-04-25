@@ -21,7 +21,7 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -80,8 +80,7 @@ public class AlterTablePerm extends Test {
     SecurityOperations secOps = conn.securityOperations();
 
     try {
-      canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE)
-              || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
+      canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE) || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
         if (tableExists)
