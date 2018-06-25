@@ -79,7 +79,7 @@ while(1){
 	$t = strftime "%Y%m%d %H:%M:%S", localtime;
 	print STDERR "$t Running start-all\n";
 
-	$cmd = "pssh -h $accumuloConfDir/masters \"$accumuloHome/bin/accumulo-service master start\" < /dev/null";
+	$cmd = "$accumuloHome/bin/start-all.sh --notSlaves";
 	print "$t $cmd\n";
 	system($cmd);
 }

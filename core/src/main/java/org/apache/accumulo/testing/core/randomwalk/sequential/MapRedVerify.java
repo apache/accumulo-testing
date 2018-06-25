@@ -52,7 +52,7 @@ public class MapRedVerify extends Test {
       return;
     }
 
-    Scanner outputScanner = env.getAccumuloConnector().createScanner(args[7], Authorizations.EMPTY);
+    Scanner outputScanner = env.getAccumuloConnector().createScanner(args[5], Authorizations.EMPTY);
     outputScanner.setRange(new Range());
 
     int count = 0;

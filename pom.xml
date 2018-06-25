@@ -38,7 +38,7 @@
   </modules>
 
   <properties>
-    <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
+    <accumulo.version>1.9.1</accumulo.version>
     <hadoop.version>2.6.4</hadoop.version>
     <zookeeper.version>3.4.9</zookeeper.version>
     <slf4j.version>1.7.21</slf4j.version>
@@ -74,11 +74,6 @@
         <groupId>commons-configuration</groupId>
         <artifactId>commons-configuration</artifactId>
         <version>1.6</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.accumulo</groupId>
-        <artifactId>accumulo-client-mapreduce</artifactId>
-        <version>${accumulo.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.accumulo</groupId>

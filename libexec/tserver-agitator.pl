@@ -74,7 +74,7 @@ if($minKill > $maxKill){
   die("minKill > maxKill $minKill > $maxKill");
 }
 
-@tserversRaw = `cat $accumuloConfDir/tservers`;
+@tserversRaw = `cat $accumuloConfDir/slaves`;
 chomp(@tserversRaw);
 
 for $tserver (@tserversRaw){
@@ -114,7 +114,7 @@ while(1){
 
     print STDERR "$t Killing tserver on $server\n";
     # We're the accumulo user, just run the commandj
-    system("ssh $server '$accumuloHome/bin/accumulo-service tserver kill'");
+    system("$accumuloHome/bin/stop-server.sh $server 'accumulo-start.jar' tserver KILL");
   }
 
   $nextsleep2 = int(rand($sleep2max - $sleep2)) + $sleep2;
@@ -122,7 +122,7 @@ while(1){
   $t = strftime "%Y%m%d %H:%M:%S", localtime;
   print STDERR "$t Running tup\n";
   # restart the as them as the accumulo user
-  system("$accumuloHome/bin/accumulo-cluster start-tservers");
+  system("$accumuloHome/bin/tup.sh");
 
   $nextsleep1 = int(rand($sleep1max - $sleep1)) + $sleep1;
   sleep($nextsleep1 * 60);

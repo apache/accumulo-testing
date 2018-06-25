@@ -76,7 +76,7 @@ if($minKill > $maxKill){
   die("minKill > maxKill $minKill > $maxKill");
 }
 
-@tserversRaw = `cat $accumuloConfDir/tservers`;
+@tserversRaw = `cat $accumuloConfDir/slaves`;
 chomp(@tserversRaw);
 
 for $tserver (@tserversRaw){
