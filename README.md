@@ -1,4 +1,5 @@
 # Apache Accumulo Testing Suite
+[![Build Status][ti]][tl]
 
 The Apache Accumulo testing suite contains applications that test and verify the
 correctness of Accumulo.
@@ -136,3 +137,5 @@ Run the command below stop the agitator:
 
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml
+[ti]: https://travis-ci.org/apache/accumulo-testing.svg?branch=master
+[tl]: https://travis-ci.org/apache/accumulo-testing

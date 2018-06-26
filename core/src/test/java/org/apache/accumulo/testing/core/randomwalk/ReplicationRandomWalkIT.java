@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.testing.core.randomwalk;
 
-import static org.apache.accumulo.core.conf.Property.TSERV_ARCHIVE_WALOGS;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WALOG_MAX_SIZE;
 
@@ -35,7 +34,6 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
   @Override
   protected void configure(MiniAccumuloConfigImpl cfg, Configuration hadoopCoreSite) {
-    cfg.setProperty(TSERV_ARCHIVE_WALOGS, "false");
     cfg.setProperty(TSERV_WALOG_MAX_SIZE, "1M");
     cfg.setProperty(TSERV_NATIVEMAP_ENABLED, "false");
     cfg.setNumTservers(1);
