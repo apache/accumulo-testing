@@ -45,9 +45,41 @@ public class ContinuousIngest {
   private static final byte[] EMPTY_BYTES = new byte[0];
 
   private static List<ColumnVisibility> visibilities;
+  private static long lastPause;
+  private static long pauseWaitMs;
 
   private static ColumnVisibility getVisibility(Random rand) {
     return visibilities.get(rand.nextInt(visibilities.size()));
+  }
+
+  private static boolean pauseEnabled(Properties props) {
+    String value = props.getProperty(TestProps.CI_INGEST_PAUSE_ENABLED);
+    return value != null && value.equals("true");
+  }
+
+  private static int getPauseWaitMs(Properties props, Random rand) {
+    int waitMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MIN));
+    int waitMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MAX));
+    return (rand.nextInt(waitMax - waitMin) + waitMin) * 1000;
+  }
+
+  private static int getPauseDurationMs(Properties props, Random rand) {
+    int durationMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MIN));
+    int durationMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MAX));
+    return (rand.nextInt(durationMax - durationMin) + durationMin) * 1000;
+  }
+
+  private static void pauseCheck(Properties props, Random rand) throws InterruptedException {
+    if (pauseEnabled(props)) {
+      if (System.currentTimeMillis() > (lastPause + pauseWaitMs)) {
+        long pauseDurationMs = getPauseDurationMs(props, rand);
+        System.out.println("Pausing ingest for " + pauseDurationMs + " ms - " + System.currentTimeMillis());
+        Thread.sleep(pauseDurationMs);
+        lastPause = System.currentTimeMillis();
+        pauseWaitMs = getPauseWaitMs(props, rand);
+        System.out.println("Ingest restarted. Will pause again in " + pauseWaitMs + " ms at " + (lastPause + pauseWaitMs));
+      }
+    }
   }
 
   public static void main(String[] args) throws Exception {
@@ -115,6 +147,12 @@ public class ContinuousIngest {
     boolean checksum = Boolean.parseBoolean(props.getProperty(TestProps.CI_INGEST_CHECKSUM));
     long numEntries = Long.parseLong(props.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
 
+    if (pauseEnabled(props)) {
+      lastPause = System.currentTimeMillis();
+      pauseWaitMs = getPauseWaitMs(props, r);
+      System.out.println("Ingest will be paused in " + pauseWaitMs + " ms at " + (lastPause + pauseWaitMs));
+    }
+
     out: while (true) {
       // generate first set of nodes
       ColumnVisibility cv = getVisibility(r);
@@ -154,6 +192,7 @@ public class ContinuousIngest {
         lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         if (count >= numEntries)
           break out;
+        pauseCheck(props, r);
       }
 
       // create one big linked list, this makes all of the first inserts
@@ -167,8 +206,8 @@ public class ContinuousIngest {
       lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
       if (count >= numEntries)
         break out;
+      pauseCheck(props, r);
     }
-
     bw.close();
   }
 
