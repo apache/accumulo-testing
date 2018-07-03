@@ -24,9 +24,11 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
@@ -39,14 +41,18 @@ import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContinuousIngest {
+
+  private static final Logger log = LoggerFactory.getLogger(ContinuousIngest.class);
 
   private static final byte[] EMPTY_BYTES = new byte[0];
 
   private static List<ColumnVisibility> visibilities;
-  private static long lastPause;
-  private static long pauseWaitMs;
+  private static long lastPauseNs;
+  private static long pauseWaitSec;
 
   private static ColumnVisibility getVisibility(Random rand) {
     return visibilities.get(rand.nextInt(visibilities.size()));
@@ -54,30 +60,39 @@ public class ContinuousIngest {
 
   private static boolean pauseEnabled(Properties props) {
     String value = props.getProperty(TestProps.CI_INGEST_PAUSE_ENABLED);
-    return value != null && value.equals("true");
+    return Boolean.parseBoolean(value);
   }
 
-  private static int getPauseWaitMs(Properties props, Random rand) {
+  private static int getPauseWaitSec(Properties props, Random rand) {
     int waitMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MIN));
     int waitMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MAX));
-    return (rand.nextInt(waitMax - waitMin) + waitMin) * 1000;
+    Preconditions.checkState(waitMax >= waitMin && waitMin > 0);
+    if (waitMax == waitMin) {
+      return waitMin;
+    }
+    return (rand.nextInt(waitMax - waitMin) + waitMin);
   }
 
-  private static int getPauseDurationMs(Properties props, Random rand) {
+  private static int getPauseDurationSec(Properties props, Random rand) {
     int durationMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MIN));
     int durationMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MAX));
-    return (rand.nextInt(durationMax - durationMin) + durationMin) * 1000;
+    Preconditions.checkState(durationMax >= durationMin && durationMin > 0);
+    if (durationMax == durationMin) {
+      return durationMin;
+    }
+    return (rand.nextInt(durationMax - durationMin) + durationMin);
   }
 
   private static void pauseCheck(Properties props, Random rand) throws InterruptedException {
     if (pauseEnabled(props)) {
-      if (System.currentTimeMillis() > (lastPause + pauseWaitMs)) {
-        long pauseDurationMs = getPauseDurationMs(props, rand);
-        System.out.println("Pausing ingest for " + pauseDurationMs + " ms - " + System.currentTimeMillis());
-        Thread.sleep(pauseDurationMs);
-        lastPause = System.currentTimeMillis();
-        pauseWaitMs = getPauseWaitMs(props, rand);
-        System.out.println("Ingest restarted. Will pause again in " + pauseWaitMs + " ms at " + (lastPause + pauseWaitMs));
+      long elapsedNano = System.nanoTime() - lastPauseNs;
+      if (elapsedNano > (TimeUnit.SECONDS.toNanos(pauseWaitSec))) {
+        long pauseDurationSec = getPauseDurationSec(props, rand);
+        log.info("PAUSING for " + pauseDurationSec + "s");
+        Thread.sleep(TimeUnit.SECONDS.toMillis(pauseDurationSec));
+        lastPauseNs = System.nanoTime();
+        pauseWaitSec = getPauseWaitSec(props, rand);
+        log.info("INGESTING for " + pauseWaitSec + "s");
       }
     }
   }
@@ -122,7 +137,7 @@ public class ContinuousIngest {
 
     byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
 
-    System.out.printf("UUID %d %s%n", System.currentTimeMillis(), new String(ingestInstanceId, UTF_8));
+    log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId, UTF_8)));
 
     long count = 0;
     final int flushInterval = 1000000;
@@ -148,9 +163,10 @@ public class ContinuousIngest {
     long numEntries = Long.parseLong(props.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
 
     if (pauseEnabled(props)) {
-      lastPause = System.currentTimeMillis();
-      pauseWaitMs = getPauseWaitMs(props, r);
-      System.out.println("Ingest will be paused in " + pauseWaitMs + " ms at " + (lastPause + pauseWaitMs));
+      lastPauseNs = System.nanoTime();
+      pauseWaitSec = getPauseWaitSec(props, r);
+      log.info("PAUSING enabled");
+      log.info("INGESTING for " + pauseWaitSec + "s");
     }
 
     out: while (true) {
@@ -215,7 +231,7 @@ public class ContinuousIngest {
     long t1 = System.currentTimeMillis();
     bw.flush();
     long t2 = System.currentTimeMillis();
-    System.out.printf("FLUSH %d %d %d %d %d%n", t2, (t2 - lastFlushTime), (t2 - t1), count, flushInterval);
+    log.info(String.format("FLUSH %d %d %d %d %d", t2, (t2 - lastFlushTime), (t2 - t1), count, flushInterval));
     lastFlushTime = t2;
     return lastFlushTime;
   }
