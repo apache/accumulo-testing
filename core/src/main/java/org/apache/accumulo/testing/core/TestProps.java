@@ -92,6 +92,16 @@ public class TestProps {
   public static final String CI_INGEST_VISIBILITIES = CI_INGEST + "visibilities";
   // Checksums will be generated during ingest if set to true
   public static final String CI_INGEST_CHECKSUM = CI_INGEST + "checksum";
+  // Enables periodic pausing of ingest
+  public static final String CI_INGEST_PAUSE_ENABLED = CI_INGEST + "pause.enabled";
+  // Minimum wait between ingest pauses (in seconds)
+  public static final String CI_INGEST_PAUSE_WAIT_MIN = CI_INGEST + "pause.wait.min";
+  // Maximum wait between ingest pauses (in seconds)
+  public static final String CI_INGEST_PAUSE_WAIT_MAX = CI_INGEST + "pause.wait.max";
+  // Minimum pause duration (in seconds)
+  public static final String CI_INGEST_PAUSE_DURATION_MIN = CI_INGEST + "pause.duration.min";
+  // Maximum pause duration (in seconds)
+  public static final String CI_INGEST_PAUSE_DURATION_MAX = CI_INGEST + "pause.duration.max";
 
   /** Batch Walker **/
   // Sleep time between batch scans (in ms)
