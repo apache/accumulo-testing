@@ -77,6 +77,16 @@ test.ci.ingest.max.cq=32767
 test.ci.ingest.visibilities=
 # Checksums will be generated during ingest if set to true
 test.ci.ingest.checksum=true
+# Enables periodic pausing of ingest
+test.ci.ingest.pause.enabled=false
+# Minimum wait between ingest pauses (in seconds)
+test.ci.ingest.pause.wait.min=120
+# Maximum wait between ingest pauses (in seconds)
+test.ci.ingest.pause.wait.max=180
+# Minimum pause duration (in seconds)
+test.ci.ingest.pause.duration.min=60
+# Maximum pause duration (in seconds)
+test.ci.ingest.pause.duration.max=120
 
 # Batch walker
 # ------------
