@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.accumulo.test.stress.random;
+package org.apache.accumulo.testing.core.stress;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
