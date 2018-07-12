@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.accumulo.test.stress.random;
+package org.apache.accumulo.testing.core.stress;
 
 /**
  * A stream that will create random byte arrays as it is looped over.
