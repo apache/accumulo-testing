@@ -53,7 +53,7 @@ The YARN application can be killed at any time using the YARN resource manager o
 ## Continuous Ingest & Query
 
 The Continuous Ingest test runs many ingest clients that continually create linked lists of data
-in Accumulo. During ingest, query applications can be run to continously walk and verify the the
+in Accumulo. During ingest, query applications can be run to continuously walk and verify the
 linked lists and put a query load on Accumulo. At some point, the ingest clients are stopped and
 a MapReduce job is run to ensure that there are no holes in any linked list.
 
@@ -135,6 +135,19 @@ Run the command below stop the agitator:
 
             ./bin/accumulo-testing agitator stop
 
+## Performance Test
+
+To run performance test a `cluster-control.sh` script is needed to assist with starting, stopping,
+wiping, and confguring an Accumulo instance.  An example script for [Uno] is provided.  After
+the cluster control script is setup, the following will run performance test and produce json
+result files.
+
+             ./bin/performance-test run <output dir>
+
+There are some utilities for working with the json result files, run the performance-test script
+with no options to see them.
+
+[Uno]: https://github.com/apache/fluo-uno
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml
 [ti]: https://travis-ci.org/apache/accumulo-testing.svg?branch=master
