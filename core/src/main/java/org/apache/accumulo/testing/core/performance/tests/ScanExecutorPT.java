@@ -1,6 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.accumulo.testing.core.performance.tests;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
@@ -95,7 +111,7 @@ public class ScanExecutorPT implements PerformanceTest {
     builder.info("short_times2", shortStats2, "Times in ms for each short scan. Second run.");
     builder.result("short", shortStats2.getAverage(), "Average times in ms for short scans from 2nd run.");
     builder.info("long_counts", longStats, "Entries read by each long scan threads");
-    builder.result("long", longStats.getSum(), (t4-t3), "Combined rate in entries/second of all long scans");
+    builder.info("long", longStats.getSum(), (t4-t3), "Combined rate in entries/second of all long scans");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS, "Threads running long scans.  Each thread repeatedly scans entire table for duration of test.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");

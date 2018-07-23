@@ -69,25 +69,25 @@ case "$1" in
     fi
     mkdir -p "$2"
     start_cluster
-    java -cp "$CP" -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read test_class; do
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read test_class; do
       echo "Running test $test_class"
       pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)
       setup_accumulo
       get_config_file accumulo-site.xml "$pt_tmp"
-      java -cp "$CP" -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
+      CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
       put_config_file "$pt_tmp/accumulo-site.xml"
       put_server_code "$at_home/core/target/accumulo-testing-core-$at_version.jar"
       start_accumulo
       get_config_file accumulo-client.properties "$pt_tmp"
-      java -cp "$CP" -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
+      CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
     done
     stop_cluster
     ;;
   compare)
-    java -cp "$CP" -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.Compare "$2" "$3"
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.Compare "$2" "$3"
     ;;
   csv)
-    java -cp "$CP" -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.Csv "${@:2}"
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.Csv "${@:2}"
     ;;
   *)
     echo "Unknown command : $1"

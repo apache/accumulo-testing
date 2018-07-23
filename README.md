@@ -138,11 +138,70 @@ Run the command below stop the agitator:
 ## Performance Test
 
 To run performance test a `cluster-control.sh` script is needed to assist with starting, stopping,
-wiping, and confguring an Accumulo instance.  An example script for [Uno] is provided.  After
-the cluster control script is setup, the following will run performance test and produce json
-result files.
+wiping, and confguring an Accumulo instance.  This script should define the following functions.
 
-             ./bin/performance-test run <output dir>
+```bash
+function get_version {
+  case $1 in
+    ACCUMULO)
+      # TODO echo accumulo version
+      ;;
+    HADOOP)
+      # TODO echo hadoop version
+      ;;
+    ZOOKEEPER)
+      # TODO echo zookeeper version
+      ;;
+    *)
+      return 1
+  esac
+}
+
+function start_cluster {
+  # TODO start Hadoop and Zookeeper if needed
+}
+
+function setup_accumulo {
+  # TODO kill any running Accumulo instance
+  # TODO setup a fresh install of Accumulo w/o starting it
+}
+
+function get_config_file {
+  local file_to_get=$1
+  local dest_dir=$2
+  # TODO copy $file_to_get from Accumulo conf dir to $dest_dir
+}
+
+function put_config_file {
+  local config_file=$1
+  # TODO copy $config_file to Accumulo conf dir
+}
+
+function put_server_code {
+  local jar_file=$1
+  # TODO add $jar_file to Accumulo's server side classpath.  Could put it in $ACCUMULO_HOME/lib/ext
+}
+
+function start_accumulo {
+  # TODO start accumulo
+}
+
+function stop_cluster {
+  # TODO kill Accumulo, Hadoop, and Zookeeper
+}
+```
+
+
+
+An example script for [Uno] is provided.  To use this doe the following and set
+`UNO_HOME` after copying. 
+
+    cp conf/cluster-control.sh.uno conf/cluster-control.sh
+
+After the cluster control script is setup, the following will run performance
+test and produce json result files.
+
+    ./bin/performance-test run <output dir>
 
 There are some utilities for working with the json result files, run the performance-test script
 with no options to see them.
