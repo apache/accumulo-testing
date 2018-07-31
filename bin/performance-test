@@ -25,7 +25,7 @@ function print_usage() {
 Usage: performance-test <command> (<argument>)
 
 Possible commands:
-  run <output dir>                 Runs performance tests.
+  run <output dir> [filter]        Runs performance tests.
   compare <result 1> <result 2>    Compares results of two test.
   csv {files}                      Converts results to CSV
 EOF
@@ -70,16 +70,18 @@ case "$1" in
     mkdir -p "$2"
     start_cluster
     CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read test_class; do
-      echo "Running test $test_class"
-      pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)
-      setup_accumulo
-      get_config_file accumulo-site.xml "$pt_tmp"
-      CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
-      put_config_file "$pt_tmp/accumulo-site.xml"
-      put_server_code "$at_home/core/target/accumulo-testing-core-$at_version.jar"
-      start_accumulo
-      get_config_file accumulo-client.properties "$pt_tmp"
-      CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
+      if [[ -z $3 || $test_class == *$3* ]]; then
+        echo "Running test $test_class"
+        pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)
+        setup_accumulo
+        get_config_file accumulo-site.xml "$pt_tmp"
+        CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
+        put_config_file "$pt_tmp/accumulo-site.xml"
+        put_server_code "$at_home/core/target/accumulo-testing-core-$at_version.jar"
+        start_accumulo
+        get_config_file accumulo-client.properties "$pt_tmp"
+        CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
+      fi
     done
     stop_cluster
     ;;
