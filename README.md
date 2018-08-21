@@ -193,7 +193,7 @@ function stop_cluster {
 
 
 
-An example script for [Uno] is provided.  To use this doe the following and set
+An example script for [Uno] is provided.  To use this do the following and set
 `UNO_HOME` after copying. 
 
     cp conf/cluster-control.sh.uno conf/cluster-control.sh
