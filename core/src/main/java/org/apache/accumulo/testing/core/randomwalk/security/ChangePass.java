@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -45,7 +45,7 @@ public class ChangePass extends Test {
       principal = WalkingSecurity.get(state, env).getTabUserName();
       token = WalkingSecurity.get(state, env).getTabToken();
     }
-    Connector conn = env.getAccumuloInstance().getConnector(principal, token);
+    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
 
     boolean hasPerm;
     boolean targetExists;
@@ -56,7 +56,7 @@ public class ChangePass extends Test {
 
     targetExists = WalkingSecurity.get(state, env).userExists(target);
 
-    hasPerm = conn.securityOperations().hasSystemPermission(principal, SystemPermission.ALTER_USER) || principal.equals(target);
+    hasPerm = client.securityOperations().hasSystemPermission(principal, SystemPermission.ALTER_USER) || principal.equals(target);
 
     Random r = new Random();
 
@@ -66,7 +66,7 @@ public class ChangePass extends Test {
 
     PasswordToken newPass = new PasswordToken(newPassw);
     try {
-      conn.securityOperations().changeLocalUserPassword(target, newPass);
+      client.securityOperations().changeLocalUserPassword(target, newPass);
     } catch (AccumuloSecurityException ae) {
       switch (ae.getSecurityErrorCode()) {
         case PERMISSION_DENIED:
@@ -78,8 +78,8 @@ public class ChangePass extends Test {
             throw new AccumuloException("User " + target + " doesn't exist and they SHOULD.", ae);
           return;
         case BAD_CREDENTIALS:
-          if (!WalkingSecurity.get(state, env).userPassTransient(conn.whoami()))
-            throw new AccumuloException("Bad credentials for user " + conn.whoami());
+          if (!WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
+            throw new AccumuloException("Bad credentials for user " + client.whoami());
           return;
         default:
           throw new AccumuloException("Got unexpected exception", ae);

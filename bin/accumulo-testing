@@ -128,7 +128,7 @@ function start_agitator() {
   datanode_log="${log_base}_datanode-agitator"
   master_cmd="nohup ${libexec}/master-agitator.pl $AGTR_MASTER_KILL_SLEEP_TIME $AGTR_MASTER_RESTART_SLEEP_TIME"
   tserver_cmd="nohup ${libexec}/tserver-agitator.pl $AGTR_TSERVER_KILL_SLEEP_TIME $AGTR_TSERVER_RESTART_SLEEP_TIME $AGTR_TSERVER_MIN_KILL $AGTR_TSERVER_MAX_KILL"
-  datanode_cmd="nohup ${libexec}/datanode-agitator.pl $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $HADOOP_PREFIX $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL"
+  datanode_cmd="nohup ${libexec}/datanode-agitator.pl $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $HADOOP_HOME $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL"
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
 
   if [[ $AGITATOR_USER == root ]];  then
@@ -187,7 +187,7 @@ randomwalk_main="org.apache.accumulo.testing.core.randomwalk.Framework"
 case "$1" in
 ci-createtable)
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" org.apache.accumulo.testing.core.continuous.CreateTable "$at_props"
+  java -Dlog4j.configuration="file:$log4j_config" org.apache.accumulo.testing.core.continuous.CreateTable "$at_props" "$ACCUMULO_CLIENT_PROPS"
   ;;
 ci-local)
   if [ -z "$2" ]; then
@@ -197,7 +197,7 @@ ci-local)
   fi
   determine_app_main "$2"
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" "$ci_main" "$at_props"
+  java -Dlog4j.configuration="file:$log4j_config" "$ci_main" "$at_props" "$ACCUMULO_CLIENT_PROPS"
   ;;
 ci-yarn)
   if [ -z "$2" ]; then
@@ -212,7 +212,7 @@ ci-yarn)
   fi
   determine_app_main "$3"
   build_shade_jar
-  mvn compile -P yarn-test-runner -D hadoop.version="$HADOOP_VERSION" -D exec.args="-t AccumuloCITest-$3 -j $at_shaded_jar -m $ci_main -n $2 -p $at_props -l $log4j_config -a ./accumulo-testing.properties"
+  mvn compile -P yarn-test-runner -D hadoop.version="$HADOOP_VERSION" -D exec.args="-t AccumuloCITest-$3 -j $at_shaded_jar -m $ci_main -n $2 -p $at_props -c $ACCUMULO_CLIENT_PROPS -l $log4j_config -a ./accumulo-testing.properties ./accumulo-client.properties"
   ;;
 ci-mapred)
   if [ -z "$2" ]; then
@@ -222,7 +222,7 @@ ci-mapred)
   fi
   determine_mapred_main "$2"
   build_shade_jar
-  "$HADOOP_PREFIX"/bin/yarn jar "$at_shaded_jar" "$ci_main" "$at_props"
+  "$HADOOP_HOME"/bin/yarn jar "$at_shaded_jar" "$ci_main" "$at_props" "$ACCUMULO_CLIENT_PROPS"
   ;;
 rw-local)
   if [ -z "$2" ]; then
@@ -231,7 +231,7 @@ rw-local)
     exit 1
   fi
   build_shade_jar
-  java -Dlog4j.configuration="file:$log4j_config" "$randomwalk_main" "$at_props" "$2"
+  java -Dlog4j.configuration="file:$log4j_config" "$randomwalk_main" "$at_props" "$ACCUMULO_CLIENT_PROPS" "$2"
   ;;
 rw-yarn)
   if [ -z "$2" ]; then
@@ -245,7 +245,7 @@ rw-yarn)
     exit 1
   fi
   build_shade_jar
-  mvn compile -P yarn-test-runner -D hadoop.version="$HADOOP_VERSION" -D exec.args="-t AccumuloRWTest-$3 -j $at_shaded_jar -m $randomwalk_main -n $2 -p $at_props -l $log4j_config -a ./accumulo-testing.properties $3"
+  mvn compile -P yarn-test-runner -D hadoop.version="$HADOOP_VERSION" -D exec.args="-t AccumuloRWTest-$3 -j $at_shaded_jar -m $randomwalk_main -n $2 -p $at_props -c $ACCUMULO_CLIENT_PROPS -l $log4j_config -a ./accumulo-testing.properties ./accumulo-client.properties $3"
   ;;
 agitator)
   case "$2" in

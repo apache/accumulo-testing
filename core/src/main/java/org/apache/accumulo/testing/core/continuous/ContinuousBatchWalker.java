@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -42,22 +41,22 @@ public class ContinuousBatchWalker {
 
   public static void main(String[] args) throws Exception {
 
-    Properties props = TestProps.loadFromFile(args[0]);
-
-    ContinuousEnv env = new ContinuousEnv(props);
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousBatchWalker <testPropsPath> <clientPropsPath>");
+      System.exit(-1);
+    }
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Authorizations auths = env.getRandomAuthorizations();
     Connector conn = env.getAccumuloConnector();
     Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), auths);
-    int scanBatchSize = Integer.parseInt(props.getProperty(TestProps.CI_BW_BATCH_SIZE));
+    int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
     scanner.setBatchSize(scanBatchSize);
 
     Random r = new Random();
 
-    int scanThreads = Integer.parseInt(props.getProperty(TestProps.ACCUMULO_BS_NUM_THREADS));
-
     while (true) {
-      BatchScanner bs = conn.createBatchScanner(env.getAccumuloTableName(), auths, scanThreads);
+      BatchScanner bs = conn.createBatchScanner(env.getAccumuloTableName(), auths);
 
       Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
       List<Range> ranges = new ArrayList<>(batch.size());
@@ -68,7 +67,7 @@ public class ContinuousBatchWalker {
 
       runBatchScan(scanBatchSize, bs, batch, ranges);
 
-      int bwSleepMs = Integer.parseInt(props.getProperty(TestProps.CI_BW_SLEEP_MS));
+      int bwSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS));
       sleepUninterruptibly(bwSleepMs, TimeUnit.MILLISECONDS);
     }
   }

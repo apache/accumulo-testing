@@ -34,26 +34,6 @@ public class TestProps {
   private static final String CI_VERIFY = CI + "verify.";
 
   /** Common properties **/
-  // Zookeeper connection string
-  public static final String ZOOKEEPERS = COMMON + "zookeepers";
-  // Accumulo instance name
-  public static final String ACCUMULO_INSTANCE = COMMON + "accumulo.instance";
-  // Accumulo username
-  public static final String ACCUMULO_USERNAME = COMMON + "accumulo.username";
-  // Accumulo password
-  public static final String ACCUMULO_PASSWORD = COMMON + "accumulo.password";
-  // Max memory (in bytes) each batch writer will use to buffer writes
-  public static final String ACCUMULO_BW_MAX_MEM_BYTES = COMMON + "accumulo.bw.max.memory.bytes";
-  // Max the maximum time (in ms) each batch writer will buffer data
-  public static final String ACCUMULO_BW_MAX_LATENCY_MS = COMMON + "accumulo.bw.max.latency.ms";
-  // Number of threads each batch writer will use to write data
-  public static final String ACCUMULO_BW_NUM_THREADS = COMMON + "accumulo.bw.num.threads";
-  // Number of thread for each batch scanner
-  public static final String ACCUMULO_BS_NUM_THREADS = COMMON + "accumulo.bw.num.threads";
-  // Number of key/value entries to pull during scan
-  public static final String ACCUMULO_SCANNER_BATCH_SIZE = COMMON + "accumulo.scanner.batch.size";
-  // Accumulo keytab
-  public static final String ACCUMULO_KEYTAB = COMMON + "accumulo.keytab";
   // HDFS root path. Should match 'fs.defaultFS' property in Hadoop's core-site.xml
   public static final String HDFS_ROOT = COMMON + "hdfs.root";
   // YARN resource manager hostname. Should match 'yarn.resourcemanager.hostname' property in
@@ -132,8 +112,12 @@ public class TestProps {
   // Location in HDFS to store output
   public static final String CI_VERIFY_OUTPUT_DIR = CI_VERIFY + "output.dir";
 
-  public static Properties loadFromFile(String propsFilePath) throws IOException {
-    return loadFromStream(new FileInputStream(propsFilePath));
+  public static Properties loadFromFile(String propsFilePath) {
+    try {
+      return loadFromStream(new FileInputStream(propsFilePath));
+    } catch (IOException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   public static Properties loadFromStream(FileInputStream fis) throws IOException {

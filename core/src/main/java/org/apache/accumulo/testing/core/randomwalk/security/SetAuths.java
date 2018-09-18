@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -48,10 +48,10 @@ public class SetAuths extends Test {
       authPrincipal = env.getAccumuloUserName();
       authToken = env.getToken();
     }
-    Connector conn = env.getAccumuloInstance().getConnector(authPrincipal, authToken);
+    AccumuloClient client = env.getAccumuloClient().changeUser(authPrincipal, authToken);
 
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
-    boolean hasPermission = conn.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
+    boolean hasPermission = client.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
 
     Authorizations auths;
     if (authsString.equals("_random")) {
@@ -74,7 +74,7 @@ public class SetAuths extends Test {
     }
 
     try {
-      conn.securityOperations().changeUserAuthorizations(target, auths);
+      client.securityOperations().changeUserAuthorizations(target, auths);
     } catch (AccumuloSecurityException ae) {
       switch (ae.getSecurityErrorCode()) {
         case PERMISSION_DENIED:

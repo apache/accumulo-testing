@@ -21,7 +21,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
-import org.apache.accumulo.testing.core.TestProps;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -53,16 +52,10 @@ public class CopyTable extends Test {
     int nextId = ((Integer) state.get("nextId")).intValue();
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
-    String[] args = new String[6];
-    args[0] = env.getAccumuloUserName();
-    args[1] = env.getAccumuloPassword();
-    if (null == args[1]) {
-      args[1] = env.getAccumuloKeytab();
-    }
-    args[2] = srcTableName;
-    args[3] = env.getAccumuloInstance().getInstanceName();
-    args[4] = env.getConfigProperty(TestProps.ZOOKEEPERS);
-    args[5] = dstTableName;
+    String[] args = new String[3];
+    args[0] = env.getClientPropsPath();
+    args[1] = srcTableName;
+    args[2] = dstTableName;
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 

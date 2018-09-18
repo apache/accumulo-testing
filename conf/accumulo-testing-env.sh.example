@@ -15,18 +15,22 @@
 
 # General
 # =======
-test -z "$HADOOP_PREFIX" && export HADOOP_PREFIX=/path/to/hadoop
+
+## Hadoop installation
+export HADOOP_HOME="${HADOOP_HOME:-/path/to/hadoop}"
+## Accumulo installation
+export ACCUMULO_HOME="${ACCUMULO_HOME:-/path/to/accumulo}"
+## Path to Accumulo client properties
+export ACCUMULO_CLIENT_PROPS="$ACCUMULO_HOME/conf/accumulo-client.properties"
 # Versions set below will be what is included in the shaded jar
-export ACCUMULO_VERSION=`accumulo version`
-export HADOOP_VERSION=`hadoop version | head -n1 | awk '{print $2}'`
+export ACCUMULO_VERSION="`$ACCUMULO_HOME/bin/accumulo version`"
+export HADOOP_VERSION="`hadoop version | head -n1 | awk '{print $2}'`"
 export ZOOKEEPER_VERSION=3.4.9
 # Make sure Hadoop configuration directory is on the classpath
-export CLASSPATH=$HADOOP_PREFIX/etc/hadoop
+export CLASSPATH=$HADOOP_HOME/etc/hadoop
 
 # Agitator
 # ========
-# Agitator needs know where Accumulo is installed
-test -z "$ACCUMULO_HOME" && export ACCUMULO_HOME=/path/to/accumulo
 # Accumulo user
 AGTR_ACCUMULO_USER=$(whoami)
 # Time (in minutes) between killing Accumulo masters

@@ -39,7 +39,7 @@
 
   <properties>
     <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
-    <hadoop.version>2.6.4</hadoop.version>
+    <hadoop.version>3.0.3</hadoop.version>
     <zookeeper.version>3.4.9</zookeeper.version>
     <slf4j.version>1.7.21</slf4j.version>
     <twill.version>0.12.1</twill.version>
@@ -53,12 +53,12 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>14.0.1</version>
+        <version>26.0-jre</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
-        <version>1.48</version>
+        <version>1.72</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -73,7 +73,7 @@
       <dependency>
         <groupId>commons-configuration</groupId>
         <artifactId>commons-configuration</artifactId>
-        <version>1.6</version>
+        <version>1.10</version>
       </dependency>
       <dependency>
         <groupId>org.apache.accumulo</groupId>

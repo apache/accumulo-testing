@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -38,9 +37,11 @@ import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterrup
 public class ContinuousScanner {
 
   public static void main(String[] args) throws Exception {
-
-    Properties props = TestProps.loadFromFile(args[0]);
-    ContinuousEnv env = new ContinuousEnv(props);
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousScanner <testPropsPath> <clientPropsPath>");
+      System.exit(-1);
+    }
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Random r = new Random();
 
@@ -49,10 +50,9 @@ public class ContinuousScanner {
     Connector conn = env.getAccumuloConnector();
     Authorizations auths = env.getRandomAuthorizations();
     Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), auths);
-    scanner.setBatchSize(env.getScannerBatchSize());
 
-    int numToScan = Integer.parseInt(props.getProperty(TestProps.CI_SCANNER_ENTRIES));
-    int scannerSleepMs = Integer.parseInt(props.getProperty(TestProps.CI_SCANNER_SLEEP_MS));
+    int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
+    int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));
 
     double delta = Math.min(.05, .05 / (numToScan / 1000.0));
 

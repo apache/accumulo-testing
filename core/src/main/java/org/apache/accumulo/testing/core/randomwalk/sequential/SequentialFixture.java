@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.core.randomwalk.sequential;
 import java.net.InetAddress;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;

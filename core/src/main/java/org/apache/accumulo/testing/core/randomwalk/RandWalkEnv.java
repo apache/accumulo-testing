@@ -16,8 +16,6 @@
  */
 package org.apache.accumulo.testing.core.randomwalk;
 
-import java.util.Properties;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
@@ -35,14 +33,8 @@ public class RandWalkEnv extends TestEnv {
 
   private MultiTableBatchWriter mtbw = null;
 
-  /**
-   * Creates a new test environment.
-   *
-   * @param p
-   *          configuration properties
-   */
-  public RandWalkEnv(Properties p) {
-    super(p);
+  public RandWalkEnv(String testPropsPath, String clientPropsPath) {
+    super(testPropsPath, clientPropsPath);
   }
 
   /**
@@ -56,7 +48,7 @@ public class RandWalkEnv extends TestEnv {
    */
   public MultiTableBatchWriter getMultiTableBatchWriter() throws AccumuloException, AccumuloSecurityException {
     if (mtbw == null) {
-      mtbw = getAccumuloConnector().createMultiTableBatchWriter(getBatchWriterConfig());
+      mtbw = getAccumuloClient().createMultiTableBatchWriter();
     }
     return mtbw;
   }

@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.net.InetAddress;
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -36,15 +36,15 @@ public class AlterTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String systemUser = WalkingSecurity.get(state, env).getSysUserName();
-    Connector conn = env.getAccumuloInstance().getConnector(systemUser, WalkingSecurity.get(state, env).getSysToken());
+    AccumuloClient client = env.getAccumuloClient().changeUser(systemUser, WalkingSecurity.get(state, env).getSysToken());
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
     boolean hasPermission;
     try {
-      hasPermission = conn.securityOperations().hasTablePermission(systemUser, tableName, TablePermission.ALTER_TABLE)
-          || conn.securityOperations().hasSystemPermission(systemUser, SystemPermission.ALTER_TABLE);
+      hasPermission = client.securityOperations().hasTablePermission(systemUser, tableName, TablePermission.ALTER_TABLE)
+          || client.securityOperations().hasSystemPermission(systemUser, SystemPermission.ALTER_TABLE);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
         if (exists)
@@ -58,13 +58,13 @@ public class AlterTable extends Test {
     String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_"), env.getPid(),
         System.currentTimeMillis());
 
-    renameTable(conn, state, env, tableName, newTableName, hasPermission, exists);
+    renameTable(client, state, env, tableName, newTableName, hasPermission, exists);
   }
 
-  public static void renameTable(Connector conn, State state, RandWalkEnv env, String oldName, String newName, boolean hasPermission, boolean tableExists)
+  public static void renameTable(AccumuloClient client, State state, RandWalkEnv env, String oldName, String newName, boolean hasPermission, boolean tableExists)
       throws AccumuloSecurityException, AccumuloException, TableExistsException {
     try {
-      conn.tableOperations().rename(oldName, newName);
+      client.tableOperations().rename(oldName, newName);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
         if (hasPermission)
@@ -72,7 +72,7 @@ public class AlterTable extends Test {
         else
           return;
       } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
-        if (WalkingSecurity.get(state, env).userPassTransient(conn.whoami()))
+        if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
           return;
       }
       throw new AccumuloException("Got unexpected ae error code", ae);

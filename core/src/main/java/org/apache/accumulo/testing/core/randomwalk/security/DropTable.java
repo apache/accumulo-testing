@@ -18,9 +18,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -50,16 +50,16 @@ public class DropTable extends Test {
       principal = WalkingSecurity.get(state, env).getSysUserName();
       token = WalkingSecurity.get(state, env).getSysToken();
     }
-    Connector conn = env.getAccumuloInstance().getConnector(principal, token);
+    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
 
     try {
-      hasPermission = conn.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
-          || conn.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
-      conn.tableOperations().delete(tableName);
+      hasPermission = client.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
+          || client.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
+      client.tableOperations().delete(tableName);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
         if (exists)
@@ -76,7 +76,7 @@ public class DropTable extends Test {
           return;
         }
       } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
-        if (WalkingSecurity.get(state, env).userPassTransient(conn.whoami()))
+        if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
           return;
       }
       throw new AccumuloException("Got unexpected ae error code", ae);
