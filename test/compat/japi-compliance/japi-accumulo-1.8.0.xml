@@ -15,35 +15,25 @@
   limitations under the License.
 -->
 <version>
-  2.0.0-SNAPSHOT
+  1.8.0
 </version>
 
 <!--
-  To update this list, find modules that have public API packages in src/main. e.g.:
+  You can download these with maven:
 
-  git grep -l -E 'package org.apache.accumulo.(core.(client|data|security)|minicluster)' . \
-      | grep src/main | sed 's%src/main/java/.*%%' | sort -u
+  mvn dependency:get -DgroupId=org.apache.accumulo -DartifactId=accumulo-minicluster -Dversion=1.8.0
 
-  Then check the relevant pom files to see what the artifact is named.
--->
+  And then point to your local repository here, e.g.
+
+  /Users/example/.m2/repository/org/apache/accumulo/accumulo-core/1.8.0/accumulo-core-1.8.0.jar
+  /Users/example/.m2/repository/org/apache/accumulo/accumulo-minicluster/1.8.0/accumulo-minicluster-1.8.0.jar
+
+  -->
 <archives>
-  /path/to/accumulo-client-mapreduce-2.0.0-SNAPSHOT.jar
-  /path/to/accumulo-core-2.0.0-SNAPSHOT.jar
-  /path/to/accumulo-minicluster-2.0.0-SNAPSHOT.jar
+  /path/to/accumulo-core-1.8.0.jar
+  /path/to/accumulo-minicluster-1.8.0.jar
 </archives>
 
-<!--
-  To update this list, find packages that are named 'impl', 'thrift', or 'crypto' within our public
-  packages. e.g.:
-
-  git grep -l -E 'package org.apache.accumulo.(core.(client|data|security)|minicluster)' . \
-      | grep -E '/(impl|crypto|thrift)/' | grep src/main | sed 's%^.*/src/main/java/%%' \
-      | sed 's%/[^/]*.java$%%' | sort -u | tr '/' '.'
-
-  This will produce some redundant packages you can trim, e.g.
-  org.apache.accumulo.core.client.impl.thrift
-
--->
 <skip_packages>
   org.apache.accumulo.core.client.impl
   org.apache.accumulo.core.client.lexicoders.impl
@@ -58,11 +48,6 @@
   org.apache.accumulo.minicluster.impl
 </skip_packages>
 
-
-<!--
-  To update this list, check the README.md file in the apache/accumulo repo under the section title
-  'Accumulo API'.
--->
 <packages>
   org.apache.accumulo.core.client
   org.apache.accumulo.core.data
