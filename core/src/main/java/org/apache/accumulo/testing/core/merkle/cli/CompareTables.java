@@ -28,7 +28,7 @@ import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.cli.ClientOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
@@ -114,7 +114,7 @@ public class CompareTables {
 
   public Map<String,String> computeAllHashes() throws AccumuloException, AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
       TableNotFoundException, FileNotFoundException {
-    final Connector conn = opts.getConnector();
+    final AccumuloClient conn = opts.getClient();
     final Map<String,String> hashesByTable = new HashMap<>();
 
     for (String table : opts.getTables()) {
@@ -127,10 +127,10 @@ public class CompareTables {
       conn.tableOperations().create(outputTableName);
 
       GenerateHashes genHashes = new GenerateHashes();
-      Collection<Range> ranges = genHashes.getRanges(opts.getConnector(), table, opts.getSplitsFile());
+      Collection<Range> ranges = genHashes.getRanges(opts.getClient(), table, opts.getSplitsFile());
 
       try {
-        genHashes.run(opts.getConnector(), table, table + "_merkle", opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+        genHashes.run(opts.getClient(), table, table + "_merkle", opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
       } catch (Exception e) {
         log.error("Error generating hashes for {}", table, e);
         throw new RuntimeException(e);

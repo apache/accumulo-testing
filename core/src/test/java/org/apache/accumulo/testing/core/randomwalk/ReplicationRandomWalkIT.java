@@ -56,7 +56,7 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
       @Override
       public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
-        return ReplicationRandomWalkIT.this.getConnector();
+        return Connector.from(ReplicationRandomWalkIT.this.getClient());
       }
 
     };

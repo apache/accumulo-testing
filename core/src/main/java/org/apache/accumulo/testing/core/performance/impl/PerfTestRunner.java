@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import org.apache.accumulo.core.Accumulo;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.testing.core.performance.Environment;
 import org.apache.accumulo.testing.core.performance.PerformanceTest;
@@ -42,7 +43,7 @@ public class PerfTestRunner {
 
     PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).newInstance();
 
-    Connector conn = Connector.builder().usingProperties(clientProps).build();
+    Connector conn = Connector.from(Accumulo.newClient().usingProperties(clientProps).build());
 
     Instant start = Instant.now();
 

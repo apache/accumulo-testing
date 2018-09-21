@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import org.apache.accumulo.core.cli.ScannerOpts;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -69,7 +70,7 @@ public class VerifyIngest {
         Trace.data("cmdLine", Arrays.asList(args).toString());
       }
 
-      verifyIngest(opts.getConnector(), opts, scanOpts);
+      verifyIngest(opts.getClient(), opts, scanOpts);
 
     } finally {
       Trace.off();
@@ -77,7 +78,7 @@ public class VerifyIngest {
     }
   }
 
-  public static void verifyIngest(Connector connector, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
+  public static void verifyIngest(AccumuloClient connector, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
       TableNotFoundException {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 

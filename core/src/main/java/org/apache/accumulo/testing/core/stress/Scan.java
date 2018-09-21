@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -38,7 +39,7 @@ public class Scan {
     ScanOpts opts = new ScanOpts();
     opts.parseArgs(Scan.class.getName(), args);
 
-    Connector connector = opts.getConnector();
+    AccumuloClient connector = opts.getClient();
     Scanner scanner = connector.createScanner(opts.getTableName(), new Authorizations());
 
     if (opts.isolate) {

@@ -22,6 +22,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
@@ -40,7 +41,7 @@ public class Ingest extends ScaleTest {
   @Override
   public void setup() {
 
-    Connector conn = getConnector();
+    AccumuloClient conn = getConnector();
     String tableName = getTestProperty("TABLE");
 
     // delete existing table
@@ -67,7 +68,7 @@ public class Ingest extends ScaleTest {
   @Override
   public void client() {
 
-    Connector conn = getConnector();
+    AccumuloClient conn = getConnector();
     String tableName = getTestProperty("TABLE");
 
     // get batch writer configuration
@@ -130,7 +131,7 @@ public class Ingest extends ScaleTest {
   @Override
   public void teardown() {
 
-    Connector conn = getConnector();
+    AccumuloClient conn = getConnector();
     String tableName = getTestProperty("TABLE");
 
     try {

@@ -19,9 +19,12 @@ package org.apache.accumulo.testing.core.scalability;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -29,7 +32,7 @@ import org.apache.hadoop.io.Text;
 
 public abstract class ScaleTest {
 
-  private Connector conn;
+  private AccumuloClient conn;
   private Properties scaleProps;
   private Properties testProps;
   private int numTabletServers;
@@ -48,8 +51,7 @@ public abstract class ScaleTest {
     String password = this.scaleProps.getProperty("PASSWORD");
     System.out.println(password);
 
-    conn = new ZooKeeperInstance(ClientConfiguration.create().withInstance(instanceName).withZkHosts(zookeepers)).getConnector(user,
-        new PasswordToken(password));
+    Accumulo.newClient().forInstance(instanceName, zookeepers).usingToken(user, new PasswordToken(password)).build();
   }
 
   protected void startTimer() {
@@ -79,7 +81,7 @@ public abstract class ScaleTest {
     return keys;
   }
 
-  public Connector getConnector() {
+  public AccumuloClient getConnector() {
     return conn;
   }
 
