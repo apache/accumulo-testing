@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.cli.ClientOnDefaultTable;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -110,7 +111,7 @@ public class TestIngest {
     }
   }
 
-  public static void createTable(Connector conn, Opts args) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+  public static void createTable(AccumuloClient conn, Opts args) throws AccumuloException, AccumuloSecurityException, TableExistsException {
     if (args.createTable) {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows, args.numsplits);
 
@@ -192,7 +193,7 @@ public class TestIngest {
 
       // test batch update
 
-      ingest(opts.getConnector(), opts, bwOpts);
+      ingest(opts.getClient(), opts, bwOpts);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
@@ -201,7 +202,7 @@ public class TestIngest {
     }
   }
 
-  public static void ingest(Connector connector, FileSystem fs, Opts opts, BatchWriterOpts bwOpts) throws IOException, AccumuloException,
+  public static void ingest(AccumuloClient connector, FileSystem fs, Opts opts, BatchWriterOpts bwOpts) throws IOException, AccumuloException,
       AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException {
     long stopTime;
 
@@ -338,7 +339,7 @@ public class TestIngest {
         (int) (totalValues / elapsed), bytesWritten, (int) (bytesWritten / elapsed), elapsed);
   }
 
-  public static void ingest(Connector c, Opts opts, BatchWriterOpts batchWriterOpts) throws MutationsRejectedException, IOException, AccumuloException,
+  public static void ingest(AccumuloClient c, Opts opts, BatchWriterOpts batchWriterOpts) throws MutationsRejectedException, IOException, AccumuloException,
       AccumuloSecurityException, TableNotFoundException, TableExistsException {
     ingest(c, FileSystem.get(CachedConfiguration.getInstance()), opts, batchWriterOpts);
   }

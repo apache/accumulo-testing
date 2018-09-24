@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -59,13 +60,13 @@ public class ComputeRootHash {
   }
 
   public byte[] getHash(ComputeRootHashOpts opts) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, NoSuchAlgorithmException {
-    Connector conn = opts.getConnector();
+    AccumuloClient conn = opts.getClient();
     String table = opts.getTableName();
 
     return getHash(conn, table, opts.getHashName());
   }
 
-  public byte[] getHash(Connector conn, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
+  public byte[] getHash(AccumuloClient conn, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
     List<MerkleTreeNode> leaves = getLeaves(conn, table);
 
     MerkleTree tree = new MerkleTree(leaves, hashName);
@@ -73,7 +74,7 @@ public class ComputeRootHash {
     return tree.getRootNode().getHash();
   }
 
-  protected ArrayList<MerkleTreeNode> getLeaves(Connector conn, String tableName) throws TableNotFoundException {
+  protected ArrayList<MerkleTreeNode> getLeaves(AccumuloClient conn, String tableName) throws TableNotFoundException {
     // TODO make this a bit more resilient to very large merkle trees by
     // lazily reading more data from the table when necessary
     final Scanner s = conn.createScanner(tableName, Authorizations.EMPTY);

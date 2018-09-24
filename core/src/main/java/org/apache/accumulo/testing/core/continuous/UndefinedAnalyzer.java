@@ -36,6 +36,7 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.cli.BatchScannerOpts;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Key;
@@ -280,7 +281,7 @@ public class UndefinedAnalyzer {
       undefs.add(new UndefinedNode(undef, ref));
     }
 
-    Connector conn = opts.getConnector();
+    AccumuloClient conn = opts.getClient();
     BatchScanner bscanner = conn.createBatchScanner(opts.getTableName(), opts.auths, bsOpts.scanThreads);
     bscanner.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
     List<Range> refs = new ArrayList<>();

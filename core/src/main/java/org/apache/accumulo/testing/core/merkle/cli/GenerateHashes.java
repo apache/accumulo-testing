@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 
 import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -121,7 +122,7 @@ public class GenerateHashes {
     }
   }
 
-  public Collection<Range> getRanges(Connector conn, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
+  public Collection<Range> getRanges(AccumuloClient conn, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
       AccumuloException, FileNotFoundException {
     if (null == splitsFile) {
       log.info("Using table split points");
@@ -151,12 +152,12 @@ public class GenerateHashes {
 
   public void run(GenerateHashesOpts opts) throws TableNotFoundException, AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException,
       FileNotFoundException {
-    Collection<Range> ranges = getRanges(opts.getConnector(), opts.getTableName(), opts.getSplitsFile());
+    Collection<Range> ranges = getRanges(opts.getClient(), opts.getTableName(), opts.getSplitsFile());
 
-    run(opts.getConnector(), opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+    run(opts.getClient(), opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
   }
 
-  public void run(final Connector conn, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
+  public void run(final AccumuloClient conn, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
       final boolean iteratorPushdown, final Collection<Range> ranges) throws TableNotFoundException, AccumuloSecurityException, AccumuloException,
       NoSuchAlgorithmException {
     if (!conn.tableOperations().exists(outputTableName)) {
