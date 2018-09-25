@@ -342,7 +342,7 @@ public class Module extends Node {
             log.debug("  " + entry.getKey() + ": " + entry.getValue());
           }
           log.debug("Overall Configuration Properties");
-          for (Entry<Object,Object> entry : env.copyConfigProperties().entrySet()) {
+          for (Entry<Object,Object> entry : env.getTestProperties().entrySet()) {
             log.debug("  " + entry.getKey() + ": " + entry.getValue());
           }
           log.debug("State information");

@@ -19,10 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.net.InetAddress;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
@@ -36,8 +35,7 @@ public class SecurityFixture extends Fixture {
   public void setUp(State state, RandWalkEnv env) throws Exception {
     String secTableName, systemUserName, tableUserName, secNamespaceName;
     // A best-effort sanity check to guard against not password-based auth
-    ClientConfiguration clientConf = ClientConfiguration.loadDefault();
-    if (Boolean.parseBoolean(clientConf.get(ClientProperty.INSTANCE_RPC_SASL_ENABLED))) {
+    if (env.getInfo().getProperties().getProperty(ClientProperty.AUTH_TYPE.getKey()).equals("kerberos")) {
       throw new IllegalStateException("Security module currently cannot support Kerberos/SASL instances");
     }
 

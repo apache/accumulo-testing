@@ -2,62 +2,55 @@ package org.apache.accumulo.testing.core;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.client.security.tokens.KerberosToken;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.security.UserGroupInformation;
 
 public class TestEnv {
 
-  protected final Properties p;
-  private Instance instance = null;
-  private Connector connector = null;
+  protected final Properties testProps;
+  private String clientPropsPath;
+  private ClientInfo info;
+  private AccumuloClient client = null;
   private Configuration hadoopConfig = null;
 
-  /**
-   * Creates new test environment using provided properties
-   *
-   * @param p
-   *          Properties
-   */
-  public TestEnv(Properties p) {
-    requireNonNull(p);
-    this.p = p;
+  public TestEnv(String testPropsPath, String clientPropsPath) {
+    requireNonNull(testPropsPath);
+    requireNonNull(clientPropsPath);
+    this.testProps = TestProps.loadFromFile(testPropsPath);
+    this.clientPropsPath = clientPropsPath;
+    this.info = ClientInfo.from(TestProps.loadFromFile(clientPropsPath));
   }
 
   /**
-   * Gets a copy of the configuration properties.
-   *
-   * @return a copy of the configuration properties
+   * @return a copy of the test properties
    */
-  public Properties copyConfigProperties() {
-    return new Properties(p);
+  public Properties getTestProperties() {
+    return new Properties(testProps);
   }
 
   /**
-   * Gets a configuration property.
-   *
-   * @param key
-   *          key
-   * @return property value
+   * @return a test property value given a key
    */
-  public String getConfigProperty(String key) {
-    return p.getProperty(key);
+  public String getTestProperty(String key) {
+    return testProps.getProperty(key);
+  }
+
+  public String getClientPropsPath() {
+    return clientPropsPath;
+  }
+
+  public ClientInfo getInfo() {
+    return info;
   }
 
   /**
@@ -66,7 +59,7 @@ public class TestEnv {
    * @return username
    */
   public String getAccumuloUserName() {
-    return p.getProperty(TestProps.ACCUMULO_USERNAME);
+    return info.getPrincipal();
   }
 
   /**
@@ -75,16 +68,11 @@ public class TestEnv {
    * @return password
    */
   public String getAccumuloPassword() {
-    return p.getProperty(TestProps.ACCUMULO_PASSWORD);
-  }
-
-  /**
-   * Gets the configured keytab.
-   *
-   * @return path to keytab
-   */
-  public String getAccumuloKeytab() {
-    return p.getProperty(TestProps.ACCUMULO_KEYTAB);
+    String authType = info.getProperties().getProperty(ClientProperty.AUTH_TYPE.getKey());
+    if (authType.equals("password")) {
+      return info.getProperties().getProperty(ClientProperty.AUTH_TOKEN.getKey());
+    }
+    return null;
   }
 
   /**
@@ -114,79 +102,28 @@ public class TestEnv {
    * Gets an authentication token based on the configured password.
    */
   public AuthenticationToken getToken() {
-    String password = getAccumuloPassword();
-    if (null != password) {
-      return new PasswordToken(getAccumuloPassword());
-    }
-    String keytab = getAccumuloKeytab();
-    if (null != keytab) {
-      File keytabFile = new File(keytab);
-      if (!keytabFile.exists() || !keytabFile.isFile()) {
-        throw new IllegalArgumentException("Provided keytab is not a normal file: " + keytab);
-      }
-      try {
-        UserGroupInformation.loginUserFromKeytab(getAccumuloUserName(), keytabFile.getAbsolutePath());
-        return new KerberosToken();
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to login", e);
-      }
-    }
-    throw new IllegalArgumentException("Must provide password or keytab in configuration");
-  }
-
-  public String getAccumuloInstanceName() {
-    return p.getProperty(TestProps.ACCUMULO_INSTANCE);
+    return info.getAuthenticationToken();
   }
 
   public String getHdfsRoot() {
-    return p.getProperty(TestProps.HDFS_ROOT);
+    return testProps.getProperty(TestProps.HDFS_ROOT);
   }
 
   public String getYarnResourceManager() {
-    return p.getProperty(TestProps.YARN_RESOURCE_MANAGER);
-  }
-
-  public String getZookeepers() {
-    return p.getProperty(TestProps.ZOOKEEPERS);
-  }
-
-  public ClientConfiguration getClientConfiguration() {
-    return ClientConfiguration.loadDefault().withInstance(getAccumuloInstanceName()).withZkHosts(getZookeepers());
-  }
-
-  /**
-   * Gets an Accumulo instance object. The same instance is reused after the first call.
-   */
-  public Instance getAccumuloInstance() {
-    if (instance == null) {
-      this.instance = new ZooKeeperInstance(getClientConfiguration());
-    }
-    return instance;
+    return testProps.getProperty(TestProps.YARN_RESOURCE_MANAGER);
   }
 
   /**
    * Gets an Accumulo connector. The same connector is reused after the first call.
    */
-  public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
-    if (connector == null) {
-      connector = getAccumuloInstance().getConnector(getAccumuloUserName(), getToken());
+  public AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
+    if (client == null) {
+      client = Accumulo.newClient().usingClientInfo(info).build();
     }
-    return connector;
+    return client;
   }
 
-  public BatchWriterConfig getBatchWriterConfig() {
-    int numThreads = Integer.parseInt(p.getProperty(TestProps.ACCUMULO_BW_NUM_THREADS));
-    long maxLatency = Long.parseLong(p.getProperty(TestProps.ACCUMULO_BW_MAX_LATENCY_MS));
-    long maxMemory = Long.parseLong(p.getProperty(TestProps.ACCUMULO_BW_MAX_MEM_BYTES));
-
-    BatchWriterConfig config = new BatchWriterConfig();
-    config.setMaxWriteThreads(numThreads);
-    config.setMaxLatency(maxLatency, TimeUnit.MILLISECONDS);
-    config.setMaxMemory(maxMemory);
-    return config;
-  }
-
-  public int getScannerBatchSize() {
-    return Integer.parseInt(p.getProperty(TestProps.ACCUMULO_SCANNER_BATCH_SIZE));
+  public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
+    return Connector.from(getAccumuloClient());
   }
 }

@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Random;
 import java.util.zip.CRC32;
 
@@ -46,9 +45,11 @@ public class ContinuousWalk {
   }
 
   public static void main(String[] args) throws Exception {
-
-    Properties props = TestProps.loadFromFile(args[0]);
-    ContinuousEnv env = new ContinuousEnv(props);
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousWalk <testPropsPath> <clientPropsPath>");
+      System.exit(-1);
+    }
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Connector conn = env.getAccumuloConnector();
 
@@ -56,7 +57,7 @@ public class ContinuousWalk {
 
     ArrayList<Value> values = new ArrayList<>();
 
-    int sleepTime = Integer.parseInt(props.getProperty(TestProps.CI_WALKER_SLEEP_MS));
+    int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
 
     while (true) {
       Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), env.getRandomAuthorizations());

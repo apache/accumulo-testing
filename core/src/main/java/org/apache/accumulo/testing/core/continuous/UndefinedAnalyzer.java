@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.accumulo.core.cli.BatchScannerOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;

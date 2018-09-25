@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.cli.ClientOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;

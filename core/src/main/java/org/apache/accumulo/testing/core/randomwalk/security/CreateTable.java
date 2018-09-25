@@ -18,9 +18,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -33,15 +33,15 @@ public class CreateTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloInstance().getConnector(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
+    AccumuloClient client = env.getAccumuloClient().changeUser(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
 
     String tableName = WalkingSecurity.get(state, env).getTableName();
 
     boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = conn.securityOperations().hasSystemPermission(WalkingSecurity.get(state, env).getSysUserName(), SystemPermission.CREATE_TABLE);
+    boolean hasPermission = client.securityOperations().hasSystemPermission(WalkingSecurity.get(state, env).getSysUserName(), SystemPermission.CREATE_TABLE);
 
     try {
-      conn.tableOperations().create(tableName);
+      client.tableOperations().create(tableName);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
         if (hasPermission)
@@ -69,7 +69,7 @@ public class CreateTable extends Test {
     }
     WalkingSecurity.get(state, env).initTable(tableName);
     for (TablePermission tp : TablePermission.values())
-      WalkingSecurity.get(state, env).grantTablePermission(conn.whoami(), tableName, tp);
+      WalkingSecurity.get(state, env).grantTablePermission(client.whoami(), tableName, tp);
     if (!hasPermission)
       throw new AccumuloException("Didn't get Security Exception when we should have");
   }

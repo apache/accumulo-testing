@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.SystemPermission;
@@ -40,7 +40,7 @@ public class Authenticate extends Test {
     String targetProp = props.getProperty("target");
     boolean success = Boolean.parseBoolean(props.getProperty("valid"));
 
-    Connector conn = env.getAccumuloInstance().getConnector(principal, token);
+    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
 
     String target;
 
@@ -52,7 +52,7 @@ public class Authenticate extends Test {
     boolean exists = WalkingSecurity.get(state, env).userExists(target);
     // Copy so if failed it doesn't mess with the password stored in state
     byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target), WalkingSecurity.get(state, env).getUserPassword(target).length);
-    boolean hasPermission = conn.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM) || principal.equals(target);
+    boolean hasPermission = client.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM) || principal.equals(target);
 
     if (!success)
       for (int i = 0; i < password.length; i++)
@@ -61,7 +61,7 @@ public class Authenticate extends Test {
     boolean result;
 
     try {
-      result = conn.securityOperations().authenticateUser(target, new PasswordToken(password));
+      result = client.securityOperations().authenticateUser(target, new PasswordToken(password));
     } catch (AccumuloSecurityException ae) {
       switch (ae.getSecurityErrorCode()) {
         case PERMISSION_DENIED:

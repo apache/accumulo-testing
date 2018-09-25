@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -76,8 +76,8 @@ public class AlterTablePerm extends Test {
       sourceUser = env.getAccumuloUserName();
       sourceToken = env.getToken();
     }
-    Connector conn = env.getAccumuloInstance().getConnector(sourceUser, sourceToken);
-    SecurityOperations secOps = conn.securityOperations();
+    AccumuloClient client = env.getAccumuloClient().changeUser(sourceUser, sourceToken);
+    SecurityOperations secOps = client.securityOperations();
 
     try {
       canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE) || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
@@ -97,7 +97,7 @@ public class AlterTablePerm extends Test {
       try {
         boolean res;
         if (hasPerm != (res = env.getAccumuloConnector().securityOperations().hasTablePermission(target, tableName, tabPerm)))
-          throw new AccumuloException("Test framework and accumulo are out of sync for user " + conn.whoami() + " for perm " + tabPerm.name()
+          throw new AccumuloException("Test framework and accumulo are out of sync for user " + client.whoami() + " for perm " + tabPerm.name()
               + " with local vs. accumulo being " + hasPerm + " " + res);
 
         if (hasPerm)
@@ -122,17 +122,17 @@ public class AlterTablePerm extends Test {
       }
     }
 
-    boolean trans = WalkingSecurity.get(state, env).userPassTransient(conn.whoami());
+    boolean trans = WalkingSecurity.get(state, env).userPassTransient(client.whoami());
     if ("take".equals(action)) {
       try {
-        conn.securityOperations().revokeTablePermission(target, tableName, tabPerm);
+        client.securityOperations().revokeTablePermission(target, tableName, tabPerm);
       } catch (AccumuloSecurityException ae) {
         switch (ae.getSecurityErrorCode()) {
           case GRANT_INVALID:
             throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
           case PERMISSION_DENIED:
             if (canGive)
-              throw new AccumuloException(conn.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
+              throw new AccumuloException(client.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
             return;
           case USER_DOESNT_EXIST:
             if (userExists)
@@ -144,7 +144,7 @@ public class AlterTablePerm extends Test {
             return;
           case BAD_CREDENTIALS:
             if (!trans)
-              throw new AccumuloException("Bad credentials for user " + conn.whoami());
+              throw new AccumuloException("Bad credentials for user " + client.whoami());
             return;
           default:
             throw new AccumuloException("Got unexpected exception", ae);
@@ -153,14 +153,14 @@ public class AlterTablePerm extends Test {
       WalkingSecurity.get(state, env).revokeTablePermission(target, tableName, tabPerm);
     } else if ("give".equals(action)) {
       try {
-        conn.securityOperations().grantTablePermission(target, tableName, tabPerm);
+        client.securityOperations().grantTablePermission(target, tableName, tabPerm);
       } catch (AccumuloSecurityException ae) {
         switch (ae.getSecurityErrorCode()) {
           case GRANT_INVALID:
             throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
           case PERMISSION_DENIED:
             if (canGive)
-              throw new AccumuloException(conn.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
+              throw new AccumuloException(client.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
             return;
           case USER_DOESNT_EXIST:
             if (userExists)
@@ -172,7 +172,7 @@ public class AlterTablePerm extends Test {
             return;
           case BAD_CREDENTIALS:
             if (!trans)
-              throw new AccumuloException("Bad credentials for user " + conn.whoami());
+              throw new AccumuloException("Bad credentials for user " + client.whoami());
             return;
           default:
             throw new AccumuloException("Got unexpected exception", ae);
@@ -186,7 +186,7 @@ public class AlterTablePerm extends Test {
     if (!tableExists)
       throw new AccumuloException("Table shouldn't have existed, but apparently does");
     if (!canGive)
-      throw new AccumuloException(conn.whoami() + " shouldn't have been able to grant privilege");
+      throw new AccumuloException(client.whoami() + " shouldn't have been able to grant privilege");
 
   }
 

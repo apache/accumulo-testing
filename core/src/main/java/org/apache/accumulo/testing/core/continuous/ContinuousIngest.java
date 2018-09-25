@@ -99,14 +99,14 @@ public class ContinuousIngest {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 1) {
-      System.err.println("Usage: ContinuousIngest <propsPath>");
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousIngest <testPropsPath> <clientPropsPath>");
       System.exit(-1);
     }
 
-    Properties props = TestProps.loadFromFile(args[0]);
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    String vis = props.getProperty(TestProps.CI_INGEST_VISIBILITIES);
+    String vis = env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES);
     if (vis == null) {
       visibilities = Collections.singletonList(new ColumnVisibility());
     } else {
@@ -115,8 +115,6 @@ public class ContinuousIngest {
         visibilities.add(new ColumnVisibility(v.trim()));
       }
     }
-
-    ContinuousEnv env = new ContinuousEnv(props);
 
     long rowMin = env.getRowMin();
     long rowMax = env.getRowMax();
@@ -130,7 +128,7 @@ public class ContinuousIngest {
       throw new TableNotFoundException(null, tableName, "Consult the README and create the table before starting ingest.");
     }
 
-    BatchWriter bw = conn.createBatchWriter(tableName, env.getBatchWriterConfig());
+    BatchWriter bw = conn.createBatchWriter(tableName);
     bw = Trace.wrapAll(bw, new CountSampler(1024));
 
     Random r = new Random();
@@ -159,12 +157,13 @@ public class ContinuousIngest {
 
     int maxColF = env.getMaxColF();
     int maxColQ = env.getMaxColQ();
-    boolean checksum = Boolean.parseBoolean(props.getProperty(TestProps.CI_INGEST_CHECKSUM));
-    long numEntries = Long.parseLong(props.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+    boolean checksum = Boolean.parseBoolean(env.getTestProperty(TestProps.CI_INGEST_CHECKSUM));
+    long numEntries = Long.parseLong(env.getTestProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
 
-    if (pauseEnabled(props)) {
+    Properties testProps = env.getTestProperties();
+    if (pauseEnabled(testProps)) {
       lastPauseNs = System.nanoTime();
-      pauseWaitSec = getPauseWaitSec(props, r);
+      pauseWaitSec = getPauseWaitSec(testProps, r);
       log.info("PAUSING enabled");
       log.info("INGESTING for " + pauseWaitSec + "s");
     }
@@ -208,7 +207,7 @@ public class ContinuousIngest {
         lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         if (count >= numEntries)
           break out;
-        pauseCheck(props, r);
+        pauseCheck(testProps, r);
       }
 
       // create one big linked list, this makes all of the first inserts
@@ -222,7 +221,7 @@ public class ContinuousIngest {
       lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
       if (count >= numEntries)
         break out;
-      pauseCheck(props, r);
+      pauseCheck(testProps, r);
     }
     bw.close();
   }

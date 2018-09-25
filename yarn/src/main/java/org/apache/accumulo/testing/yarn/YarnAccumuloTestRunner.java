@@ -23,11 +23,8 @@ import com.google.common.base.Preconditions;
 import org.apache.accumulo.testing.core.TestEnv;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.twill.api.ResourceReport;
 import org.apache.twill.api.ResourceSpecification;
 import org.apache.twill.api.TwillApplication;
-import org.apache.twill.api.TwillController;
-import org.apache.twill.api.TwillRunResources;
 import org.apache.twill.api.TwillRunnerService;
 import org.apache.twill.api.TwillSpecification;
 import org.apache.twill.ext.BundledJarRunnable;
@@ -39,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -69,12 +65,13 @@ public class YarnAccumuloTestRunner {
           .setMemory(memory, ResourceSpecification.SizeUnit.MEGA).setInstances(opts.numContainers).build();
 
       File jarFile = new File(opts.jarPath);
+      File clientProps = new File(opts.clientProps);
       File testProps = new File(opts.testProps);
       File log4jProps = new File(opts.logProps);
 
       return TwillSpecification.Builder.with().setName(opts.testName).withRunnable().add(RUNNABLE_ID, new BundledJarRunnable(), resourceSpec).withLocalFiles()
-          .add(jarFile.getName(), jarFile.toURI(), false).add(testProps.getName(), testProps.toURI()).add(log4jProps.getName(), log4jProps.toURI()).apply()
-          .anyOrder().build();
+          .add(jarFile.getName(), jarFile.toURI(), false).add(testProps.getName(), testProps.toURI()).add(clientProps.getName(), clientProps.toURI())
+          .add(log4jProps.getName(), log4jProps.toURI()).apply().anyOrder().build();
     }
   }
 
@@ -92,6 +89,9 @@ public class YarnAccumuloTestRunner {
     @Parameter(names = {"--main", "-m"}, required = true, description = "Main class")
     String mainClass;
 
+    @Parameter(names = {"--clientProps", "-c"}, required = true, description = "Accumulo client properties path")
+    String clientProps;
+
     @Parameter(names = {"--testProps", "-p"}, required = true, description = "Test properties path")
     String testProps;
 
@@ -108,15 +108,6 @@ public class YarnAccumuloTestRunner {
     Preconditions.checkState(f.canRead());
   }
 
-  private static int getNumRunning(TwillController controller) {
-    ResourceReport report = controller.getResourceReport();
-    if (report == null) {
-      return 0;
-    }
-    Collection<TwillRunResources> resources = report.getRunnableResources(RUNNABLE_ID);
-    return resources == null ? 0 : resources.size();
-  }
-
   public static void main(String[] args) throws Exception {
 
     TestRunnerOpts opts = new TestRunnerOpts();
@@ -124,6 +115,7 @@ public class YarnAccumuloTestRunner {
 
     verifyPath(opts.jarPath);
     verifyPath(opts.testProps);
+    verifyPath(opts.clientProps);
     verifyPath(opts.logProps);
 
     String jarFileName = Paths.get(opts.jarPath).getFileName().toString();
@@ -131,26 +123,21 @@ public class YarnAccumuloTestRunner {
     String[] mainArgs = opts.mainArgs.stream().toArray(String[]::new);
     BundledJarRunner.Arguments arguments = new BundledJarRunner.Arguments(jarFileName, "/lib",
                                                                           opts.mainClass, mainArgs);
-
-    Properties props = TestProps.loadFromFile(opts.testProps);
-    TestEnv env = new TestEnv(props);
+    TestEnv env = new TestEnv(opts.testProps, opts.clientProps);
 
     YarnConfiguration yarnConfig = new YarnConfiguration(env.getHadoopConfiguration());
-
-    TwillRunnerService twillRunner = new YarnTwillRunnerService(yarnConfig, env.getZookeepers());
+    TwillRunnerService twillRunner = new YarnTwillRunnerService(yarnConfig, env.getInfo().getZooKeepers());
     twillRunner.start();
 
-    TwillController controller = twillRunner.prepare(new YarnTestApp(opts, props))
-        .addJVMOptions("-Dlog4j.configuration=file:$PWD/" + new File(opts.logProps).getName()).withArguments("BundledJarRunnable", arguments.toArray()).start();
+    twillRunner.prepare(new YarnTestApp(opts, env.getTestProperties()))
+        .addJVMOptions("-Dlog4j.configuration=file:$PWD/" + new File(opts.logProps).getName())
+        .withArguments("BundledJarRunnable", arguments.toArray()).start();
 
-    int numRunning = getNumRunning(controller);
-    while (numRunning != opts.numContainers) {
-      LOG.info("{} of {} containers have started in YARN.", numRunning, opts.numContainers);
-      Thread.sleep(5000);
-      numRunning = getNumRunning(controller);
+    LOG.info("{} containers will start in YARN.", opts.numContainers);
+    LOG.info("Press Ctrl-C when these containers have started.");
+
+    while (true) {
+      Thread.sleep(1000);
     }
-
-    LOG.info("{} of {} containers have started in YARN", numRunning, opts.numContainers);
-    LOG.info("{} application was successfully started in YARN", opts.testName);
   }
 }

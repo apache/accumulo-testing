@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.core.continuous;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -113,19 +112,21 @@ public class ContinuousMoru extends Configured implements Tool {
   @Override
   public int run(String[] args) throws IOException, InterruptedException, ClassNotFoundException, AccumuloSecurityException {
 
-    Properties props = TestProps.loadFromFile(args[0]);
-    ContinuousEnv env = new ContinuousEnv(props);
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousMoru <testPropsPath> <clientPropsPath>");
+      System.exit(-1);
+    }
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    AccumuloInputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());
+    AccumuloInputFormat.setClientInfo(job, env.getInfo());
     AccumuloInputFormat.setInputTableName(job, env.getAccumuloTableName());
-    AccumuloInputFormat.setZooKeeperInstance(job, env.getClientConfiguration());
 
-    int maxMaps = Integer.parseInt(props.getProperty(TestProps.CI_VERIFY_MAX_MAPS));
+    int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
 
     // set up ranges
     try {
@@ -139,11 +140,9 @@ public class ContinuousMoru extends Configured implements Tool {
     job.setMapperClass(CMapper.class);
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setBatchWriterOptions(job, env.getBatchWriterConfig());
-    AccumuloOutputFormat.setConnectorInfo(job, env.getAccumuloUserName(), env.getToken());
+    AccumuloOutputFormat.setClientInfo(job, env.getInfo());
     AccumuloOutputFormat.setCreateTables(job, true);
     AccumuloOutputFormat.setDefaultTableName(job, env.getAccumuloTableName());
-    AccumuloOutputFormat.setZooKeeperInstance(job, env.getClientConfiguration());
 
     Configuration conf = job.getConfiguration();
     conf.setLong(MIN, env.getRowMin());
@@ -157,7 +156,11 @@ public class ContinuousMoru extends Configured implements Tool {
   }
 
   public static void main(String[] args) throws Exception {
-    ContinuousEnv env = new ContinuousEnv(TestProps.loadFromFile(args[0]));
+    if (args.length != 2) {
+      System.err.println("Usage: ContinuousMoru <testPropsPath> <clientPropsPath>");
+      System.exit(-1);
+    }
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
     int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousMoru(), args);
     if (res != 0)
       System.exit(res);

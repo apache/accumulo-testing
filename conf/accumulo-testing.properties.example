@@ -17,24 +17,6 @@
 # Common properties
 ###################
 
-# Accumulo instance name
-test.common.accumulo.instance=instance
-# Accumulo username
-test.common.accumulo.username=root
-# Accumulo password
-test.common.accumulo.password=secret
-# Max memory (in bytes) each batch writer will use to buffer writes
-test.common.accumulo.bw.max.memory.bytes=100000000
-# Max latency (in milliseconds) that each batch writer will buffer data
-test.common.accumulo.bw.max.latency.ms=600000
-# Number of write thread for each batch writer
-test.common.accumulo.bw.num.threads=4
-# Number of threads used by batch scanner
-test.common.accumulo.bs.num.threads=8
-# Number of key/value entries to pull during scan
-test.common.accumulo.scanner.batch.size=1000
-# Accumulo keytab
-#test.common.accumulo.keytab=
 # HDFS root path. Should match 'fs.defaultFS' property in Hadoop's core-site.xml
 test.common.hdfs.root=hdfs://localhost:8020
 # YARN resource manager hostname. Should match 'yarn.resourcemanager.hostname' property in Hadoop's yarn-site.xml
@@ -43,8 +25,6 @@ test.common.yarn.resource.manager=localhost
 test.common.yarn.container.memory.mb=1024
 # Number of cores given to each container (if running in YARN)
 test.common.yarn.container.cores=1
-# Zookeeper connection string
-test.common.zookeepers=localhost:2181
 
 ###################################
 # Continuous ingest test properties

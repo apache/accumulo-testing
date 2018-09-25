@@ -18,9 +18,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -32,15 +32,15 @@ public class CreateUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
-    Connector conn = env.getAccumuloInstance().getConnector(sysPrincipal, WalkingSecurity.get(state, env).getSysToken());
+    AccumuloClient client = env.getAccumuloClient().changeUser(sysPrincipal, WalkingSecurity.get(state, env).getSysToken());
 
     String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
     boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
-    boolean hasPermission = conn.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.CREATE_USER);
+    boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.CREATE_USER);
     PasswordToken tabUserPass = new PasswordToken("Super Sekret Table User Password");
     try {
-      conn.securityOperations().createLocalUser(tableUserName, tabUserPass);
+      client.securityOperations().createLocalUser(tableUserName, tabUserPass);
     } catch (AccumuloSecurityException ae) {
       switch (ae.getSecurityErrorCode()) {
         case PERMISSION_DENIED:

@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
@@ -27,11 +26,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -58,9 +57,9 @@ public class TableOp extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
-    Connector conn = env.getAccumuloInstance().getConnector(tablePrincipal, WalkingSecurity.get(state, env).getTabToken());
-    TableOperations tableOps = conn.tableOperations();
-    SecurityOperations secOps = conn.securityOperations();
+    AccumuloClient client = env.getAccumuloClient().changeUser(tablePrincipal, WalkingSecurity.get(state, env).getTabToken());
+    TableOperations tableOps = client.tableOperations();
+    SecurityOperations secOps = client.securityOperations();
 
     String action = props.getProperty("action", "_random");
     TablePermission tp;
@@ -85,12 +84,12 @@ public class TableOp extends Test {
           return;
         }
         Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
-        boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(conn.whoami(), tp);
-        boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(conn.whoami());
+        boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(client.whoami(), tp);
+        boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(client.whoami());
 
         Scanner scan = null;
         try {
-          scan = conn.createScanner(tableName, secOps.getUserAuthorizations(conn.whoami()));
+          scan = client.createScanner(tableName, secOps.getUserAuthorizations(client.whoami()));
           int seen = 0;
           Iterator<Entry<Key,Value>> iter = scan.iterator();
           while (iter.hasNext()) {
@@ -101,7 +100,7 @@ public class TableOp extends Test {
               throw new AccumuloException("Got data I should not be capable of seeing: " + k + " table " + tableName);
           }
           if (!canRead && !ambiguousZone)
-            throw new AccumuloException("Was able to read when I shouldn't have had the perm with connection user " + conn.whoami() + " table " + tableName);
+            throw new AccumuloException("Was able to read when I shouldn't have had the perm with connection user " + client.whoami() + " table " + tableName);
           for (Entry<String,Integer> entry : WalkingSecurity.get(state, env).getAuthsMap().entrySet()) {
             if (auths.contains(entry.getKey().getBytes(UTF_8)))
               seen = seen - entry.getValue();
@@ -171,7 +170,7 @@ public class TableOp extends Test {
         BatchWriter writer = null;
         try {
           try {
-            writer = conn.createBatchWriter(tableName, new BatchWriterConfig().setMaxMemory(9000l).setMaxWriteThreads(1));
+            writer = client.createBatchWriter(tableName, new BatchWriterConfig().setMaxMemory(9000l).setMaxWriteThreads(1));
           } catch (TableNotFoundException tnfe) {
             if (tableExists)
               throw new AccumuloException("Table didn't exist when it should have: " + tableName);
@@ -230,7 +229,7 @@ public class TableOp extends Test {
               throw new AccumuloException("Bulk Import failed when it should have worked: " + tableName);
             return;
           } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
-            if (WalkingSecurity.get(state, env).userPassTransient(conn.whoami()))
+            if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
               return;
           }
           throw new AccumuloException("Unexpected exception!", ae);
@@ -252,7 +251,7 @@ public class TableOp extends Test {
             throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
           return;
         }
-        AlterTable.renameTable(conn, state, env, tableName, tableName + "plus", tablePerm, tableExists);
+        AlterTable.renameTable(client, state, env, tableName, tableName + "plus", tablePerm, tableExists);
         break;
 
       case GRANT:

@@ -26,7 +26,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -44,7 +43,6 @@ public class ImageFixture extends Fixture {
   public void setUp(State state, RandWalkEnv env) throws Exception {
 
     Connector conn = env.getAccumuloConnector();
-    Instance instance = env.getAccumuloInstance();
 
     SortedSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 256; i++) {

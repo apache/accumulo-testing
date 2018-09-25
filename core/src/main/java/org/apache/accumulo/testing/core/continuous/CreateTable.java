@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.testing.core.continuous;
 
-import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -28,13 +27,11 @@ public class CreateTable {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 1) {
-      System.err.println("Usage: CreateTable <propsPath>");
+    if (args.length != 2) {
+      System.err.println("Usage: CreateTable <testPropsPath> <clientPropsPath>");
       System.exit(-1);
     }
-
-    Properties props = TestProps.loadFromFile(args[0]);
-    ContinuousEnv env = new ContinuousEnv(props);
+    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Connector conn = env.getAccumuloConnector();
     String tableName = env.getAccumuloTableName();
@@ -43,7 +40,7 @@ public class CreateTable {
       System.exit(-1);
     }
 
-    int numTablets = Integer.parseInt(props.getProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
+    int numTablets = Integer.parseInt(env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
     if (numTablets < 1) {
       System.err.println("ERROR: numTablets < 1");
       System.exit(-1);

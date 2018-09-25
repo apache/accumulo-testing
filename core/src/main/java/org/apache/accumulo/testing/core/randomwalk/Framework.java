@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.core.randomwalk;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.accumulo.testing.core.TestProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,18 +80,16 @@ public class Framework {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 2) {
-      System.out.println("Usage: Framework <propsPath> <module>");
+    if (args.length != 3) {
+      System.out.println("Usage: Framework <testPropsPath> <clientPropsPath> <module>");
       System.exit(-1);
     }
 
-    Properties props = TestProps.loadFromFile(args[0]);
-
-    log.info("Running random walk test with module: " + args[1]);
+    log.info("Running random walk test with module: " + args[2]);
 
     State state = new State();
-    RandWalkEnv env = new RandWalkEnv(props);
-    getInstance().run(args[1], state, env);
+    RandWalkEnv env = new RandWalkEnv(args[0], args[1]);
+    getInstance().run(args[2], state, env);
 
     log.info("Test finished");
   }

@@ -19,15 +19,12 @@ package org.apache.accumulo.testing.core.randomwalk;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WALOG_MAX_SIZE;
 
-import java.util.Properties;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.accumulo.testing.core.randomwalk.concurrent.Replication;
 import org.apache.hadoop.conf.Configuration;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 public class ReplicationRandomWalkIT extends ConfigurableMacBase {
@@ -43,23 +40,13 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
   public void runReplicationRandomWalkStep() throws Exception {
     Replication r = new Replication();
 
-    RandWalkEnv env = new RandWalkEnv(new Properties()) {
-      @Override
-      public String getAccumuloUserName() {
-        return "root";
-      }
+    RandWalkEnv env = EasyMock.createMock(RandWalkEnv.class);
+    EasyMock.expect(env.getAccumuloUserName()).andReturn("root").anyTimes();
+    EasyMock.expect(env.getAccumuloPassword()).andReturn(ROOT_PASSWORD).anyTimes();
+    EasyMock.expect(env.getAccumuloClient()).andReturn(this.getClient()).anyTimes();
+    EasyMock.expect(env.getAccumuloConnector()).andReturn(Connector.from(this.getClient())).anyTimes();
+    EasyMock.replay(env);
 
-      @Override
-      public String getAccumuloPassword() {
-        return ROOT_PASSWORD;
-      }
-
-      @Override
-      public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
-        return Connector.from(ReplicationRandomWalkIT.this.getClient());
-      }
-
-    };
     r.visit(null, env, null);
   }
 
