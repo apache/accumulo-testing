@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -42,7 +42,7 @@ public class ImageFixture extends Fixture {
   @Override
   public void setUp(State state, RandWalkEnv env) throws Exception {
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     SortedSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 256; i++) {
@@ -59,17 +59,17 @@ public class ImageFixture extends Fixture {
     state.set("indexTableName", indexTableName);
 
     try {
-      conn.tableOperations().create(imageTableName);
-      conn.tableOperations().addSplits(imageTableName, splits);
-      log.debug("Created table " + imageTableName + " (id:" + conn.tableOperations().tableIdMap().get(imageTableName) + ")");
+      client.tableOperations().create(imageTableName);
+      client.tableOperations().addSplits(imageTableName, splits);
+      log.debug("Created table " + imageTableName + " (id:" + client.tableOperations().tableIdMap().get(imageTableName) + ")");
     } catch (TableExistsException e) {
       log.error("Table " + imageTableName + " already exists.");
       throw e;
     }
 
     try {
-      conn.tableOperations().create(indexTableName);
-      log.debug("Created table " + indexTableName + " (id:" + conn.tableOperations().tableIdMap().get(indexTableName) + ")");
+      client.tableOperations().create(indexTableName);
+      log.debug("Created table " + indexTableName + " (id:" + client.tableOperations().tableIdMap().get(indexTableName) + ")");
     } catch (TableExistsException e) {
       log.error("Table " + imageTableName + " already exists.");
       throw e;
@@ -80,7 +80,7 @@ public class ImageFixture extends Fixture {
       // setup locality groups
       Map<String,Set<Text>> groups = getLocalityGroups();
 
-      conn.tableOperations().setLocalityGroups(imageTableName, groups);
+      client.tableOperations().setLocalityGroups(imageTableName, groups);
       log.debug("Configured locality groups for " + imageTableName + " groups = " + groups);
     }
 
@@ -121,10 +121,10 @@ public class ImageFixture extends Fixture {
     // Now we can safely delete the tables
     log.debug("Dropping tables: " + imageTableName + " " + indexTableName);
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
-    conn.tableOperations().delete(imageTableName);
-    conn.tableOperations().delete(indexTableName);
+    client.tableOperations().delete(imageTableName);
+    client.tableOperations().delete(indexTableName);
 
     log.debug("Final total of writes: " + state.getLong("totalWrites"));
   }

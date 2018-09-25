@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk.conditional;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
 import org.apache.accumulo.testing.core.randomwalk.Test;
@@ -33,7 +33,7 @@ public class Flush extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
     Random rand = (Random) state.get("rand");
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
     Text row1 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));
     Text row2 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));
 
@@ -43,6 +43,6 @@ public class Flush extends Test {
     }
 
     log.debug("flushing " + row1 + " " + row2);
-    conn.tableOperations().flush(table, row1, row2, rand.nextBoolean());
+    client.tableOperations().flush(table, row1, row2, rand.nextBoolean());
   }
 }

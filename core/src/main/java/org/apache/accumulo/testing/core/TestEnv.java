@@ -10,7 +10,6 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.ClientInfo;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.hadoop.conf.Configuration;
@@ -114,16 +113,12 @@ public class TestEnv {
   }
 
   /**
-   * Gets an Accumulo connector. The same connector is reused after the first call.
+   * Gets an Accumulo client. The same client is reused after the first call.
    */
   public AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
     if (client == null) {
       client = Accumulo.newClient().usingClientInfo(info).build();
     }
     return client;
-  }
-
-  public Connector getAccumuloConnector() throws AccumuloException, AccumuloSecurityException {
-    return Connector.from(getAccumuloClient());
   }
 }

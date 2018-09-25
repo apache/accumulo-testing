@@ -121,11 +121,11 @@ public class GenerateHashes {
     }
   }
 
-  public Collection<Range> getRanges(AccumuloClient conn, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
+  public Collection<Range> getRanges(AccumuloClient client, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
       AccumuloException, FileNotFoundException {
     if (null == splitsFile) {
       log.info("Using table split points");
-      Collection<Text> endRows = conn.tableOperations().listSplits(tableName);
+      Collection<Text> endRows = client.tableOperations().listSplits(tableName);
       return endRowsToRanges(endRows);
     } else {
       log.info("Using provided split points");
@@ -156,16 +156,16 @@ public class GenerateHashes {
     run(opts.getClient(), opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
   }
 
-  public void run(final AccumuloClient conn, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
+  public void run(final AccumuloClient client, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
       final boolean iteratorPushdown, final Collection<Range> ranges) throws TableNotFoundException, AccumuloSecurityException, AccumuloException,
       NoSuchAlgorithmException {
-    if (!conn.tableOperations().exists(outputTableName)) {
+    if (!client.tableOperations().exists(outputTableName)) {
       throw new IllegalArgumentException(outputTableName + " does not exist, please create it");
     }
 
     // Get some parallelism
     ExecutorService svc = Executors.newFixedThreadPool(numThreads);
-    final BatchWriter bw = conn.createBatchWriter(outputTableName, new BatchWriterConfig());
+    final BatchWriter bw = client.createBatchWriter(outputTableName, new BatchWriterConfig());
 
     try {
       for (final Range range : ranges) {
@@ -177,7 +177,7 @@ public class GenerateHashes {
           public void run() {
             Scanner s;
             try {
-              s = conn.createScanner(inputTableName, Authorizations.EMPTY);
+              s = client.createScanner(inputTableName, Authorizations.EMPTY);
             } catch (Exception e) {
               log.error("Could not get scanner for " + inputTableName, e);
               throw new RuntimeException(e);

@@ -25,7 +25,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -52,10 +52,10 @@ public class Verify extends Test {
     indexTableName = state.getString("indexTableName");
     imageTableName = state.getString("imageTableName");
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
-    Scanner indexScanner = conn.createScanner(indexTableName, new Authorizations());
-    Scanner imageScanner = conn.createScanner(imageTableName, new Authorizations());
+    Scanner indexScanner = client.createScanner(indexTableName, new Authorizations());
+    Scanner imageScanner = client.createScanner(imageTableName, new Authorizations());
 
     String uuid = UUID.randomUUID().toString();
 

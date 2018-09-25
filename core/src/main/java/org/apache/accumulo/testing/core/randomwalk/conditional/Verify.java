@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk.conditional;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
@@ -41,16 +41,16 @@ public class Verify extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     int numAccts = (Integer) state.get("numAccts");
 
     for (int i = 0; i < (Integer) state.get("numBanks"); i++)
-      verifyBank(table, conn, Utils.getBank(i), numAccts);
+      verifyBank(table, client, Utils.getBank(i), numAccts);
 
   }
 
-  private void verifyBank(String table, Connector conn, String row, int numAccts) throws TableNotFoundException, Exception {
+  private void verifyBank(String table, AccumuloClient client, String row, int numAccts) throws TableNotFoundException, Exception {
     log.debug("Verifying bank " + row);
 
     int count = 0;
@@ -59,7 +59,7 @@ public class Verify extends Test {
     int max = Integer.MIN_VALUE;
 
     // TODO do not use IsolatedScanner, just enable isolation on scanner
-    try (Scanner scanner = new IsolatedScanner(conn.createScanner(table, Authorizations.EMPTY))) {
+    try (Scanner scanner = new IsolatedScanner(client.createScanner(table, Authorizations.EMPTY))) {
 
       scanner.setRange(new Range(row));
       IteratorSetting iterConf = new IteratorSetting(100, "cqsl", ColumnSliceFilter.class);

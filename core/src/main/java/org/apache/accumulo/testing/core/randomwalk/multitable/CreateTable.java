@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -40,18 +40,18 @@ public class CreateTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     int nextId = ((Integer) state.get("nextId")).intValue();
     String tableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
     try {
-      conn.tableOperations().create(tableName);
+      client.tableOperations().create(tableName);
       // Add some splits to make the server's life easier
-      conn.tableOperations().addSplits(tableName, splits);
-      String tableId = conn.tableOperations().tableIdMap().get(tableName);
+      client.tableOperations().addSplits(tableName, splits);
+      String tableId = client.tableOperations().tableIdMap().get(tableName);
       log.debug("created " + tableName + " (id:" + tableId + ")");
       // Add some splits to make the server's life easier
-      conn.tableOperations().addSplits(tableName, splits);
+      client.tableOperations().addSplits(tableName, splits);
       log.debug("created " + splits.size() + " splits on " + tableName);
       @SuppressWarnings("unchecked")
       List<String> tables = (List<String>) state.get("tableList");

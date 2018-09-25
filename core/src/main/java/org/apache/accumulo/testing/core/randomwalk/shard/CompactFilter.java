@@ -57,7 +57,7 @@ public class CompactFilter extends Test {
     documentFilters.add(is);
 
     long t1 = System.currentTimeMillis();
-    env.getAccumuloConnector().tableOperations().compact(docTableName, null, null, documentFilters, true, true);
+    env.getAccumuloClient().tableOperations().compact(docTableName, null, null, documentFilters, true, true);
     long t2 = System.currentTimeMillis();
     long t3 = t2 - t1;
 
@@ -69,12 +69,12 @@ public class CompactFilter extends Test {
     indexFilters.add(is);
 
     t1 = System.currentTimeMillis();
-    env.getAccumuloConnector().tableOperations().compact(indexTableName, null, null, indexFilters, true, true);
+    env.getAccumuloClient().tableOperations().compact(indexTableName, null, null, indexFilters, true, true);
     t2 = System.currentTimeMillis();
 
     log.debug("Filtered documents using compaction iterators " + regex + " " + (t3) + " " + (t2 - t1));
 
-    BatchScanner bscanner = env.getAccumuloConnector().createBatchScanner(docTableName, new Authorizations(), 10);
+    BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName, new Authorizations(), 10);
 
     List<Range> ranges = new ArrayList<>();
     for (int i = 0; i < 16; i++) {

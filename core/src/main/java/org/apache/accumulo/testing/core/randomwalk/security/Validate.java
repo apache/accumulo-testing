@@ -18,9 +18,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
@@ -37,15 +37,15 @@ public class Validate extends Test {
   }
 
   public static void validate(State state, RandWalkEnv env, Logger log) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     boolean tableExists = WalkingSecurity.get(state, env).getTableExists();
-    boolean cloudTableExists = conn.tableOperations().list().contains(WalkingSecurity.get(state, env).getTableName());
+    boolean cloudTableExists = client.tableOperations().list().contains(WalkingSecurity.get(state, env).getTableName());
     if (tableExists != cloudTableExists)
       throw new AccumuloException("Table existance out of sync");
 
     boolean tableUserExists = WalkingSecurity.get(state, env).userExists(WalkingSecurity.get(state, env).getTabUserName());
-    boolean cloudTableUserExists = conn.securityOperations().listLocalUsers().contains(WalkingSecurity.get(state, env).getTabUserName());
+    boolean cloudTableUserExists = client.securityOperations().listLocalUsers().contains(WalkingSecurity.get(state, env).getTabUserName());
     if (tableUserExists != cloudTableUserExists)
       throw new AccumuloException("Table User existance out of sync");
 
@@ -60,7 +60,7 @@ public class Validate extends Test {
         boolean hasSp = WalkingSecurity.get(state, env).hasSystemPermission(user, sp);
         boolean accuHasSp;
         try {
-          accuHasSp = conn.securityOperations().hasSystemPermission(user, sp);
+          accuHasSp = client.securityOperations().hasSystemPermission(user, sp);
           log.debug("Just checked to see if user " + user + " has system perm " + sp.name() + " with answer " + accuHasSp);
         } catch (AccumuloSecurityException ae) {
           if (ae.getSecurityErrorCode().equals(SecurityErrorCode.USER_DOESNT_EXIST)) {
@@ -79,7 +79,7 @@ public class Validate extends Test {
         boolean hasTp = WalkingSecurity.get(state, env).hasTablePermission(user, WalkingSecurity.get(state, env).getTableName(), tp);
         boolean accuHasTp;
         try {
-          accuHasTp = conn.securityOperations().hasTablePermission(user, WalkingSecurity.get(state, env).getTableName(), tp);
+          accuHasTp = client.securityOperations().hasTablePermission(user, WalkingSecurity.get(state, env).getTableName(), tp);
           log.debug("Just checked to see if user " + user + " has table perm " + tp.name() + " with answer " + accuHasTp);
         } catch (AccumuloSecurityException ae) {
           if (ae.getSecurityErrorCode().equals(SecurityErrorCode.USER_DOESNT_EXIST)) {

@@ -130,7 +130,7 @@ public class ContinuousMoru extends Configured implements Tool {
 
     // set up ranges
     try {
-      Set<Range> ranges = env.getAccumuloConnector().tableOperations().splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
+      Set<Range> ranges = env.getAccumuloClient().tableOperations().splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
       AccumuloInputFormat.setRanges(job, ranges);
       AccumuloInputFormat.setAutoAdjustRanges(job, false);
     } catch (Exception e) {

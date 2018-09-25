@@ -38,8 +38,8 @@ public class VerifyIndex extends Test {
     String tmpIndexTableName = indexTableName + "_tmp";
 
     // scan new and old index and verify identical
-    Scanner indexScanner1 = env.getAccumuloConnector().createScanner(tmpIndexTableName, Authorizations.EMPTY);
-    Scanner indexScanner2 = env.getAccumuloConnector().createScanner(indexTableName, Authorizations.EMPTY);
+    Scanner indexScanner1 = env.getAccumuloClient().createScanner(tmpIndexTableName, Authorizations.EMPTY);
+    Scanner indexScanner2 = env.getAccumuloClient().createScanner(indexTableName, Authorizations.EMPTY);
 
     Iterator<Entry<Key,Value>> iter = indexScanner2.iterator();
 
@@ -64,8 +64,8 @@ public class VerifyIndex extends Test {
 
     log.debug("Verified " + count + " index entries ");
 
-    env.getAccumuloConnector().tableOperations().delete(indexTableName);
-    env.getAccumuloConnector().tableOperations().rename(tmpIndexTableName, indexTableName);
+    env.getAccumuloClient().tableOperations().delete(indexTableName);
+    env.getAccumuloClient().tableOperations().rename(tmpIndexTableName, indexTableName);
   }
 
 }

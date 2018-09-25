@@ -47,7 +47,7 @@ public class DropUser extends Test {
             throw new AccumuloException("Got a security exception when I should have had permission.", ae);
           else {
             if (exists) {
-              env.getAccumuloConnector().securityOperations().dropLocalUser(tableUserName);
+              env.getAccumuloClient().securityOperations().dropLocalUser(tableUserName);
               WalkingSecurity.get(state, env).dropUser(tableUserName);
             }
             return;

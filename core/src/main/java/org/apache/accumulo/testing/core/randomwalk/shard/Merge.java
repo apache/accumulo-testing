@@ -33,13 +33,13 @@ public class Merge extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String indexTableName = (String) state.get("indexTableName");
 
-    Collection<Text> splits = env.getAccumuloConnector().tableOperations().listSplits(indexTableName);
+    Collection<Text> splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     SortedSet<Text> splitSet = new TreeSet<>(splits);
     log.debug("merging " + indexTableName);
-    env.getAccumuloConnector().tableOperations().merge(indexTableName, null, null);
+    env.getAccumuloClient().tableOperations().merge(indexTableName, null, null);
     org.apache.accumulo.core.util.Merge merge = new org.apache.accumulo.core.util.Merge();
-    merge.mergomatic((AccumuloClient) env.getAccumuloConnector(), indexTableName, null, null, 256 * 1024 * 1024, true);
-    splits = env.getAccumuloConnector().tableOperations().listSplits(indexTableName);
+    merge.mergomatic((AccumuloClient) env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true);
+    splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
       // throw an excpetion so that test will die an no further changes to
       // table will occur...

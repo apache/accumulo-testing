@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -34,7 +34,7 @@ public class ChangeAuthorizations extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -43,7 +43,7 @@ public class ChangeAuthorizations extends Test {
 
     String userName = userNames.get(rand.nextInt(userNames.size()));
     try {
-      List<byte[]> auths = new ArrayList<>(conn.securityOperations().getUserAuthorizations(userName).getAuthorizations());
+      List<byte[]> auths = new ArrayList<>(client.securityOperations().getUserAuthorizations(userName).getAuthorizations());
 
       if (rand.nextBoolean()) {
         String authorization = String.format("a%d", rand.nextInt(5000));
@@ -54,7 +54,7 @@ public class ChangeAuthorizations extends Test {
           log.debug("removing authorization " + new String(auths.remove(0), UTF_8));
         }
       }
-      conn.securityOperations().changeUserAuthorizations(userName, new Authorizations(auths));
+      client.securityOperations().changeUserAuthorizations(userName, new Authorizations(auths));
     } catch (AccumuloSecurityException ex) {
       log.debug("Unable to change user authorizations: " + ex.getCause());
     }

@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk.sequential;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -45,7 +45,7 @@ public class MapRedVerify extends Test {
       return;
     }
 
-    Scanner outputScanner = env.getAccumuloConnector().createScanner(args[5], Authorizations.EMPTY);
+    Scanner outputScanner = env.getAccumuloClient().createScanner(args[5], Authorizations.EMPTY);
     outputScanner.setRange(new Range());
 
     int count = 0;
@@ -64,7 +64,7 @@ public class MapRedVerify extends Test {
     }
 
     log.debug("Dropping table: " + args[5]);
-    Connector conn = env.getAccumuloConnector();
-    conn.tableOperations().delete(args[5]);
+    AccumuloClient client = env.getAccumuloClient();
+    client.tableOperations().delete(args[5]);
   }
 }

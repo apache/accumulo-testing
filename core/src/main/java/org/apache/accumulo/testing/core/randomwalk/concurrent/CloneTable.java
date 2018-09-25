@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -35,7 +35,7 @@ public class CloneTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -48,7 +48,7 @@ public class CloneTable extends Test {
 
     try {
       log.debug("Cloning table " + srcTableName + " " + newTableName + " " + flush);
-      conn.tableOperations().clone(srcTableName, newTableName, flush, new HashMap<String,String>(), new HashSet<String>());
+      client.tableOperations().clone(srcTableName, newTableName, flush, new HashMap<>(), new HashSet<>());
     } catch (TableExistsException e) {
       log.debug("Clone " + srcTableName + " failed, " + newTableName + " exists");
     } catch (TableNotFoundException e) {

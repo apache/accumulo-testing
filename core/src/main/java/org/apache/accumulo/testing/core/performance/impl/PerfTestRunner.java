@@ -27,7 +27,6 @@ import java.time.format.DateTimeFormatter;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.testing.core.performance.Environment;
 import org.apache.accumulo.testing.core.performance.PerformanceTest;
 import org.apache.accumulo.testing.core.performance.Report;
@@ -50,8 +49,8 @@ public class PerfTestRunner {
 
     Report result = perfTest.runTest(new Environment() {
       @Override
-      public Connector getConnector() {
-        return Connector.from(client);
+      public AccumuloClient getClient() {
+        return client;
       }
     });
 

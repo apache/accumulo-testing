@@ -93,7 +93,7 @@ public class BulkPlusOne extends BulkImportTest {
       }
       writer.close();
     }
-    env.getAccumuloConnector().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
+    env.getAccumuloClient().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
     fs.delete(dir, true);
     FileStatus[] failures = fs.listStatus(fail);
     if (failures != null && failures.length > 0) {

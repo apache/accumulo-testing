@@ -31,9 +31,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -78,17 +78,17 @@ public class RandomCachedLookupsPT implements PerformanceTest {
   public Report runTest(Environment env) throws Exception {
     Builder reportBuilder = Report.builder();
 
-    writeData(reportBuilder, env.getConnector(), NUM_ROWS);
+    writeData(reportBuilder, env.getClient(), NUM_ROWS);
 
-    long warmup = doLookups(env.getConnector(), 32, NUM_LOOKUPS_PER_THREAD);
+    long warmup = doLookups(env.getClient(), 32, NUM_LOOKUPS_PER_THREAD);
 
-    long d1 = doLookups(env.getConnector(), 1, NUM_LOOKUPS_PER_THREAD);
-    long d4 = doLookups(env.getConnector(), 4, NUM_LOOKUPS_PER_THREAD);
-    long d8 = doLookups(env.getConnector(), 8, NUM_LOOKUPS_PER_THREAD);
-    long d16 = doLookups(env.getConnector(), 16, NUM_LOOKUPS_PER_THREAD);
-    long d32 = doLookups(env.getConnector(), 32, NUM_LOOKUPS_PER_THREAD);
-    long d64 = doLookups(env.getConnector(), 64, NUM_LOOKUPS_PER_THREAD);
-    long d128 = doLookups(env.getConnector(), 128, NUM_LOOKUPS_PER_THREAD);
+    long d1 = doLookups(env.getClient(), 1, NUM_LOOKUPS_PER_THREAD);
+    long d4 = doLookups(env.getClient(), 4, NUM_LOOKUPS_PER_THREAD);
+    long d8 = doLookups(env.getClient(), 8, NUM_LOOKUPS_PER_THREAD);
+    long d16 = doLookups(env.getClient(), 16, NUM_LOOKUPS_PER_THREAD);
+    long d32 = doLookups(env.getClient(), 32, NUM_LOOKUPS_PER_THREAD);
+    long d64 = doLookups(env.getClient(), 64, NUM_LOOKUPS_PER_THREAD);
+    long d128 = doLookups(env.getClient(), 128, NUM_LOOKUPS_PER_THREAD);
 
     reportBuilder.id("smalls");
     reportBuilder.description("Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
@@ -112,7 +112,7 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     return reportBuilder.build();
   }
 
-  public static void writeData(Builder reportBuilder, Connector conn, int numRows) throws Exception {
+  public static void writeData(Builder reportBuilder, AccumuloClient client, int numRows) throws Exception {
 
     reportBuilder.parameter("rows", numRows, "Number of random rows written.  Each row has 4 columns.");
 
@@ -126,21 +126,21 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     long t1 = System.currentTimeMillis();
     try {
-      conn.tableOperations().create("scanpt", ntc);
+      client.tableOperations().create("scanpt", ntc);
     } catch (TableExistsException tee) {
-      conn.tableOperations().delete("scanpt");
-      conn.tableOperations().create("scanpt", ntc);
+      client.tableOperations().delete("scanpt");
+      client.tableOperations().create("scanpt", ntc);
     }
 
     long t2 = System.currentTimeMillis();
 
     SortedSet<Text> partitionKeys = new TreeSet<>(
         Stream.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f").map(Text::new).collect(toList()));
-    conn.tableOperations().addSplits("scanpt", partitionKeys);
+    client.tableOperations().addSplits("scanpt", partitionKeys);
 
     long t3 = System.currentTimeMillis();
 
-    BatchWriter bw = conn.createBatchWriter("scanpt", new BatchWriterConfig());
+    BatchWriter bw = client.createBatchWriter("scanpt", new BatchWriterConfig());
 
     Random rand = new Random();
 
@@ -167,11 +167,11 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     long t4 = System.currentTimeMillis();
 
-    conn.tableOperations().compact("scanpt", new CompactionConfig().setFlush(true).setWait(true));
+    client.tableOperations().compact("scanpt", new CompactionConfig().setFlush(true).setWait(true));
 
     long t5 = System.currentTimeMillis();
 
-    try (Scanner scanner = conn.createScanner("scanpt", Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner("scanpt", Authorizations.EMPTY)) {
       // scan entire table to bring it into cache
       Iterables.size(scanner);
     }
@@ -185,7 +185,7 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     reportBuilder.info("fullScan", 4 * numRows, t6 - t5, "Rate to do full table scan in entries/sec");
   }
 
-  private static long doLookups(Connector conn, int numThreads, int numScansPerThread) throws Exception {
+  private static long doLookups(AccumuloClient client, int numThreads, int numScansPerThread) throws Exception {
 
     ExecutorService es = Executors.newFixedThreadPool(numThreads);
 
@@ -194,7 +194,7 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     long t1 = System.currentTimeMillis();
 
     for (int i = 0; i < numThreads; i++) {
-      futures.add(es.submit(() -> doLookups(conn, numScansPerThread)));
+      futures.add(es.submit(() -> doLookups(client, numScansPerThread)));
     }
 
     for (Future<?> future : futures) {
@@ -208,12 +208,12 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     return t2 -t1;
   }
 
-  private static void doLookups(Connector conn, int numScans) {
+  private static void doLookups(AccumuloClient client, int numScans) {
     try {
       Random rand = new Random();
 
       for (int i = 0; i < numScans; i++) {
-        Scanner scanner = conn.createScanner("scanpt", Authorizations.EMPTY);
+        Scanner scanner = client.createScanner("scanpt", Authorizations.EMPTY);
 
         scanner.setRange(new Range(toHex(rand.nextLong())));
 

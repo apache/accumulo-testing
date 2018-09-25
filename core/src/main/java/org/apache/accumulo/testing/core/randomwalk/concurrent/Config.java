@@ -115,7 +115,7 @@ public class Config extends Test {
       int choice = Integer.parseInt(lastSetting.toString());
       Property property = settings[choice].property;
       log.debug("Setting " + property.getKey() + " back to " + property.getDefaultValue());
-      env.getAccumuloConnector().instanceOperations().setProperty(property.getKey(), property.getDefaultValue());
+      env.getAccumuloClient().instanceOperations().setProperty(property.getKey(), property.getDefaultValue());
     }
     lastSetting = state.getOkIfAbsent(LAST_TABLE_SETTING);
     if (lastSetting != null) {
@@ -123,10 +123,10 @@ public class Config extends Test {
       String table = parts[0];
       int choice = Integer.parseInt(parts[1]);
       Property property = tableSettings[choice].property;
-      if (env.getAccumuloConnector().tableOperations().exists(table)) {
+      if (env.getAccumuloClient().tableOperations().exists(table)) {
         log.debug("Setting " + property.getKey() + " on " + table + " back to " + property.getDefaultValue());
         try {
-          env.getAccumuloConnector().tableOperations().setProperty(table, property.getKey(), property.getDefaultValue());
+          env.getAccumuloClient().tableOperations().setProperty(table, property.getKey(), property.getDefaultValue());
         } catch (AccumuloException ex) {
           if (ex.getCause() instanceof ThriftTableOperationException) {
             ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
@@ -143,10 +143,10 @@ public class Config extends Test {
       String namespace = parts[0];
       int choice = Integer.parseInt(parts[1]);
       Property property = tableSettings[choice].property;
-      if (env.getAccumuloConnector().namespaceOperations().exists(namespace)) {
+      if (env.getAccumuloClient().namespaceOperations().exists(namespace)) {
         log.debug("Setting " + property.getKey() + " on " + namespace + " back to " + property.getDefaultValue());
         try {
-          env.getAccumuloConnector().namespaceOperations().setProperty(namespace, property.getKey(), property.getDefaultValue());
+          env.getAccumuloClient().namespaceOperations().setProperty(namespace, property.getKey(), property.getDefaultValue());
         } catch (AccumuloException ex) {
           if (ex.getCause() instanceof ThriftTableOperationException) {
             ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
@@ -177,7 +177,7 @@ public class Config extends Test {
     Setting setting = tableSettings[choice];
 
     // pick a random table
-    SortedSet<String> tables = env.getAccumuloConnector().tableOperations().list().tailSet("ctt").headSet("ctu");
+    SortedSet<String> tables = env.getAccumuloClient().tableOperations().list().tailSet("ctt").headSet("ctu");
     if (tables.isEmpty())
       return;
     String table = random.nextSample(tables, 1)[0].toString();
@@ -187,7 +187,7 @@ public class Config extends Test {
     state.set(LAST_TABLE_SETTING, table + "," + choice);
     log.debug("Setting " + setting.property.getKey() + " on table " + table + " to " + newValue);
     try {
-      env.getAccumuloConnector().tableOperations().setProperty(table, setting.property.getKey(), "" + newValue);
+      env.getAccumuloClient().tableOperations().setProperty(table, setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
       if (ex.getCause() instanceof ThriftTableOperationException) {
         ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
@@ -204,7 +204,7 @@ public class Config extends Test {
     Setting setting = tableSettings[choice];
 
     // pick a random table
-    SortedSet<String> namespaces = env.getAccumuloConnector().namespaceOperations().list().tailSet("nspc").headSet("nspd");
+    SortedSet<String> namespaces = env.getAccumuloClient().namespaceOperations().list().tailSet("nspc").headSet("nspd");
     if (namespaces.isEmpty())
       return;
     String namespace = random.nextSample(namespaces, 1)[0].toString();
@@ -214,7 +214,7 @@ public class Config extends Test {
     state.set(LAST_NAMESPACE_SETTING, namespace + "," + choice);
     log.debug("Setting " + setting.property.getKey() + " on namespace " + namespace + " to " + newValue);
     try {
-      env.getAccumuloConnector().namespaceOperations().setProperty(namespace, setting.property.getKey(), "" + newValue);
+      env.getAccumuloClient().namespaceOperations().setProperty(namespace, setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
       if (ex.getCause() instanceof ThriftTableOperationException) {
         ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
@@ -233,7 +233,7 @@ public class Config extends Test {
     long newValue = random.nextLong(setting.min, setting.max);
     state.set(LAST_SETTING, "" + choice);
     log.debug("Setting " + setting.property.getKey() + " to " + newValue);
-    env.getAccumuloConnector().instanceOperations().setProperty(setting.property.getKey(), "" + newValue);
+    env.getAccumuloClient().instanceOperations().setProperty(setting.property.getKey(), "" + newValue);
   }
 
 }

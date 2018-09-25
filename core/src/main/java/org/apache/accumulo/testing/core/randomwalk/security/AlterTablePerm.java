@@ -96,7 +96,7 @@ public class AlterTablePerm extends Test {
     if (!"take".equals(action) && !"give".equals(action)) {
       try {
         boolean res;
-        if (hasPerm != (res = env.getAccumuloConnector().securityOperations().hasTablePermission(target, tableName, tabPerm)))
+        if (hasPerm != (res = env.getAccumuloClient().securityOperations().hasTablePermission(target, tableName, tabPerm)))
           throw new AccumuloException("Test framework and accumulo are out of sync for user " + client.whoami() + " for perm " + tabPerm.name()
               + " with local vs. accumulo being " + hasPerm + " " + res);
 

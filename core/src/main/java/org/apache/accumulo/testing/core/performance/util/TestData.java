@@ -17,8 +17,8 @@
 
 package org.apache.accumulo.testing.core.performance.util;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.util.FastFormat;
 
@@ -42,8 +42,8 @@ public class TestData {
     return FastFormat.toZeroPaddedString(v, 9, 16, EMPTY);
   }
 
-  public static void generate(Connector conn, String tableName, int rows, int fams, int quals) throws Exception {
-    try (BatchWriter writer = conn.createBatchWriter(tableName)) {
+  public static void generate(AccumuloClient client, String tableName, int rows, int fams, int quals) throws Exception {
+    try (BatchWriter writer = client.createBatchWriter(tableName)) {
       int v = 0;
       for (int r = 0; r < rows; r++) {
         Mutation m = new Mutation(row(r));

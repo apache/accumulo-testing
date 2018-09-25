@@ -40,14 +40,14 @@ public class Ingest extends ScaleTest {
   @Override
   public void setup() {
 
-    AccumuloClient conn = getClient();
+    AccumuloClient client = getClient();
     String tableName = getTestProperty("TABLE");
 
     // delete existing table
-    if (conn.tableOperations().exists(tableName)) {
+    if (client.tableOperations().exists(tableName)) {
       System.out.println("Deleting existing table: " + tableName);
       try {
-        conn.tableOperations().delete(tableName);
+        client.tableOperations().delete(tableName);
       } catch (Exception e) {
         log.error("Failed to delete table '" + tableName + "'.", e);
       }
@@ -55,9 +55,9 @@ public class Ingest extends ScaleTest {
 
     // create table
     try {
-      conn.tableOperations().create(tableName);
-      conn.tableOperations().addSplits(tableName, calculateSplits());
-      conn.tableOperations().setProperty(tableName, "table.split.threshold", "256M");
+      client.tableOperations().create(tableName);
+      client.tableOperations().addSplits(tableName, calculateSplits());
+      client.tableOperations().setProperty(tableName, "table.split.threshold", "256M");
     } catch (Exception e) {
       log.error("Failed to create table '" + tableName + "'.", e);
     }
@@ -67,7 +67,7 @@ public class Ingest extends ScaleTest {
   @Override
   public void client() {
 
-    AccumuloClient conn = getClient();
+    AccumuloClient client = getClient();
     String tableName = getTestProperty("TABLE");
 
     // get batch writer configuration
@@ -78,7 +78,7 @@ public class Ingest extends ScaleTest {
     // create batch writer
     BatchWriter bw = null;
     try {
-      bw = conn.createBatchWriter(tableName, new BatchWriterConfig().setMaxMemory(maxMemory).setMaxLatency(maxLatency, TimeUnit.MILLISECONDS)
+      bw = client.createBatchWriter(tableName, new BatchWriterConfig().setMaxMemory(maxMemory).setMaxLatency(maxLatency, TimeUnit.MILLISECONDS)
           .setMaxWriteThreads(maxWriteThreads));
     } catch (TableNotFoundException e) {
       log.error("Table '" + tableName + "' not found.", e);
@@ -130,11 +130,11 @@ public class Ingest extends ScaleTest {
   @Override
   public void teardown() {
 
-    AccumuloClient conn = getClient();
+    AccumuloClient client = getClient();
     String tableName = getTestProperty("TABLE");
 
     try {
-      conn.tableOperations().delete(tableName);
+      client.tableOperations().delete(tableName);
     } catch (Exception e) {
       log.error("Failed to delete table '" + tableName + "'", e);
     }

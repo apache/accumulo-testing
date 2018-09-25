@@ -58,9 +58,9 @@ public class Verify extends Test {
       return;
     }
 
-    String user = env.getAccumuloConnector().whoami();
-    Authorizations auths = env.getAccumuloConnector().securityOperations().getUserAuthorizations(user);
-    Scanner scanner = env.getAccumuloConnector().createScanner(Setup.getTableName(), auths);
+    String user = env.getAccumuloClient().whoami();
+    Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
+    Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths);
     scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
     for (Entry<Key,Value> entry : scanner) {
       byte[] value = entry.getValue().get();
@@ -100,7 +100,7 @@ public class Verify extends Test {
     }
 
     log.info("Test successful on table " + Setup.getTableName());
-    env.getAccumuloConnector().tableOperations().delete(Setup.getTableName());
+    env.getAccumuloClient().tableOperations().delete(Setup.getTableName());
   }
 
   public static void main(String args[]) throws Exception {

@@ -29,8 +29,8 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import com.google.common.base.Preconditions;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
@@ -122,13 +122,13 @@ public class ContinuousIngest {
       throw new IllegalArgumentException("bad min and max");
     }
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
     String tableName = env.getAccumuloTableName();
-    if (!conn.tableOperations().exists(tableName)) {
+    if (!client.tableOperations().exists(tableName)) {
       throw new TableNotFoundException(null, tableName, "Consult the README and create the table before starting ingest.");
     }
 
-    BatchWriter bw = conn.createBatchWriter(tableName);
+    BatchWriter bw = client.createBatchWriter(tableName);
     bw = Trace.wrapAll(bw, new CountSampler(1024));
 
     Random r = new Random();

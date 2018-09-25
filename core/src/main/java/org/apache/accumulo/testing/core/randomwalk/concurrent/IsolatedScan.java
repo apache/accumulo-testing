@@ -21,7 +21,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.TableDeletedException;
@@ -39,7 +39,7 @@ public class IsolatedScan extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -49,7 +49,7 @@ public class IsolatedScan extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      RowIterator iter = new RowIterator(new IsolatedScanner(conn.createScanner(tableName, Authorizations.EMPTY)));
+      RowIterator iter = new RowIterator(new IsolatedScanner(client.createScanner(tableName, Authorizations.EMPTY)));
 
       while (iter.hasNext()) {
         PeekingIterator<Entry<Key,Value>> row = new PeekingIterator<>(iter.next());

@@ -38,7 +38,7 @@ public class Flush extends Test {
     else
       table = dataTableName;
 
-    env.getAccumuloConnector().tableOperations().flush(table, null, null, true);
+    env.getAccumuloClient().tableOperations().flush(table, null, null, true);
     log.debug("Flushed " + table);
   }
 

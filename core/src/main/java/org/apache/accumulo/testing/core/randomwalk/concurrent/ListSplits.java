@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -33,7 +33,7 @@ public class ListSplits extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -43,7 +43,7 @@ public class ListSplits extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      Collection<Text> splits = conn.tableOperations().listSplits(tableName);
+      Collection<Text> splits = client.tableOperations().listSplits(tableName);
       log.debug("Table " + tableName + " had " + splits.size() + " splits");
     } catch (TableNotFoundException e) {
       log.debug("listSplits " + tableName + " failed, doesnt exist");

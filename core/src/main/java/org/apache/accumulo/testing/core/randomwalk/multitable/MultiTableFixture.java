@@ -20,7 +20,7 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -57,14 +57,14 @@ public class MultiTableFixture extends Fixture {
       env.resetMultiTableBatchWriter();
     }
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     @SuppressWarnings("unchecked")
     List<String> tables = (List<String>) state.get("tableList");
 
     for (String tableName : tables) {
       try {
-        conn.tableOperations().delete(tableName);
+        client.tableOperations().delete(tableName);
         log.debug("Dropping table " + tableName);
       } catch (TableNotFoundException e) {
         log.warn("Tried to drop table " + tableName + " but could not be found!");

@@ -22,8 +22,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableDeletedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -39,7 +39,7 @@ public class ScanTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -49,7 +49,7 @@ public class ScanTable extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      Scanner scanner = conn.createScanner(tableName, Authorizations.EMPTY);
+      Scanner scanner = client.createScanner(tableName, Authorizations.EMPTY);
       Iterator<Entry<Key,Value>> iter = scanner.iterator();
       while (iter.hasNext()) {
         iter.next();

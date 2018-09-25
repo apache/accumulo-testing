@@ -64,7 +64,7 @@ public class RandomWorkload {
     run(opts.getClient(), opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax, opts.deletePercent);
   }
 
-  public void run(final AccumuloClient conn, final String tableName, final BatchWriterConfig cfg, final long numRecords, int rowMax, int cfMax, int cqMax,
+  public void run(final AccumuloClient client, final String tableName, final BatchWriterConfig cfg, final long numRecords, int rowMax, int cfMax, int cqMax,
       int deletePercent) throws Exception {
 
     final Random rowRand = new Random(12345);
@@ -73,11 +73,11 @@ public class RandomWorkload {
     final Random deleteRand = new Random(12348);
     long valueCounter = 0l;
 
-    if (!conn.tableOperations().exists(tableName)) {
-      conn.tableOperations().create(tableName);
+    if (!client.tableOperations().exists(tableName)) {
+      client.tableOperations().create(tableName);
     }
 
-    BatchWriter bw = conn.createBatchWriter(tableName, cfg);
+    BatchWriter bw = client.createBatchWriter(tableName, cfg);
     try {
       final Text row = new Text(), cf = new Text(), cq = new Text();
       final Value value = new Value();

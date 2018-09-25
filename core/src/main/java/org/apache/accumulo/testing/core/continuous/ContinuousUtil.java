@@ -16,7 +16,7 @@
  */
 package org.apache.accumulo.testing.core.continuous;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.security.Authorizations;
@@ -30,8 +30,8 @@ final class ContinuousUtil {
   /**
    * Attempt to create a table scanner, or fail if the table does not exist.
    *
-   * @param connector
-   *          A populated connector object
+   * @param client
+   *          A populated AccumuloClient object
    * @param table
    *          The table name to scan over
    * @param auths
@@ -40,10 +40,10 @@ final class ContinuousUtil {
    * @throws TableNotFoundException
    *           If the table does not exist
    */
-  static Scanner createScanner(Connector connector, String table, Authorizations auths) throws TableNotFoundException {
-    if (!connector.tableOperations().exists(table)) {
+  static Scanner createScanner(AccumuloClient client, String table, Authorizations auths) throws TableNotFoundException {
+    if (!client.tableOperations().exists(table)) {
       throw new TableNotFoundException(null, table, "Consult the README and create the table before starting test processes.");
     }
-    return connector.createScanner(table, auths);
+    return client.createScanner(table, auths);
   }
 }

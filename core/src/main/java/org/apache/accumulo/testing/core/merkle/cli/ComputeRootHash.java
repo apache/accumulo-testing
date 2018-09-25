@@ -59,24 +59,24 @@ public class ComputeRootHash {
   }
 
   public byte[] getHash(ComputeRootHashOpts opts) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, NoSuchAlgorithmException {
-    AccumuloClient conn = opts.getClient();
+    AccumuloClient client = opts.getClient();
     String table = opts.getTableName();
 
-    return getHash(conn, table, opts.getHashName());
+    return getHash(client, table, opts.getHashName());
   }
 
-  public byte[] getHash(AccumuloClient conn, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
-    List<MerkleTreeNode> leaves = getLeaves(conn, table);
+  public byte[] getHash(AccumuloClient client, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
+    List<MerkleTreeNode> leaves = getLeaves(client, table);
 
     MerkleTree tree = new MerkleTree(leaves, hashName);
 
     return tree.getRootNode().getHash();
   }
 
-  protected ArrayList<MerkleTreeNode> getLeaves(AccumuloClient conn, String tableName) throws TableNotFoundException {
+  protected ArrayList<MerkleTreeNode> getLeaves(AccumuloClient client, String tableName) throws TableNotFoundException {
     // TODO make this a bit more resilient to very large merkle trees by
     // lazily reading more data from the table when necessary
-    final Scanner s = conn.createScanner(tableName, Authorizations.EMPTY);
+    final Scanner s = client.createScanner(tableName, Authorizations.EMPTY);
     final ArrayList<MerkleTreeNode> leaves = new ArrayList<>();
 
     for (Entry<Key,Value> entry : s) {

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -34,7 +34,7 @@ public class DeleteRange extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -55,7 +55,7 @@ public class DeleteRange extends Test {
       range.set(1, null);
 
     try {
-      conn.tableOperations().deleteRows(tableName, range.get(0), range.get(1));
+      client.tableOperations().deleteRows(tableName, range.get(0), range.get(1));
       log.debug("deleted rows (" + range.get(0) + " -> " + range.get(1) + "] in " + tableName);
     } catch (TableNotFoundException tne) {
       log.debug("deleted rows " + tableName + " failed, doesnt exist");

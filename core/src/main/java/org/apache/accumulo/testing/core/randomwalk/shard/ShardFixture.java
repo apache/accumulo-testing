@@ -21,7 +21,7 @@ import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.conf.Property;
@@ -50,23 +50,23 @@ public class ShardFixture extends Fixture {
   }
 
   static void createIndexTable(Logger log, State state, RandWalkEnv env, String suffix, Random rand) throws Exception {
-    Connector conn = env.getAccumuloConnector();
-    String name = (String) state.get("indexTableName") + suffix;
+    AccumuloClient client = env.getAccumuloClient();
+    String name = state.get("indexTableName") + suffix;
     int numPartitions = (Integer) state.get("numPartitions");
     boolean enableCache = (Boolean) state.get("cacheIndex");
-    conn.tableOperations().create(name);
+    client.tableOperations().create(name);
 
-    String tableId = conn.tableOperations().tableIdMap().get(name);
+    String tableId = client.tableOperations().tableIdMap().get(name);
     log.info("Created index table " + name + "(id:" + tableId + ")");
 
     SortedSet<Text> splits = genSplits(numPartitions, rand.nextInt(numPartitions) + 1, "%06x");
-    conn.tableOperations().addSplits(name, splits);
+    client.tableOperations().addSplits(name, splits);
 
     log.info("Added " + splits.size() + " splits to " + name);
 
     if (enableCache) {
-      conn.tableOperations().setProperty(name, Property.TABLE_INDEXCACHE_ENABLED.getKey(), "true");
-      conn.tableOperations().setProperty(name, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
+      client.tableOperations().setProperty(name, Property.TABLE_INDEXCACHE_ENABLED.getKey(), "true");
+      client.tableOperations().setProperty(name, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
       log.info("Enabled caching for table " + name);
     }
@@ -88,23 +88,23 @@ public class ShardFixture extends Fixture {
     state.set("rand", rand);
     state.set("nextDocID", Long.valueOf(0));
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     createIndexTable(this.log, state, env, "", rand);
 
     String docTableName = (String) state.get("docTableName");
-    conn.tableOperations().create(docTableName);
+    client.tableOperations().create(docTableName);
 
-    String tableId = conn.tableOperations().tableIdMap().get(docTableName);
+    String tableId = client.tableOperations().tableIdMap().get(docTableName);
     log.info("Created doc table " + docTableName + " (id:" + tableId + ")");
 
     SortedSet<Text> splits = genSplits(0xff, rand.nextInt(32) + 1, "%02x");
-    conn.tableOperations().addSplits(docTableName, splits);
+    client.tableOperations().addSplits(docTableName, splits);
 
     log.info("Added " + splits.size() + " splits to " + docTableName);
 
     if (rand.nextDouble() < .5) {
-      conn.tableOperations().setProperty((String) state.get("docTableName"), Property.TABLE_BLOOM_ENABLED.getKey(), "true");
+      client.tableOperations().setProperty((String) state.get("docTableName"), Property.TABLE_BLOOM_ENABLED.getKey(), "true");
       log.info("Enabled bloom filters for table " + (String) state.get("docTableName"));
     }
   }
@@ -124,12 +124,12 @@ public class ShardFixture extends Fixture {
       env.resetMultiTableBatchWriter();
     }
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     log.info("Deleting index and doc tables");
 
-    conn.tableOperations().delete((String) state.get("indexTableName"));
-    conn.tableOperations().delete((String) state.get("docTableName"));
+    client.tableOperations().delete((String) state.get("indexTableName"));
+    client.tableOperations().delete((String) state.get("docTableName"));
 
     log.debug("Exiting shard test");
   }

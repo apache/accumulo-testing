@@ -61,7 +61,7 @@ public class Replication extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    final AccumuloClient c = (AccumuloClient) env.getAccumuloConnector();
+    final AccumuloClient c = (AccumuloClient) env.getAccumuloClient();
     final String instName = c.info().getInstanceName();
     final InstanceOperations iOps = c.instanceOperations();
     final TableOperations tOps = c.tableOperations();

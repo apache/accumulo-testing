@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.core.metadata.MetadataTable;
@@ -35,7 +35,7 @@ public class AddSplits extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -51,7 +51,7 @@ public class AddSplits extends Test {
       splits.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));
 
     try {
-      conn.tableOperations().addSplits(tableName, splits);
+      client.tableOperations().addSplits(tableName, splits);
       log.debug("Added " + splits.size() + " splits " + tableName);
     } catch (TableNotFoundException e) {
       log.debug("AddSplits " + tableName + " failed, doesnt exist");
