@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.continuous;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
 
@@ -33,9 +33,9 @@ public class CreateTable {
     }
     ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
     String tableName = env.getAccumuloTableName();
-    if (conn.tableOperations().exists(tableName)) {
+    if (client.tableOperations().exists(tableName)) {
       System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
       System.exit(-1);
     }
@@ -50,7 +50,7 @@ public class CreateTable {
       System.exit(-1);
     }
 
-    conn.tableOperations().create(tableName);
+    client.tableOperations().create(tableName);
 
     SortedSet<Text> splits = new TreeSet<>();
     int numSplits = numTablets - 1;
@@ -65,7 +65,7 @@ public class CreateTable {
       split += distance;
     }
 
-    conn.tableOperations().addSplits(tableName, splits);
+    client.tableOperations().addSplits(tableName, splits);
     System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
   }
 }

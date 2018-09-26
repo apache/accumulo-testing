@@ -24,8 +24,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -50,8 +50,8 @@ public class BatchVerify extends Test {
       numVerify = numWrites / 4;
     }
 
-    Connector conn = env.getAccumuloConnector();
-    BatchScanner scanner = conn.createBatchScanner(state.getString("seqTableName"), new Authorizations(), 2);
+    AccumuloClient client = env.getAccumuloClient();
+    BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"), new Authorizations(), 2);
 
     try {
       int count = 0;

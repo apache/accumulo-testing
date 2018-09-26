@@ -18,7 +18,7 @@ package org.apache.accumulo.testing.core.randomwalk.sequential;
 
 import java.net.InetAddress;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -33,7 +33,7 @@ public class SequentialFixture extends Fixture {
   @Override
   public void setUp(State state, RandWalkEnv env) throws Exception {
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -41,13 +41,13 @@ public class SequentialFixture extends Fixture {
     state.set("seqTableName", seqTableName);
 
     try {
-      conn.tableOperations().create(seqTableName);
-      log.debug("Created table " + seqTableName + " (id:" + conn.tableOperations().tableIdMap().get(seqTableName) + ")");
+      client.tableOperations().create(seqTableName);
+      log.debug("Created table " + seqTableName + " (id:" + client.tableOperations().tableIdMap().get(seqTableName) + ")");
     } catch (TableExistsException e) {
       log.warn("Table " + seqTableName + " already exists!");
       throw e;
     }
-    conn.tableOperations().setProperty(seqTableName, "table.scan.max.memory", "1K");
+    client.tableOperations().setProperty(seqTableName, "table.scan.max.memory", "1K");
 
     state.set("numWrites", Long.valueOf(0));
     state.set("totalWrites", Long.valueOf(0));
@@ -70,8 +70,8 @@ public class SequentialFixture extends Fixture {
 
     log.debug("Dropping tables: " + seqTableName);
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
-    conn.tableOperations().delete(seqTableName);
+    client.tableOperations().delete(seqTableName);
   }
 }

@@ -42,7 +42,7 @@ public class DropTable extends Test {
     String tableName = tables.remove(rand.nextInt(tables.size()));
 
     try {
-      env.getAccumuloConnector().tableOperations().delete(tableName);
+      env.getAccumuloClient().tableOperations().delete(tableName);
       log.debug("Dropped " + tableName);
     } catch (TableNotFoundException e) {
       log.error("Tried to drop table " + tableName + " but could not be found!");

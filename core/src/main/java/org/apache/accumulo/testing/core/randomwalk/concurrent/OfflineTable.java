@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -33,7 +33,7 @@ public class OfflineTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -43,10 +43,10 @@ public class OfflineTable extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      conn.tableOperations().offline(tableName, rand.nextBoolean());
+      client.tableOperations().offline(tableName, rand.nextBoolean());
       log.debug("Offlined " + tableName);
       sleepUninterruptibly(rand.nextInt(200), TimeUnit.MILLISECONDS);
-      conn.tableOperations().online(tableName, rand.nextBoolean());
+      client.tableOperations().online(tableName, rand.nextBoolean());
       log.debug("Onlined " + tableName);
     } catch (TableNotFoundException tne) {
       log.debug("offline or online failed " + tableName + ", doesnt exist");

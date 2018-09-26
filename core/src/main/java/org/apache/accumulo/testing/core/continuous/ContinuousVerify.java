@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -158,18 +158,18 @@ public class ContinuousVerify extends Configured implements Tool {
 
     Set<Range> ranges;
     String clone = "";
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     if (scanOffline) {
       Random random = new Random();
       clone = tableName + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffL));
-      conn.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
-      ranges = conn.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
-      conn.tableOperations().offline(clone);
+      client.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
+      ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
+      client.tableOperations().offline(clone);
       AccumuloInputFormat.setInputTableName(job, clone);
       AccumuloInputFormat.setOfflineTableScan(job, true);
     } else {
-      ranges = conn.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
+      ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
       AccumuloInputFormat.setInputTableName(job, tableName);
     }
 
@@ -193,7 +193,7 @@ public class ContinuousVerify extends Configured implements Tool {
     job.waitForCompletion(true);
 
     if (scanOffline) {
-      conn.tableOperations().delete(clone);
+      client.tableOperations().delete(clone);
     }
     return job.isSuccessful() ? 0 : 1;
   }

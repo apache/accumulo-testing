@@ -25,8 +25,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -48,15 +48,15 @@ public class ContinuousBatchWalker {
     ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
     Authorizations auths = env.getRandomAuthorizations();
-    Connector conn = env.getAccumuloConnector();
-    Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), auths);
+    AccumuloClient client = env.getAccumuloClient();
+    Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
     int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
     scanner.setBatchSize(scanBatchSize);
 
     Random r = new Random();
 
     while (true) {
-      BatchScanner bs = conn.createBatchScanner(env.getAccumuloTableName(), auths);
+      BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths);
 
       Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
       List<Range> ranges = new ArrayList<>(batch.size());

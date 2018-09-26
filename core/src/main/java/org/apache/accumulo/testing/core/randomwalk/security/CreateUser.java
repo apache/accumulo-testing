@@ -49,7 +49,7 @@ public class CreateUser extends Test {
           else {
             // create user anyway for sake of state
             if (!exists) {
-              env.getAccumuloConnector().securityOperations().createLocalUser(tableUserName, tabUserPass);
+              env.getAccumuloClient().securityOperations().createLocalUser(tableUserName, tabUserPass);
               WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
               Thread.sleep(1000);
             }

@@ -23,9 +23,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableDeletedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
@@ -41,7 +41,7 @@ public class BatchScan extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -51,7 +51,7 @@ public class BatchScan extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      BatchScanner bs = conn.createBatchScanner(tableName, Authorizations.EMPTY, 3);
+      BatchScanner bs = client.createBatchScanner(tableName, Authorizations.EMPTY, 3);
       List<Range> ranges = new ArrayList<>();
       for (int i = 0; i < rand.nextInt(2000) + 1; i++)
         ranges.add(new Range(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));

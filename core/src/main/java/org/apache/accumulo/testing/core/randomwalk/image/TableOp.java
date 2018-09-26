@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -44,8 +44,8 @@ public class TableOp extends Test {
     }
 
     // check if chosen table exists
-    Connector conn = env.getAccumuloConnector();
-    TableOperations tableOps = conn.tableOperations();
+    AccumuloClient client = env.getAccumuloClient();
+    TableOperations tableOps = client.tableOperations();
     if (tableOps.exists(tableName) == false) {
       log.error("Table " + tableName + " does not exist!");
       return;

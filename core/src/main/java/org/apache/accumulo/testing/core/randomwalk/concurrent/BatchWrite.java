@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableDeletedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -39,7 +39,7 @@ public class BatchWrite extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -49,7 +49,7 @@ public class BatchWrite extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      BatchWriter bw = conn.createBatchWriter(tableName, new BatchWriterConfig());
+      BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
       try {
         int numRows = rand.nextInt(100000);
         for (int i = 0; i < numRows; i++) {

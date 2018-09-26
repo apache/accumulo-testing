@@ -109,14 +109,14 @@ public class TestIngest {
     }
   }
 
-  public static void createTable(AccumuloClient conn, Opts args) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+  public static void createTable(AccumuloClient client, Opts args) throws AccumuloException, AccumuloSecurityException, TableExistsException {
     if (args.createTable) {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows, args.numsplits);
 
-      if (!conn.tableOperations().exists(args.getTableName()))
-        conn.tableOperations().create(args.getTableName());
+      if (!client.tableOperations().exists(args.getTableName()))
+        client.tableOperations().create(args.getTableName());
       try {
-        conn.tableOperations().addSplits(args.getTableName(), splits);
+        client.tableOperations().addSplits(args.getTableName(), splits);
       } catch (TableNotFoundException ex) {
         // unlikely
         throw new RuntimeException(ex);
@@ -200,7 +200,7 @@ public class TestIngest {
     }
   }
 
-  public static void ingest(AccumuloClient connector, FileSystem fs, Opts opts, BatchWriterOpts bwOpts) throws IOException, AccumuloException,
+  public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, BatchWriterOpts bwOpts) throws IOException, AccumuloException,
       AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException {
     long stopTime;
 
@@ -211,7 +211,7 @@ public class TestIngest {
 
     long bytesWritten = 0;
 
-    createTable(connector, opts);
+    createTable(client, opts);
 
     BatchWriter bw = null;
     FileSKVWriter writer = null;
@@ -222,8 +222,8 @@ public class TestIngest {
           .withTableConfiguration(DefaultConfiguration.getInstance()).build();
       writer.startDefaultLocalityGroup();
     } else {
-      bw = connector.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
-      connector.securityOperations().changeUserAuthorizations(opts.getPrincipal(), AUTHS);
+      bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+      client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), AUTHS);
     }
     Text labBA = new Text(opts.columnVisibility.getExpression());
 

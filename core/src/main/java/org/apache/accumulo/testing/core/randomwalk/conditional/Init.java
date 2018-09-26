@@ -46,7 +46,7 @@ public class Init extends Test {
     TreeSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 10; i++)
       splits.add(new Text(Utils.getBank((int) (numBanks * .1 * i))));
-    env.getAccumuloConnector().tableOperations().addSplits((String) state.get("tableName"), splits);
+    env.getAccumuloClient().tableOperations().addSplits((String) state.get("tableName"), splits);
     log.info("Added splits " + splits);
 
     ArrayList<Integer> banks = new ArrayList<>();

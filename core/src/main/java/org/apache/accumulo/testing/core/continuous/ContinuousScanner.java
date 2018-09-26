@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -47,9 +47,9 @@ public class ContinuousScanner {
 
     long distance = 1000000000000l;
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
     Authorizations auths = env.getRandomAuthorizations();
-    Scanner scanner = ContinuousUtil.createScanner(conn, env.getAccumuloTableName(), auths);
+    Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
 
     int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
     int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));

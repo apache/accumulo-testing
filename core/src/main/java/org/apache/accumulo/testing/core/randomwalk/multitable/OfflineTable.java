@@ -39,9 +39,9 @@ public class OfflineTable extends Test {
     Random rand = new Random();
     String tableName = tables.get(rand.nextInt(tables.size()));
 
-    env.getAccumuloConnector().tableOperations().offline(tableName, rand.nextBoolean());
+    env.getAccumuloClient().tableOperations().offline(tableName, rand.nextBoolean());
     log.debug("Table " + tableName + " offline ");
-    env.getAccumuloConnector().tableOperations().online(tableName, rand.nextBoolean());
+    env.getAccumuloClient().tableOperations().online(tableName, rand.nextBoolean());
     log.debug("Table " + tableName + " online ");
   }
 }

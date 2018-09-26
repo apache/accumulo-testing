@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.NamespaceNotEmptyException;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -31,7 +31,7 @@ public class DeleteNamespace extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -41,7 +41,7 @@ public class DeleteNamespace extends Test {
     String namespace = namespaces.get(rand.nextInt(namespaces.size()));
 
     try {
-      conn.namespaceOperations().delete(namespace);
+      client.namespaceOperations().delete(namespace);
       log.debug("Deleted namespace " + namespace);
     } catch (NamespaceNotFoundException e) {
       log.debug("Delete namespace " + namespace + " failed, doesnt exist");

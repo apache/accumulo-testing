@@ -45,7 +45,7 @@ public class Setup extends Test {
     tableName = String.format("bulk_%s_%s_%d", hostname, pid, System.currentTimeMillis());
     log.info("Starting bulk test on " + tableName);
 
-    TableOperations tableOps = env.getAccumuloConnector().tableOperations();
+    TableOperations tableOps = env.getAccumuloClient().tableOperations();
     try {
       if (!tableOps.exists(getTableName())) {
         tableOps.create(getTableName());

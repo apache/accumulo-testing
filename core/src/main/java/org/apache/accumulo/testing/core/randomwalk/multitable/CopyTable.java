@@ -59,21 +59,21 @@ public class CopyTable extends Test {
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
-    env.getAccumuloConnector().tableOperations().create(dstTableName);
+    env.getAccumuloClient().tableOperations().create(dstTableName);
 
-    env.getAccumuloConnector().tableOperations().addSplits(dstTableName, splits);
+    env.getAccumuloClient().tableOperations().addSplits(dstTableName, splits);
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
       return;
     }
 
-    String tableId = env.getAccumuloConnector().tableOperations().tableIdMap().get(dstTableName);
+    String tableId = env.getAccumuloClient().tableOperations().tableIdMap().get(dstTableName);
     log.debug("copied " + srcTableName + " to " + dstTableName + " (id - " + tableId + " )");
 
     tables.add(dstTableName);
 
-    env.getAccumuloConnector().tableOperations().delete(srcTableName);
+    env.getAccumuloClient().tableOperations().delete(srcTableName);
     log.debug("dropped " + srcTableName);
 
     nextId++;

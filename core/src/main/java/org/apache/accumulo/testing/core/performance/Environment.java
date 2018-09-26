@@ -17,8 +17,8 @@
 
 package org.apache.accumulo.testing.core.performance;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 
 public interface Environment {
-  Connector getConnector();
+  AccumuloClient getClient();
 }

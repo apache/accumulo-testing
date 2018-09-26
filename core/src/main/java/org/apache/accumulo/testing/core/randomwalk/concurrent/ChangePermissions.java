@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.NamespacePermission;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
@@ -36,7 +36,7 @@ public class ChangePermissions extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -55,21 +55,21 @@ public class ChangePermissions extends Test {
     try {
       int dice = rand.nextInt(3);
       if (dice == 0)
-        changeSystemPermission(conn, rand, userName);
+        changeSystemPermission(client, rand, userName);
       else if (dice == 1)
-        changeTablePermission(conn, rand, userName, tableName);
+        changeTablePermission(client, rand, userName, tableName);
       else if (dice == 2)
-        changeNamespacePermission(conn, rand, userName, namespace);
+        changeNamespacePermission(client, rand, userName, namespace);
     } catch (AccumuloSecurityException | AccumuloException ex) {
       log.debug("Unable to change user permissions: " + ex.getCause());
     }
   }
 
-  private void changeTablePermission(Connector conn, Random rand, String userName, String tableName) throws AccumuloException, AccumuloSecurityException {
+  private void changeTablePermission(AccumuloClient client, Random rand, String userName, String tableName) throws AccumuloException, AccumuloSecurityException {
 
     EnumSet<TablePermission> perms = EnumSet.noneOf(TablePermission.class);
     for (TablePermission p : TablePermission.values()) {
-      if (conn.securityOperations().hasTablePermission(userName, tableName, p))
+      if (client.securityOperations().hasTablePermission(userName, tableName, p))
         perms.add(p);
     }
 
@@ -80,21 +80,21 @@ public class ChangePermissions extends Test {
       List<TablePermission> moreList = new ArrayList<>(more);
       TablePermission choice = moreList.get(rand.nextInt(moreList.size()));
       log.debug("adding permission " + choice);
-      conn.securityOperations().grantTablePermission(userName, tableName, choice);
+      client.securityOperations().grantTablePermission(userName, tableName, choice);
     } else {
       if (perms.size() > 0) {
         List<TablePermission> permList = new ArrayList<>(perms);
         TablePermission choice = permList.get(rand.nextInt(permList.size()));
         log.debug("removing permission " + choice);
-        conn.securityOperations().revokeTablePermission(userName, tableName, choice);
+        client.securityOperations().revokeTablePermission(userName, tableName, choice);
       }
     }
   }
 
-  private void changeSystemPermission(Connector conn, Random rand, String userName) throws AccumuloException, AccumuloSecurityException {
+  private void changeSystemPermission(AccumuloClient client, Random rand, String userName) throws AccumuloException, AccumuloSecurityException {
     EnumSet<SystemPermission> perms = EnumSet.noneOf(SystemPermission.class);
     for (SystemPermission p : SystemPermission.values()) {
-      if (conn.securityOperations().hasSystemPermission(userName, p))
+      if (client.securityOperations().hasSystemPermission(userName, p))
         perms.add(p);
     }
 
@@ -106,22 +106,23 @@ public class ChangePermissions extends Test {
       List<SystemPermission> moreList = new ArrayList<>(more);
       SystemPermission choice = moreList.get(rand.nextInt(moreList.size()));
       log.debug("adding permission " + choice);
-      conn.securityOperations().grantSystemPermission(userName, choice);
+      client.securityOperations().grantSystemPermission(userName, choice);
     } else {
       if (perms.size() > 0) {
         List<SystemPermission> permList = new ArrayList<>(perms);
         SystemPermission choice = permList.get(rand.nextInt(permList.size()));
         log.debug("removing permission " + choice);
-        conn.securityOperations().revokeSystemPermission(userName, choice);
+        client.securityOperations().revokeSystemPermission(userName, choice);
       }
     }
   }
 
-  private void changeNamespacePermission(Connector conn, Random rand, String userName, String namespace) throws AccumuloException, AccumuloSecurityException {
+  private void changeNamespacePermission(AccumuloClient client, Random rand, String userName, String namespace) throws AccumuloException,
+      AccumuloSecurityException {
 
     EnumSet<NamespacePermission> perms = EnumSet.noneOf(NamespacePermission.class);
     for (NamespacePermission p : NamespacePermission.values()) {
-      if (conn.securityOperations().hasNamespacePermission(userName, namespace, p))
+      if (client.securityOperations().hasNamespacePermission(userName, namespace, p))
         perms.add(p);
     }
 
@@ -132,13 +133,13 @@ public class ChangePermissions extends Test {
       List<NamespacePermission> moreList = new ArrayList<>(more);
       NamespacePermission choice = moreList.get(rand.nextInt(moreList.size()));
       log.debug("adding permission " + choice);
-      conn.securityOperations().grantNamespacePermission(userName, namespace, choice);
+      client.securityOperations().grantNamespacePermission(userName, namespace, choice);
     } else {
       if (perms.size() > 0) {
         List<NamespacePermission> permList = new ArrayList<>(perms);
         NamespacePermission choice = permList.get(rand.nextInt(permList.size()));
         log.debug("removing permission " + choice);
-        conn.securityOperations().revokeNamespacePermission(userName, namespace, choice);
+        client.securityOperations().revokeNamespacePermission(userName, namespace, choice);
       }
     }
   }

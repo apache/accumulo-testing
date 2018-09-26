@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.core.metadata.MetadataTable;
@@ -34,7 +34,7 @@ public class Merge extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -47,7 +47,7 @@ public class Merge extends Test {
     List<Text> range = ConcurrentFixture.generateRange(rand);
 
     try {
-      conn.tableOperations().merge(tableName, range.get(0), range.get(1));
+      client.tableOperations().merge(tableName, range.get(0), range.get(1));
       log.debug("merged " + tableName + " from " + range.get(0) + " to " + range.get(1));
     } catch (TableOfflineException toe) {
       log.debug("merge " + tableName + " from " + range.get(0) + " to " + range.get(1) + " failed, table is not online");

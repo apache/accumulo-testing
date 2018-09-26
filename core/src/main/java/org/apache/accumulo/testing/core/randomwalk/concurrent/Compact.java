@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -32,7 +32,7 @@ public class Compact extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -45,7 +45,7 @@ public class Compact extends Test {
 
     try {
       boolean wait = rand.nextBoolean();
-      conn.tableOperations().compact(tableName, range.get(0), range.get(1), false, wait);
+      client.tableOperations().compact(tableName, range.get(0), range.get(1), false, wait);
       log.debug((wait ? "compacted " : "initiated compaction ") + tableName + " from " + range.get(0) + " to " + range.get(1));
     } catch (TableNotFoundException tne) {
       log.debug("compact " + tableName + " from " + range.get(0) + " to " + range.get(1) + " failed, doesnt exist");

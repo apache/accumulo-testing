@@ -29,8 +29,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
@@ -144,7 +144,7 @@ public class BulkInsert extends Test {
       Path failPath = new Path(failDir);
       fs.delete(failPath, true);
       fs.mkdirs(failPath);
-      env.getAccumuloConnector().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
+      env.getAccumuloClient().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
 
       FileStatus[] failures = fs.listStatus(failPath);
       if (failures != null && failures.length > 0) {
@@ -167,9 +167,9 @@ public class BulkInsert extends Test {
 
     PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))), false, UTF_8.name());
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
-    Collection<Text> splits = conn.tableOperations().listSplits(tableName, maxSplits);
+    Collection<Text> splits = client.tableOperations().listSplits(tableName, maxSplits);
     for (Text split : splits)
       out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
 

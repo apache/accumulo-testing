@@ -38,8 +38,8 @@ public class Scan {
     ScanOpts opts = new ScanOpts();
     opts.parseArgs(Scan.class.getName(), args);
 
-    AccumuloClient connector = opts.getClient();
-    Scanner scanner = connector.createScanner(opts.getTableName(), new Authorizations());
+    AccumuloClient client = opts.getClient();
+    Scanner scanner = client.createScanner(opts.getTableName(), new Authorizations());
 
     if (opts.isolate) {
       scanner.enableIsolation();
@@ -50,7 +50,7 @@ public class Scan {
     LoopControl scanning_condition = opts.continuous ? new ContinuousLoopControl() : new IterativeLoopControl(opts.scan_iterations);
 
     while (scanning_condition.keepScanning()) {
-      Range range = pickRange(connector.tableOperations(), opts.getTableName(), tablet_index_generator);
+      Range range = pickRange(client.tableOperations(), opts.getTableName(), tablet_index_generator);
       scanner.setRange(range);
       if (opts.batch_size > 0) {
         scanner.setBatchSize(opts.batch_size);

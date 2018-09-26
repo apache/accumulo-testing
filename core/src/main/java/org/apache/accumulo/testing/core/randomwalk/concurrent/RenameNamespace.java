@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
@@ -31,7 +31,7 @@ public class RenameNamespace extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -42,7 +42,7 @@ public class RenameNamespace extends Test {
     String newName = namespaces.get(rand.nextInt(namespaces.size()));
 
     try {
-      conn.namespaceOperations().rename(srcName, newName);
+      client.namespaceOperations().rename(srcName, newName);
       log.debug("Renamed namespace " + srcName + " " + newName);
     } catch (NamespaceExistsException e) {
       log.debug("Rename namespace " + srcName + " failed, " + newName + " exists");

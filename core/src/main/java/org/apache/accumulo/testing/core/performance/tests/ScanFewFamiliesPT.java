@@ -22,7 +22,7 @@ import java.util.LongSummaryStatistics;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.security.Authorizations;
@@ -54,12 +54,12 @@ public class ScanFewFamiliesPT implements PerformanceTest {
 
     String tableName = "bigFamily";
 
-    env.getConnector().tableOperations().create(tableName);
+    env.getClient().tableOperations().create(tableName);
 
     long t1 = System.currentTimeMillis();
-    TestData.generate(env.getConnector(), tableName, NUM_ROWS, NUM_FAMS, NUM_QUALS);
+    TestData.generate(env.getClient(), tableName, NUM_ROWS, NUM_FAMS, NUM_QUALS);
     long t2 = System.currentTimeMillis();
-    env.getConnector().tableOperations().compact(tableName, null, null, true, true);
+    env.getClient().tableOperations().compact(tableName, null, null, true, true);
     long t3 = System.currentTimeMillis();
     // warm up run
     runScans(env, tableName, 1);
@@ -88,12 +88,12 @@ public class ScanFewFamiliesPT implements PerformanceTest {
     Random rand = new Random();
     LongSummaryStatistics stats = new LongSummaryStatistics();
     for (int i = 0; i < 50; i++) {
-      stats.accept(scan(tableName, env.getConnector(), rand, numFamilies));
+      stats.accept(scan(tableName, env.getClient(), rand, numFamilies));
     }
     return stats;
   }
 
-  private static long scan(String tableName, Connector c, Random rand, int numFamilies) throws TableNotFoundException {
+  private static long scan(String tableName, AccumuloClient c, Random rand, int numFamilies) throws TableNotFoundException {
 
     Set<Text> families = new HashSet<>(numFamilies);
     while(families.size() < numFamilies) {

@@ -25,7 +25,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
@@ -86,13 +86,13 @@ public class ScanExecutorPT implements PerformanceTest {
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor", "se1");
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "heed_hints", "true");
 
-    env.getConnector().tableOperations().create(tableName,
+    env.getClient().tableOperations().create(tableName,
         new NewTableConfiguration().setProperties(props));
 
     long t1 = System.currentTimeMillis();
-    TestData.generate(env.getConnector(), tableName, NUM_ROWS, NUM_FAMS, NUM_QUALS);
+    TestData.generate(env.getClient(), tableName, NUM_ROWS, NUM_FAMS, NUM_QUALS);
     long t2 = System.currentTimeMillis();
-    env.getConnector().tableOperations().compact(tableName, null, null, true, true);
+    env.getClient().tableOperations().compact(tableName, null, null, true, true);
     long t3 = System.currentTimeMillis();
 
     AtomicBoolean stop = new AtomicBoolean(false);
@@ -134,7 +134,7 @@ public class ScanExecutorPT implements PerformanceTest {
     return builder.build();
   }
 
-  private static long scan(String tableName, Connector c, byte[] row, byte[] fam, Map<String,String> hints) throws TableNotFoundException {
+  private static long scan(String tableName, AccumuloClient c, byte[] row, byte[] fam, Map<String,String> hints) throws TableNotFoundException {
     long t1 = System.currentTimeMillis();
     int count = 0;
     try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
@@ -148,7 +148,7 @@ public class ScanExecutorPT implements PerformanceTest {
     return System.currentTimeMillis() - t1;
   }
 
-  private long scan(String tableName, Connector c, AtomicBoolean stop, Map<String,String> hints) throws TableNotFoundException {
+  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, Map<String,String> hints) throws TableNotFoundException {
     long count = 0;
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
@@ -179,7 +179,7 @@ public class ScanExecutorPT implements PerformanceTest {
         // scans have a 20% chance of getting dedicated thread pool and 80% chance of getting high
         // priority
         Map<String,String> hints = rand.nextInt(10) <= 1 ? execHints : prioHints;
-        executor.submit(() -> scan(tableName, env.getConnector(), row, fam, hints));
+        executor.submit(() -> scan(tableName, env.getClient(), row, fam, hints));
       }
 
       return executor.stream().mapToLong(l -> l).summaryStatistics();
@@ -192,7 +192,7 @@ public class ScanExecutorPT implements PerformanceTest {
     TestExecutor<Long> longScans = new TestExecutor<>(NUM_LONG_SCANS);
 
     for (int i = 0; i < NUM_LONG_SCANS; i++) {
-      longScans.submit(() -> scan(tableName, env.getConnector(), stop, hints));
+      longScans.submit(() -> scan(tableName, env.getClient(), stop, hints));
     }
     return longScans;
   }

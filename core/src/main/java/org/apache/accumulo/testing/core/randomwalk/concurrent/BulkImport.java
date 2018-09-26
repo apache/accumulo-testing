@@ -24,8 +24,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
@@ -90,7 +90,7 @@ public class BulkImport extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -128,7 +128,7 @@ public class BulkImport extends Test {
         bw.close();
       }
 
-      conn.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f", rand.nextBoolean());
+      client.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f", rand.nextBoolean());
 
       log.debug("BulkImported to " + tableName);
     } catch (TableNotFoundException e) {

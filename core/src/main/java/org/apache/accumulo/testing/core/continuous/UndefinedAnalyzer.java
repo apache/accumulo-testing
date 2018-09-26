@@ -280,8 +280,8 @@ public class UndefinedAnalyzer {
       undefs.add(new UndefinedNode(undef, ref));
     }
 
-    AccumuloClient conn = opts.getClient();
-    BatchScanner bscanner = conn.createBatchScanner(opts.getTableName(), opts.auths, bsOpts.scanThreads);
+    AccumuloClient client = opts.getClient();
+    BatchScanner bscanner = client.createBatchScanner(opts.getTableName(), opts.auths, bsOpts.scanThreads);
     bscanner.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
     List<Range> refs = new ArrayList<>();
 
@@ -306,7 +306,7 @@ public class UndefinedAnalyzer {
     bscanner.close();
 
     IngestInfo ingestInfo = new IngestInfo(opts.logDir);
-    String tableId = conn.tableOperations().tableIdMap().get(opts.getTableName());
+    String tableId = client.tableOperations().tableIdMap().get(opts.getTableName());
     TabletHistory tabletHistory = new TabletHistory(tableId, opts.logDir);
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

@@ -36,9 +36,9 @@ public class ConsistencyCheck extends SelectiveBulkTest {
     Random rand = (Random) state.get("rand");
     Text row = Merge.getRandomRow(rand);
     log.info("Checking " + row);
-    String user = env.getAccumuloConnector().whoami();
-    Authorizations auths = env.getAccumuloConnector().securityOperations().getUserAuthorizations(user);
-    try (Scanner scanner = new IsolatedScanner(env.getAccumuloConnector().createScanner(Setup.getTableName(), auths))) {
+    String user = env.getAccumuloClient().whoami();
+    Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
+    try (Scanner scanner = new IsolatedScanner(env.getAccumuloClient().createScanner(Setup.getTableName(), auths))) {
       scanner.setRange(new Range(row));
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       Value v = null;

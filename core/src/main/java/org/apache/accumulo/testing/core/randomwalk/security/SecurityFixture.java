@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.net.InetAddress;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.security.Authorizations;
@@ -39,7 +39,7 @@ public class SecurityFixture extends Fixture {
       throw new IllegalStateException("Security module currently cannot support Kerberos/SASL instances");
     }
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
@@ -48,16 +48,16 @@ public class SecurityFixture extends Fixture {
     secTableName = String.format("security_%s", hostname);
     secNamespaceName = String.format("securityNs_%s", hostname);
 
-    if (conn.tableOperations().exists(secTableName))
-      conn.tableOperations().delete(secTableName);
-    Set<String> users = conn.securityOperations().listLocalUsers();
+    if (client.tableOperations().exists(secTableName))
+      client.tableOperations().delete(secTableName);
+    Set<String> users = client.securityOperations().listLocalUsers();
     if (users.contains(tableUserName))
-      conn.securityOperations().dropLocalUser(tableUserName);
+      client.securityOperations().dropLocalUser(tableUserName);
     if (users.contains(systemUserName))
-      conn.securityOperations().dropLocalUser(systemUserName);
+      client.securityOperations().dropLocalUser(systemUserName);
 
     PasswordToken sysUserPass = new PasswordToken("sysUser");
-    conn.securityOperations().createLocalUser(systemUserName, sysUserPass);
+    client.securityOperations().createLocalUser(systemUserName, sysUserPass);
 
     WalkingSecurity.get(state, env).setTableName(secTableName);
     WalkingSecurity.get(state, env).setNamespaceName(secNamespaceName);
@@ -85,31 +85,31 @@ public class SecurityFixture extends Fixture {
   public void tearDown(State state, RandWalkEnv env) throws Exception {
     log.debug("One last validate");
     Validate.validate(state, env, log);
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     if (WalkingSecurity.get(state, env).getTableExists()) {
       String secTableName = WalkingSecurity.get(state, env).getTableName();
       log.debug("Dropping tables: " + secTableName);
 
-      conn.tableOperations().delete(secTableName);
+      client.tableOperations().delete(secTableName);
     }
 
     if (WalkingSecurity.get(state, env).getNamespaceExists()) {
       String secNamespaceName = WalkingSecurity.get(state, env).getNamespaceName();
       log.debug("Dropping namespace: " + secNamespaceName);
 
-      conn.namespaceOperations().delete(secNamespaceName);
+      client.namespaceOperations().delete(secNamespaceName);
     }
 
     if (WalkingSecurity.get(state, env).userExists(WalkingSecurity.get(state, env).getTabUserName())) {
       String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
       log.debug("Dropping user: " + tableUserName);
 
-      conn.securityOperations().dropLocalUser(tableUserName);
+      client.securityOperations().dropLocalUser(tableUserName);
     }
     String systemUserName = WalkingSecurity.get(state, env).getSysUserName();
     log.debug("Dropping user: " + systemUserName);
-    conn.securityOperations().dropLocalUser(systemUserName);
+    client.securityOperations().dropLocalUser(systemUserName);
     WalkingSecurity.clearInstance();
 
     // Allow user drops to propagate, in case a new security test starts

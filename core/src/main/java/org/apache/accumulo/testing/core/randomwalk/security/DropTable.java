@@ -71,7 +71,7 @@ public class DropTable extends Test {
           throw new AccumuloException("Got a security exception when I should have had permission.", ae);
         else {
           // Drop anyway for sake of state
-          env.getAccumuloConnector().tableOperations().delete(tableName);
+          env.getAccumuloClient().tableOperations().delete(tableName);
           WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
           return;
         }

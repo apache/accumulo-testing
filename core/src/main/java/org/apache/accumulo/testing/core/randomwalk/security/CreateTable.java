@@ -49,7 +49,7 @@ public class CreateTable extends Test {
         else {
           // create table anyway for sake of state
           try {
-            env.getAccumuloConnector().tableOperations().create(tableName);
+            env.getAccumuloClient().tableOperations().create(tableName);
             WalkingSecurity.get(state, env).initTable(tableName);
           } catch (TableExistsException tee) {
             if (exists)

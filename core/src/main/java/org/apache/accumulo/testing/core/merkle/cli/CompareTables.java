@@ -114,17 +114,17 @@ public class CompareTables {
 
   public Map<String,String> computeAllHashes() throws AccumuloException, AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
       TableNotFoundException, FileNotFoundException {
-    final AccumuloClient conn = opts.getClient();
+    final AccumuloClient client = opts.getClient();
     final Map<String,String> hashesByTable = new HashMap<>();
 
     for (String table : opts.getTables()) {
       final String outputTableName = table + "_merkle";
 
-      if (conn.tableOperations().exists(outputTableName)) {
+      if (client.tableOperations().exists(outputTableName)) {
         throw new IllegalArgumentException("Expected output table name to not yet exist: " + outputTableName);
       }
 
-      conn.tableOperations().create(outputTableName);
+      client.tableOperations().create(outputTableName);
 
       GenerateHashes genHashes = new GenerateHashes();
       Collection<Range> ranges = genHashes.getRanges(opts.getClient(), table, opts.getSplitsFile());
@@ -137,7 +137,7 @@ public class CompareTables {
       }
 
       ComputeRootHash computeRootHash = new ComputeRootHash();
-      String hash = Hex.encodeHexString(computeRootHash.getHash(conn, outputTableName, opts.getHashName()));
+      String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName, opts.getHashName()));
 
       hashesByTable.put(table, hash);
     }

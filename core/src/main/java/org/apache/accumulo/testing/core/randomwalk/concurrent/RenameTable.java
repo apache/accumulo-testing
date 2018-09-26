@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -33,7 +33,7 @@ public class RenameTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -56,7 +56,7 @@ public class RenameTable extends Test {
     }
 
     try {
-      conn.tableOperations().rename(srcTableName, newTableName);
+      client.tableOperations().rename(srcTableName, newTableName);
       log.debug("Renamed table " + srcTableName + " " + newTableName);
     } catch (TableExistsException e) {
       log.debug("Rename " + srcTableName + " failed, " + newTableName + " exists");

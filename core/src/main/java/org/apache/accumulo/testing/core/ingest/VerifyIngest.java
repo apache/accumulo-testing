@@ -77,12 +77,12 @@ public class VerifyIngest {
     }
   }
 
-  public static void verifyIngest(AccumuloClient connector, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
+  public static void verifyIngest(AccumuloClient client, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
       TableNotFoundException {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 
     Authorizations labelAuths = new Authorizations("L1", "L2", "G1", "GROUP2");
-    connector.securityOperations().changeUserAuthorizations(opts.getPrincipal(), labelAuths);
+    client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), labelAuths);
 
     int expectedRow = opts.startRow;
     int expectedCol = 0;
@@ -105,7 +105,7 @@ public class VerifyIngest {
         Text colf = new Text(opts.columnFamily);
         Text colq = new Text("col_" + String.format("%07d", expectedCol));
 
-        Scanner scanner = connector.createScanner("test_ingest", labelAuths);
+        Scanner scanner = client.createScanner("test_ingest", labelAuths);
         scanner.setBatchSize(1);
         Key startKey = new Key(rowKey, colf, colq);
         Range range = new Range(startKey, startKey.followingKey(PartialKey.ROW_COLFAM_COLQUAL));
@@ -149,7 +149,7 @@ public class VerifyIngest {
 
         Key startKey = new Key(new Text("row_" + String.format("%010d", expectedRow)));
 
-        Scanner scanner = connector.createScanner(opts.getTableName(), labelAuths);
+        Scanner scanner = client.createScanner(opts.getTableName(), labelAuths);
         scanner.setBatchSize(scanOpts.scanBatchSize);
         scanner.setRange(new Range(startKey, endKey));
         for (int j = 0; j < opts.cols; j++) {

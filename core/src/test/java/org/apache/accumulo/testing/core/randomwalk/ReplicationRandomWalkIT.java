@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.core.randomwalk;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WALOG_MAX_SIZE;
 
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.accumulo.testing.core.randomwalk.concurrent.Replication;
@@ -44,7 +43,6 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
     EasyMock.expect(env.getAccumuloUserName()).andReturn("root").anyTimes();
     EasyMock.expect(env.getAccumuloPassword()).andReturn(ROOT_PASSWORD).anyTimes();
     EasyMock.expect(env.getAccumuloClient()).andReturn(this.getClient()).anyTimes();
-    EasyMock.expect(env.getAccumuloConnector()).andReturn(Connector.from(this.getClient())).anyTimes();
     EasyMock.replay(env);
 
     r.visit(null, env, null);

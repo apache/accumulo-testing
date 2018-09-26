@@ -20,7 +20,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Map;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.core.security.TablePermission;
@@ -116,12 +116,12 @@ public class SecurityHelper {
     state.set(tableExists, Boolean.toString(exists));
   }
 
-  public static Connector getSystemConnector(State state) {
-    return (Connector) state.get(masterConn);
+  public static AccumuloClient getSystemClient(State state) {
+    return (AccumuloClient) state.get(masterConn);
   }
 
-  public static void setSystemConnector(State state, Connector conn) {
-    state.set(masterConn, conn);
+  public static void setSystemClient(State state, AccumuloClient client) {
+    state.set(masterConn, client);
   }
 
   public static boolean getTabPerm(State state, String userName, TablePermission tp) {

@@ -53,7 +53,7 @@ public class Grep extends Test {
       words[i] = new Text(Insert.generateRandomWord(rand));
     }
 
-    BatchScanner bs = env.getAccumuloConnector().createBatchScanner(indexTableName, Authorizations.EMPTY, 16);
+    BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName, Authorizations.EMPTY, 16);
     IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class.getName());
     IntersectingIterator.setColumnFamilies(ii, words);
     bs.addScanIterator(ii);
@@ -67,7 +67,7 @@ public class Grep extends Test {
 
     bs.close();
 
-    bs = env.getAccumuloConnector().createBatchScanner(dataTableName, Authorizations.EMPTY, 16);
+    bs = env.getAccumuloClient().createBatchScanner(dataTableName, Authorizations.EMPTY, 16);
 
     for (int i = 0; i < words.length; i++) {
       IteratorSetting more = new IteratorSetting(20 + i, "ii" + i, RegExFilter.class);

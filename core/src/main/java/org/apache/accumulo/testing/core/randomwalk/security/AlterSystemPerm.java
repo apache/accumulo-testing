@@ -19,9 +19,9 @@ package org.apache.accumulo.testing.core.randomwalk.security;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.SystemPermission;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -31,7 +31,7 @@ public class AlterSystemPerm extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
     WalkingSecurity ws = new WalkingSecurity(state, env);
 
     String action = props.getProperty("task", "toggle");
@@ -51,7 +51,7 @@ public class AlterSystemPerm extends Test {
 
     // toggle
     if (!"take".equals(action) && !"give".equals(action)) {
-      if (hasPerm != conn.securityOperations().hasSystemPermission(targetUser, sysPerm))
+      if (hasPerm != client.securityOperations().hasSystemPermission(targetUser, sysPerm))
         throw new AccumuloException("Test framework and accumulo are out of sync!");
       if (hasPerm)
         action = "take";
@@ -61,7 +61,7 @@ public class AlterSystemPerm extends Test {
 
     if ("take".equals(action)) {
       try {
-        conn.securityOperations().revokeSystemPermission(targetUser, sysPerm);
+        client.securityOperations().revokeSystemPermission(targetUser, sysPerm);
       } catch (AccumuloSecurityException ae) {
         switch (ae.getSecurityErrorCode()) {
           case GRANT_INVALID:
@@ -79,7 +79,7 @@ public class AlterSystemPerm extends Test {
       ws.revokeSystemPermission(targetUser, sysPerm);
     } else if ("give".equals(action)) {
       try {
-        conn.securityOperations().grantSystemPermission(targetUser, sysPerm);
+        client.securityOperations().grantSystemPermission(targetUser, sysPerm);
       } catch (AccumuloSecurityException ae) {
         switch (ae.getSecurityErrorCode()) {
           case GRANT_INVALID:

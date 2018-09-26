@@ -51,7 +51,7 @@ public class DeleteWord extends Test {
     String wordToDelete = Insert.generateRandomWord(rand);
 
     // use index to find all documents containing word
-    Scanner scanner = env.getAccumuloConnector().createScanner(indexTableName, Authorizations.EMPTY);
+    Scanner scanner = env.getAccumuloClient().createScanner(indexTableName, Authorizations.EMPTY);
     scanner.fetchColumnFamily(new Text(wordToDelete));
 
     ArrayList<Range> documentsToDelete = new ArrayList<>();
@@ -61,7 +61,7 @@ public class DeleteWord extends Test {
 
     if (documentsToDelete.size() > 0) {
       // use a batch scanner to fetch all documents
-      BatchScanner bscanner = env.getAccumuloConnector().createBatchScanner(docTableName, Authorizations.EMPTY, 8);
+      BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName, Authorizations.EMPTY, 8);
       bscanner.setRanges(documentsToDelete);
 
       BatchWriter ibw = env.getMultiTableBatchWriter().getBatchWriter(indexTableName);

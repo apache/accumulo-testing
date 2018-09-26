@@ -43,8 +43,8 @@ public class Reindex extends Test {
 
     ShardFixture.createIndexTable(this.log, state, env, "_tmp", rand);
 
-    Scanner scanner = env.getAccumuloConnector().createScanner(docTableName, Authorizations.EMPTY);
-    BatchWriter tbw = env.getAccumuloConnector().createBatchWriter(tmpIndexTableName, new BatchWriterConfig());
+    Scanner scanner = env.getAccumuloClient().createScanner(docTableName, Authorizations.EMPTY);
+    BatchWriter tbw = env.getAccumuloClient().createBatchWriter(tmpIndexTableName, new BatchWriterConfig());
 
     int count = 0;
 

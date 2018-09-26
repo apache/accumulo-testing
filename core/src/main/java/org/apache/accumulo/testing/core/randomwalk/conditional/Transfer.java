@@ -20,9 +20,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriter.Status;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Condition;
@@ -64,7 +64,7 @@ public class Transfer extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
     Random rand = (Random) state.get("rand");
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     int numAccts = (Integer) state.get("numAccts");
     // note: non integer exponents are slow
@@ -80,7 +80,7 @@ public class Transfer extends Test {
     }
 
     // TODO document how data should be read when using ConditionalWriter
-    try (Scanner scanner = new IsolatedScanner(conn.createScanner(table, Authorizations.EMPTY))) {
+    try (Scanner scanner = new IsolatedScanner(client.createScanner(table, Authorizations.EMPTY))) {
 
       scanner.setRange(new Range(bank));
       scanner.fetchColumnFamily(new Text(acct1));

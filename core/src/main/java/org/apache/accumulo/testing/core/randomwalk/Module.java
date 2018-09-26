@@ -335,7 +335,7 @@ public class Module extends Node {
           if (test)
             stopTimer(nextNode);
         } catch (Exception e) {
-          log.debug("Connector belongs to user: " + env.getAccumuloConnector().whoami());
+          log.debug("AccumuloClient belongs to user: " + env.getAccumuloClient().whoami());
           log.debug("Exception occured at: " + System.currentTimeMillis());
           log.debug("Properties for node: " + nextNodeId);
           for (Entry<Object,Object> entry : nodeProps.entrySet()) {

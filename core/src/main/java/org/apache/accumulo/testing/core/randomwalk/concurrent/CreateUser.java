@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -30,7 +30,7 @@ import org.apache.accumulo.testing.core.randomwalk.Test;
 public class CreateUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -41,7 +41,7 @@ public class CreateUser extends Test {
 
     try {
       log.debug("Creating user " + userName);
-      conn.securityOperations().createLocalUser(userName, new PasswordToken(userName + "pass"));
+      client.securityOperations().createLocalUser(userName, new PasswordToken(userName + "pass"));
     } catch (AccumuloSecurityException ex) {
       log.debug("Create user failed " + ex.getCause());
     }

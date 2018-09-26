@@ -25,8 +25,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -51,9 +51,9 @@ public class ScanMeta extends Test {
 
     String uuid = UUID.randomUUID().toString();
 
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
-    Scanner imageScanner = conn.createScanner(imageTableName, new Authorizations());
+    Scanner imageScanner = client.createScanner(imageTableName, new Authorizations());
 
     imageScanner.setRange(new Range(new Text(uuid), null));
     imageScanner.fetchColumn(Write.META_COLUMN_FAMILY, Write.SHA1_COLUMN_QUALIFIER);
@@ -84,7 +84,7 @@ public class ScanMeta extends Test {
     }
 
     // use batch scanner to verify all of these exist in index
-    BatchScanner indexScanner = conn.createBatchScanner(indexTableName, Authorizations.EMPTY, 3);
+    BatchScanner indexScanner = client.createBatchScanner(indexTableName, Authorizations.EMPTY, 3);
     ArrayList<Range> ranges = new ArrayList<>();
     for (Text row : hashes.keySet()) {
       ranges.add(new Range(row));

@@ -28,7 +28,7 @@ import org.apache.hadoop.io.Text;
 
 public abstract class ScaleTest {
 
-  private AccumuloClient conn;
+  private AccumuloClient client;
   private Properties scaleProps;
   private Properties testProps;
   private int numTabletServers;
@@ -40,14 +40,14 @@ public abstract class ScaleTest {
     this.testProps = testProps;
     this.numTabletServers = numTabletServers;
 
-    // get properties to create connector
+    // get properties to create client
     String instanceName = this.scaleProps.getProperty("INSTANCE_NAME");
     String zookeepers = this.scaleProps.getProperty("ZOOKEEPERS");
     String user = this.scaleProps.getProperty("USER");
     String password = this.scaleProps.getProperty("PASSWORD");
     System.out.println(password);
 
-    conn = Accumulo.newClient().forInstance(instanceName, zookeepers).usingToken(user, new PasswordToken(password)).build();
+    client = Accumulo.newClient().forInstance(instanceName, zookeepers).usingToken(user, new PasswordToken(password)).build();
   }
 
   protected void startTimer() {
@@ -78,7 +78,7 @@ public abstract class ScaleTest {
   }
 
   public AccumuloClient getClient() {
-    return conn;
+    return client;
   }
 
   public String getTestProperty(String key) {

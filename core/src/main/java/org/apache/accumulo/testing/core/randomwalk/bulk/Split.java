@@ -34,7 +34,7 @@ public class Split extends SelectiveBulkTest {
     for (int i = 0; i < count; i++)
       splits.add(new Text(String.format(BulkPlusOne.FMT, (rand.nextLong() & 0x7fffffffffffffffl) % BulkPlusOne.LOTS)));
     log.info("splitting " + splits);
-    env.getAccumuloConnector().tableOperations().addSplits(Setup.getTableName(), splits);
+    env.getAccumuloClient().tableOperations().addSplits(Setup.getTableName(), splits);
     log.info("split for " + splits + " finished");
   }
 

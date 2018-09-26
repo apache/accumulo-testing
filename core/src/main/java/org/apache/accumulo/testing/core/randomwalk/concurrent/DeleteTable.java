@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.core.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.core.randomwalk.State;
@@ -30,7 +30,7 @@ public class DeleteTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Connector conn = env.getAccumuloConnector();
+    AccumuloClient client = env.getAccumuloClient();
 
     Random rand = (Random) state.get("rand");
 
@@ -40,7 +40,7 @@ public class DeleteTable extends Test {
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     try {
-      conn.tableOperations().delete(tableName);
+      client.tableOperations().delete(tableName);
       log.debug("Deleted table " + tableName);
     } catch (TableNotFoundException e) {
       log.debug("Delete " + tableName + " failed, doesnt exist");
