@@ -30,21 +30,33 @@ function get_version {
     ACCUMULO)
       (
         # run following in sub shell so it does not pollute
-        . $UNO_HOME/conf/uno.conf
+        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
+          . $UNO_HOME/conf/uno-local.conf
+        else
+          . $UNO_HOME/conf/uno.conf
+        fi
         echo $ACCUMULO_VERSION
       )
       ;;
     HADOOP)
       (
         # run following in sub shell so it does not pollute
-        . $UNO_HOME/conf/uno.conf
+        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
+          . $UNO_HOME/conf/uno-local.conf
+        else
+          . $UNO_HOME/conf/uno.conf
+        fi
         echo $HADOOP_VERSION
       )
       ;;
     ZOOKEEPER)
       (
         # run following in sub shell so it does not pollute
-        . $UNO_HOME/conf/uno.conf
+        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
+          . $UNO_HOME/conf/uno-local.conf
+        else
+          . $UNO_HOME/conf/uno.conf
+        fi
         echo $ZOOKEEPER_VERSION
       )
       ;;
