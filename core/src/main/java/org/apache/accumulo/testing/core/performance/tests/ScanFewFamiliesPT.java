@@ -45,7 +45,7 @@ public class ScanFewFamiliesPT implements PerformanceTest {
   private static final int NUM_QUALS = 1;
 
   @Override
-  public SystemConfiguration getConfiguration() {
+  public SystemConfiguration getSystemConfig() {
     return new SystemConfiguration();
   }
 

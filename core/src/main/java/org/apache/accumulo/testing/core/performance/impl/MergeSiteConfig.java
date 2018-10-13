@@ -17,36 +17,32 @@
 
 package org.apache.accumulo.testing.core.performance.impl;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 import org.apache.accumulo.testing.core.performance.PerformanceTest;
-import org.apache.hadoop.conf.Configuration;
 
 public class MergeSiteConfig {
   public static void main(String[] args) throws Exception {
     String className = args[0];
-    Path confFile = Paths.get(args[1], "accumulo-site.xml");
+    Path confFile = Paths.get(args[1], "accumulo.properties");
 
     PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).newInstance();
 
-    Configuration conf = new Configuration(false);
-    byte[] newConf;
+    Properties props = new Properties();
 
-
-    try(BufferedInputStream in = new BufferedInputStream(Files.newInputStream(confFile))){
-      conf.addResource(in);
-      perfTest.getConfiguration().getAccumuloSite().forEach((k,v) -> conf.set(k, v));
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      conf.writeXml(baos);
-      baos.close();
-      newConf = baos.toByteArray();
+    try(Reader in = Files.newBufferedReader(confFile)){
+      props.load(in);
     }
 
+    perfTest.getSystemConfig().getAccumuloConfig().forEach((k,v) -> props.setProperty(k, v));
 
-    Files.write(confFile, newConf);
+    try(Writer out = Files.newBufferedWriter(confFile)){
+      props.store(out, "Modified by performance test");
+    }
   }
 }

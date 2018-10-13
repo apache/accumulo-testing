@@ -74,9 +74,9 @@ case "$1" in
         echo "Running test $test_class"
         pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)
         setup_accumulo
-        get_config_file accumulo-site.xml "$pt_tmp"
+        get_config_file accumulo.properties "$pt_tmp"
         CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
-        put_config_file "$pt_tmp/accumulo-site.xml"
+        put_config_file "$pt_tmp/accumulo.properties"
         put_server_code "$at_home/core/target/accumulo-testing-core-$at_version.jar"
         start_accumulo
         get_config_file accumulo-client.properties "$pt_tmp"

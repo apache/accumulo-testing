@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
@@ -36,13 +35,15 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.trace.CountSampler;
 import org.apache.accumulo.core.trace.Trace;
+import org.apache.accumulo.core.trace.TraceSamplers;
 import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.core.TestProps;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 public class ContinuousIngest {
 
@@ -129,7 +130,7 @@ public class ContinuousIngest {
     }
 
     BatchWriter bw = client.createBatchWriter(tableName);
-    bw = Trace.wrapAll(bw, new CountSampler(1024));
+    bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
 
     Random r = new Random();
 

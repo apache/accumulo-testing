@@ -31,7 +31,7 @@ public class SystemConfiguration {
     return this;
   }
 
-  public Map<String,String> getAccumuloSite() {
+  public Map<String,String> getAccumuloConfig() {
     return accumuloSite;
   }
 }

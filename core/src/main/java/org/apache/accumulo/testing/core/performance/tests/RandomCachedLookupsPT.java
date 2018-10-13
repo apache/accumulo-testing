@@ -59,7 +59,7 @@ public class RandomCachedLookupsPT implements PerformanceTest {
   private static final int NUM_ROWS = 100000;
 
   @Override
-  public SystemConfiguration getConfiguration() {
+  public SystemConfiguration getSystemConfig() {
     Map<String,String> siteCfg = new HashMap<>();
 
     siteCfg.put(Property.TSERV_SCAN_MAX_OPENFILES.getKey(), "1000");

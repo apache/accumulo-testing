@@ -64,7 +64,7 @@ public class ScanExecutorPT implements PerformanceTest {
       + "a dedicated executor.  If the scan prioritizer or dispatcher is not working properly, " + "then the short scans will be orders of magnitude slower.";
 
   @Override
-  public SystemConfiguration getConfiguration() {
+  public SystemConfiguration getSystemConfig() {
     Map<String,String> siteCfg = new HashMap<>();
 
     siteCfg.put(Property.TSERV_SCAN_MAX_OPENFILES.getKey(), "200");
@@ -85,6 +85,7 @@ public class ScanExecutorPT implements PerformanceTest {
     Map<String,String> props = new HashMap<>();
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor", "se1");
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "heed_hints", "true");
+    props.put(Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
     env.getClient().tableOperations().create(tableName,
         new NewTableConfiguration().setProperties(props));
@@ -100,7 +101,7 @@ public class ScanExecutorPT implements PerformanceTest {
     TestExecutor<Long> longScans = startLongScans(env, tableName, stop);
 
     LongSummaryStatistics shortStats1 = runShortScans(env, tableName, 50000);
-    LongSummaryStatistics shortStats2 = runShortScans(env, tableName, 500000);
+    LongSummaryStatistics shortStats2 = runShortScans(env, tableName, 100000);
 
     stop.set(true);
     long t4 = System.currentTimeMillis();
