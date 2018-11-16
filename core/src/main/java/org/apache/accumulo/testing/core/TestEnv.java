@@ -117,7 +117,7 @@ public class TestEnv {
    */
   public AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
     if (client == null) {
-      client = Accumulo.newClient().usingClientInfo(info).build();
+      client = Accumulo.newClient().from(info).build();
     }
     return client;
   }

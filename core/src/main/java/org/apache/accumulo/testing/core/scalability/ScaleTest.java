@@ -47,7 +47,7 @@ public abstract class ScaleTest {
     String password = this.scaleProps.getProperty("PASSWORD");
     System.out.println(password);
 
-    client = Accumulo.newClient().forInstance(instanceName, zookeepers).usingToken(user, new PasswordToken(password)).build();
+    client = Accumulo.newClient().to(instanceName, zookeepers).as(user, new PasswordToken(password)).build();
   }
 
   protected void startTimer() {

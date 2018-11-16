@@ -43,7 +43,7 @@ public class PerfTestRunner {
 
     PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).newInstance();
 
-    AccumuloClient client = Accumulo.newClient().usingProperties(clientProps).build();
+    AccumuloClient client = Accumulo.newClient().from(clientProps).build();
 
     Instant start = Instant.now();
 
