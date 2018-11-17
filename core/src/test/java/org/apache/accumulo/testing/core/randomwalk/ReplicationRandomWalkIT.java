@@ -19,7 +19,7 @@ package org.apache.accumulo.testing.core.randomwalk;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WALOG_MAX_SIZE;
 
-import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.accumulo.testing.core.randomwalk.concurrent.Replication;
 import org.apache.hadoop.conf.Configuration;

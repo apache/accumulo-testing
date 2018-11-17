@@ -56,7 +56,7 @@ public class CopyTool extends Configured implements Tool {
       return 1;
     }
 
-    ClientInfo info = Accumulo.newClient().usingProperties(args[0]).info();
+    ClientInfo info = Accumulo.newClient().from(args[0]).info();
     job.setInputFormatClass(AccumuloInputFormat.class);
     AccumuloInputFormat.setClientInfo(job, info);
     AccumuloInputFormat.setInputTableName(job, args[1]);
