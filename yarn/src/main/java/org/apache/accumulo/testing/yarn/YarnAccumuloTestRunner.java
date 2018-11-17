@@ -37,13 +37,14 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 public class YarnAccumuloTestRunner {
 
   private static final Logger LOG = LoggerFactory.getLogger(YarnAccumuloTestRunner.class);
 
-  private static final String RUNNABLE_ID = "BundledJarRunnable";
+  private static final String RUNNABLE_ID = "AccumuloTest";
 
   private static class YarnTestApp implements TwillApplication {
 
@@ -111,7 +112,9 @@ public class YarnAccumuloTestRunner {
   public static void main(String[] args) throws Exception {
 
     TestRunnerOpts opts = new TestRunnerOpts();
-    new JCommander(opts, args);
+    JCommander commander = new JCommander();
+    commander.addObject(opts);
+    commander.parse(args);
 
     verifyPath(opts.jarPath);
     verifyPath(opts.testProps);
@@ -119,10 +122,17 @@ public class YarnAccumuloTestRunner {
     verifyPath(opts.logProps);
 
     String jarFileName = Paths.get(opts.jarPath).getFileName().toString();
-
     String[] mainArgs = opts.mainArgs.stream().toArray(String[]::new);
-    BundledJarRunner.Arguments arguments = new BundledJarRunner.Arguments(jarFileName, "/lib",
-                                                                          opts.mainClass, mainArgs);
+
+    Objects.requireNonNull(jarFileName);
+    Objects.requireNonNull(opts.mainClass);
+    Objects.requireNonNull(mainArgs);
+
+    BundledJarRunner.Arguments arguments =
+        new BundledJarRunner.Arguments.Builder().setJarFileName(jarFileName)
+            .setLibFolder("lib").setMainClassName(opts.mainClass)
+            .setMainArgs(mainArgs).createArguments();
+
     TestEnv env = new TestEnv(opts.testProps, opts.clientProps);
 
     YarnConfiguration yarnConfig = new YarnConfiguration(env.getHadoopConfiguration());
@@ -131,7 +141,7 @@ public class YarnAccumuloTestRunner {
 
     twillRunner.prepare(new YarnTestApp(opts, env.getTestProperties()))
         .addJVMOptions("-Dlog4j.configuration=file:$PWD/" + new File(opts.logProps).getName())
-        .withArguments("BundledJarRunnable", arguments.toArray()).start();
+        .withArguments(RUNNABLE_ID, arguments.toArray()).start();
 
     LOG.info("{} containers will start in YARN.", opts.numContainers);
     LOG.info("Press Ctrl-C when these containers have started.");
