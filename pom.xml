@@ -42,7 +42,7 @@
     <hadoop.version>3.0.3</hadoop.version>
     <zookeeper.version>3.4.9</zookeeper.version>
     <slf4j.version>1.7.21</slf4j.version>
-    <twill.version>0.12.1</twill.version>
+    <twill.version>0.13.0</twill.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <formatter.config>${project.parent.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</formatter.config>

@@ -116,6 +116,8 @@
                         <exclude>META-INF/*.SF</exclude>
                         <exclude>META-INF/*.DSA</exclude>
                         <exclude>META-INF/*.RSA</exclude>
+                        <!-- Twill 0.13 fails if shaded jar includes this directory !-->
+                        <exclude>META-INF/license/*</exclude>
                       </excludes>
                     </filter>
                   </filters>
