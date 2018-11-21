@@ -1,0 +1,94 @@
+#! /usr/bin/env bash
+
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+
+function print_usage() {
+  cat <<EOF
+
+Usage: cingest <application>
+
+Available applications:
+
+    createtable   Creates Accumulo table for continous ingest
+    ingest        Inserts data into Accumulo that will form random graph.
+    walk          Randomly walks the graph using a scanner
+    batchwalk     Randomly walks the graph using a batch scanner
+    scan          Scans the graph
+    verify        Verifies continous ingest test. Stop ingest before running.
+    moru          Streses Accumulo by reading and writing to the ingest table.
+                  Stop ingest before running.
+EOF
+}
+
+if [ -f "$at_home/conf/env.sh" ]; then
+  . "$at_home"/conf/env.sh
+else
+  . "$at_home"/conf/env.sh.example
+fi
+
+if [ -z "$1" ]; then
+  echo "ERROR: <application> needs to be set"
+  print_usage
+  exit 1
+fi
+
+ci_package="org.apache.accumulo.testing.continuous"
+case "$1" in
+  createtable)
+    ci_main="${ci_package}.CreateTable"
+    ;;
+  ingest)
+    ci_main="${ci_package}.ContinuousIngest"
+    ;;
+  walk)
+    ci_main="${ci_package}.ContinuousWalk"
+    ;;
+  batchwalk)
+    ci_main="${ci_package}.ContinuousBatchWalker"
+    ;;
+  scan)
+    ci_main="${ci_package}.ContinuousScanner"
+    ;;
+  verify)
+    ci_main="${ci_package}.ContinuousVerify"
+    ;;
+  moru)
+    ci_main="${ci_package}.ContinuousMoru"
+    ;;
+  *)
+    echo "Unknown application: $1"
+    print_usage
+    exit 1
+esac
+
+export CLASSPATH="$TEST_JAR_PATH:$CLASSPATH"
+
+case "$1" in
+  verify|moru)
+    if [ ! -z $HADOOP_HOME ]; then
+      export CLASSPATH=$HADOOP_HOME/etc/hadoop:$CLASSPATH
+      "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$ci_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
+    else
+      echo "Hadoop must be installed and HADOOP_HOME must be set!"
+      exit 1
+    fi
+    ;;
+  *)
+    java -Dlog4j.configuration="file:$TEST_LOG4J" "$ci_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
+esac

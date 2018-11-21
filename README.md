@@ -23,10 +23,40 @@ on your machine as well as an Accumulo instance to use for testing.
         cp accumulo-testing.properties.example accumulo-testing.properties
         vim accumulo-testing.properties
 
-3. Tests are run using the `accumulo-testing` command which is located in the `bin/`
-   directory. Run this command without any arguments to view its usage and see available tests.
 
-        ./bin/accumulo-testing
+### Run tests locally
+
+Tests are run using the following scripts in `bin/`:
+
+  * `cingest` - Runs continous ingest tests
+  * `rwalk` - Runs random walk tests
+  * `performance` - Runs performance test
+  * `agitator` - Runs agitator
+
+Run the scripts without arguments to view usage.
+
+### Run tests in Docker
+
+1. To create the `accumulo-testing` docker image, make sure the following files exist in your clone:
+
+    * `conf/accumulo-client.properties` - Copy and configure this from your Accumulo install
+    * `conf/accumulo-testing.properties` - Copy this from the example file and configure it
+    * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Build by run `./bin/cingest` without arguments
+
+   Run the following command to create the image:
+
+   ```
+   docker build -t accumulo-testing .
+   ```
+
+2. The `accumulo-testing` image can be used as follows:
+
+   ```bash
+   # See available commands
+   docker run accumulo-testing
+   # Run continuous ingest walk application
+   docker run accumulo-testing cingest walk
+   ```
 
 ## Random walk test
 
@@ -39,16 +69,7 @@ file. A test module must also be specified. See the [modules] directory for a li
 The command below will start a single random walker in a local process using the [Image.xml][image]
 module.
 
-        ./bin/accumulo-testing rw-local Image.xml
-
-If you would like to run multiple, distributed random walkers, run the command below to start random
-walkers in 5 containers in YARN using the Image.xml module.
-
-        ./bin/accumulo-testing rw-yarn 5 Image.xml
-
-This command will create an application in YARN and exit when all containers for the test have
-started. While its running, you can view logs for each random walker using the YARN resource manager.
-The YARN application can be killed at any time using the YARN resource manager or command line tool.
+        ./bin/rwalk Image.xml
 
 ## Continuous Ingest & Query
 
@@ -69,19 +90,12 @@ First, run the command below to create an Accumulo table for the continuous inge
 table is set by the property `test.ci.common.accumulo.table` (its value defaults to `ci`) in the file
 `accumulo-testing.properties`:
 
-          ./bin/accumulo-testing ci-createtable
+          ./bin/cingest createtable
 
-The continuous ingest tests have several applications that can either be started in a local process
-or run in multiple containers across a cluster using YARN. The `ci-local` command starts a local
-application which will run continuously until you stop using `ctrl-c`:
+The continuous ingest tests have several applications that start a local application which will run
+continuously until you stop using `ctrl-c`:
 
-          ./bin/accumulo-testing ci-local <application>
-
-The `ci-yarn` command starts an application in `<num>` containers in YARN. All containers will run
-continuously performing the same work until you kill the application in YARN. The logs for the
-application can be viewed using the YARN resource manager.
-
-          ./bin/accumulo-testing ci-yarn <num> <application>
+          ./bin/cingest <application>
 
 Below is a list of available continuous ingest applications. You should run the `ingest` application
 first to add data to your table.
@@ -91,15 +105,7 @@ first to add data to your table.
   produces detailed statistics on query/scan times.
 * `batchwalk` - Randomly walks the graph created by ingest using a batch scanner.
 * `scan` - Scans the graph
-
-The continuous ingest test has two MapReduce jobs that are used to verify and stress
-Accumulo and have the following command:
-
-          ./bin/accumulo-testing ci-mapred <application>
-
-Below is a list of available MapReduce applications:
-
-1. `verify` - Runs a MapReduce job that verifies all data created by continuous ingest. Before
+* `verify` - Runs a MapReduce job that verifies all data created by continuous ingest. Before
 running, review all `test.ci.verify.*` properties. Do not run ingest while running this command as
 it will cause erroneous reporting of UNDEFINED nodes. Each entry, except for the first batch of
 entries, inserted by continuous ingest references a previously flushed entry. Since we are
@@ -109,8 +115,7 @@ the referenced but undefined node.  The MapReduce job produces two other counts:
 UNREFERENCED. It is expected that these two counts are non zero. REFERENCED counts nodes that are
 defined and referenced. UNREFERENCED counts nodes that defined and unreferenced, these are the
 latest nodes inserted.
-
-2. `moru` - Runs a MapReduce job that stresses Accumulo by reading and writing the continuous ingest
+* `moru` - Runs a MapReduce job that stresses Accumulo by reading and writing the continuous ingest
 table. This MapReduce job will write out an entry for every entry in the table (except for ones
 created by the MapReduce job itself). Stop ingest before running this MapReduce job. Do not run more
 than one instance of this MapReduce job concurrently against a table.
@@ -121,10 +126,10 @@ The agitator will periodically kill the Accumulo master, tablet server, and Hado
 processes on random nodes. Before running the agitator you should create `accumulo-testing-env.sh`
 in `conf/` and review all of the agitator settings. The command below will start the agitator:
 
-            ./bin/accumulo-testing agitator start
+            ./bin/agitator start
 
 You can run this script as root and it will properly start processes as the user you configured in
-`accumulo-testing-env.sh` (`AGTR_HDFS_USER` for the data node and `AGTR_ACCUMULO_USER` for Accumulo
+`env.sh` (`AGTR_HDFS_USER` for the data node and `AGTR_ACCUMULO_USER` for Accumulo
 processes). If you run it as yourself and the `AGTR_HDFS_USER` and `AGTR_ACCUMULO_USER` values are
 the same as your user, the agitator will not change users. In the case where you run the agitator as
 a non-privileged user which isn't the same as `AGTR_HDFS_USER` or `AGTR_ACCUMULO_USER`, the agitator
@@ -133,7 +138,7 @@ that your `AGTR_HDFS_USER` has password-less `ssh` configured.
 
 Run the command below stop the agitator:
 
-            ./bin/accumulo-testing agitator stop
+            ./bin/agitator stop
 
 ## Performance Test
 
@@ -191,8 +196,6 @@ function stop_cluster {
 }
 ```
 
-
-
 An example script for [Uno] is provided.  To use this do the following and set
 `UNO_HOME` after copying. 
 
@@ -201,9 +204,9 @@ An example script for [Uno] is provided.  To use this do the following and set
 After the cluster control script is setup, the following will run performance
 test and produce json result files.
 
-    ./bin/performance-test run <output dir>
+    ./bin/performance run <output dir>
 
-There are some utilities for working with the json result files, run the performance-test script
+There are some utilities for working with the json result files, run the `performance` script
 with no options to see them.
 
 [Uno]: https://github.com/apache/fluo-uno
