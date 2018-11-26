@@ -49,13 +49,16 @@ Run the scripts without arguments to view usage.
    docker build -t accumulo-testing .
    ```
 
-2. The `accumulo-testing` image can be used as follows:
+2. The `accumulo-testing` image can run a single command:
 
    ```bash
-   # See available commands
-   docker run accumulo-testing
-   # Run continuous ingest walk application
-   docker run accumulo-testing cingest walk
+   docker run --network="host" accumulo-testing cingest createtable
+   ```
+
+3. Multiple containers can also be run:
+
+   ```bash
+   docker service create --network="host" --replicas 2 --name ci accumulo-testing cingest ingest
    ```
 
 ## Random walk test
