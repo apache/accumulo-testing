@@ -41,7 +41,7 @@ Run the scripts without arguments to view usage.
 
     * `conf/accumulo-client.properties` - Copy and configure this from your Accumulo install
     * `conf/accumulo-testing.properties` - Copy this from the example file and configure it
-    * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Build by run `./bin/cingest` without arguments
+    * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
 
    Run the following command to create the image:
 
