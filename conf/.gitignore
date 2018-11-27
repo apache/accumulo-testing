@@ -1,4 +1,5 @@
+/accumulo-client.properties
 /accumulo-testing.properties
-/accumulo-testing-env.sh
+/env.sh
 /log4j.properties
 /cluster-control.sh
