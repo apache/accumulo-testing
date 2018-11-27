@@ -150,6 +150,7 @@ public class ContinuousMoru extends Configured implements Tool {
     conf.setInt(MAX_CF, env.getMaxColF());
     conf.setInt(MAX_CQ, env.getMaxColQ());
     conf.set(CI_ID, UUID.randomUUID().toString());
+    conf.set("mapreduce.job.classloader", "true");
 
     job.waitForCompletion(true);
     return job.isSuccessful() ? 0 : 1;

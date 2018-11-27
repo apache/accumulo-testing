@@ -186,6 +186,7 @@ public class ContinuousVerify extends Configured implements Tool {
     job.setOutputFormatClass(TextOutputFormat.class);
 
     job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
+    job.getConfiguration().set("mapreduce.job.classloader", "true");
 
     TextOutputFormat.setOutputPath(job, new Path(outputDir));
 
