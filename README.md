@@ -62,7 +62,7 @@ run in Docker:
    docker run --network="host" accumulo-testing cingest createtable
    ```
 
-3. Multiple containers can also be run (if you have Docker Swarm enabled):
+3. Multiple containers can also be run (if you have [Docker Swarm] enabled):
 
    ```bash
    docker service create --network="host" --replicas 2 --name ci accumulo-testing cingest ingest
@@ -222,5 +222,6 @@ with no options to see them.
 [Uno]: https://github.com/apache/fluo-uno
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml
+[Docker Swarm]: https://docs.docker.com/engine/swarm/swarm-tutorial/
 [ti]: https://travis-ci.org/apache/accumulo-testing.svg?branch=master
 [tl]: https://travis-ci.org/apache/accumulo-testing
