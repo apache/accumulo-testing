@@ -18,8 +18,11 @@ FROM centos:7
 RUN yum install -y java-1.8.0-openjdk-devel
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 
-ARG TEST_JAR_VERSION
+ENV HADOOP_VERSION 3.1.1
 ENV TEST_JAR_VERSION 2.0.0-SNAPSHOT
+
+ENV HADOOP_API_JAR /opt/hadoop-client-api-${HADOOP_VERSION}.jar
+ENV HADOOP_RUNTIME_JAR /opt/hadoop-client-runtime-${HADOOP_VERSION}.jar
 ENV TEST_JAR_PATH /opt/accumulo-testing-${TEST_JAR_VERSION}-shaded.jar
 ENV ACCUMULO_CLIENT_PROPS /opt/conf/accumulo-client.properties
 ENV TEST_PROPS /opt/conf/accumulo-testing.properties
@@ -36,6 +39,8 @@ ADD ./bin/cingest /opt/bin
 ADD ./bin/rwalk /opt/bin
 ADD ./src/main/docker/docker-entry /opt/bin
 ADD ./target/accumulo-testing-${TEST_JAR_VERSION}-shaded.jar /opt/
+ADD ./target/dependency/hadoop-client-api-${HADOOP_VERSION}.jar /opt/
+ADD ./target/dependency/hadoop-client-runtime-${HADOOP_VERSION}.jar /opt/
 
 ENTRYPOINT ["/opt/bin/docker-entry"]
 CMD ["help"]
