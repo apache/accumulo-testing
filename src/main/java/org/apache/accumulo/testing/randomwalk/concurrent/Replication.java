@@ -27,7 +27,6 @@ import static org.apache.accumulo.core.conf.Property.REPLICATION_WORK_PROCESSOR_
 import static org.apache.accumulo.core.conf.Property.REPLICATION_WORK_PROCESSOR_PERIOD;
 import static org.apache.accumulo.core.conf.Property.TABLE_REPLICATION;
 import static org.apache.accumulo.core.conf.Property.TABLE_REPLICATION_TARGET;
-import static org.apache.accumulo.server.replication.ReplicaSystemFactory.getPeerConfigurationValue;
 
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -51,7 +50,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
-import org.apache.accumulo.tserver.replication.AccumuloReplicaSystem;
 import org.apache.hadoop.io.Text;
 
 public class Replication extends Test {
@@ -61,14 +59,15 @@ public class Replication extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    final AccumuloClient c = (AccumuloClient) env.getAccumuloClient();
+    final AccumuloClient c = env.getAccumuloClient();
     final String instName = c.info().getInstanceName();
     final InstanceOperations iOps = c.instanceOperations();
     final TableOperations tOps = c.tableOperations();
 
     // Replicate to ourselves
     iOps.setProperty(REPLICATION_NAME.getKey(), instName);
-    iOps.setProperty(REPLICATION_PEERS.getKey() + instName, getPeerConfigurationValue(AccumuloReplicaSystem.class, instName + "," + c.info().getZooKeepers()));
+    iOps.setProperty(REPLICATION_PEERS.getKey() + instName, "org.apache.accumulo.tserver.replication.AccumuloReplicaSystem," + instName + ","
+        + c.info().getZooKeepers());
     iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getAccumuloUserName());
     iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getAccumuloPassword());
     // Tweak some replication parameters to make the replication go faster

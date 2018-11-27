@@ -37,6 +37,13 @@ Run the scripts without arguments to view usage.
 
 ### Run tests in Docker
 
+While test scripts can be run from a single machine, they will put more stress if they are run from
+multiple machines. The easiest way to do this is using Docker. However, only the tests below can be
+run in Docker:
+
+  * `cingest` - All applications can be run except `verify` & `moru` which launch a MapReduce job.
+  * `rwalk` - All modules can be run.
+
 1. To create the `accumulo-testing` docker image, make sure the following files exist in your clone:
 
     * `conf/accumulo-client.properties` - Copy and configure this from your Accumulo install
@@ -55,7 +62,7 @@ Run the scripts without arguments to view usage.
    docker run --network="host" accumulo-testing cingest createtable
    ```
 
-3. Multiple containers can also be run:
+3. Multiple containers can also be run (if you have Docker Swarm enabled):
 
    ```bash
    docker service create --network="host" --replicas 2 --name ci accumulo-testing cingest ingest

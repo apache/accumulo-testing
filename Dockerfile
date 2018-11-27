@@ -34,8 +34,8 @@ ADD ./conf/accumulo-testing.properties /opt/conf/
 ADD ./conf/log4j.properties.example /opt/conf/
 ADD ./bin/cingest /opt/bin
 ADD ./bin/rwalk /opt/bin
-ADD ./bin/run /opt/bin
+ADD ./src/main/docker/docker-entry /opt/bin
 ADD ./target/accumulo-testing-${TEST_JAR_VERSION}-shaded.jar /opt/
 
-ENTRYPOINT ["/opt/bin/run"]
+ENTRYPOINT ["/opt/bin/docker-entry"]
 CMD ["help"]
