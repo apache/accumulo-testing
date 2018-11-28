@@ -18,24 +18,30 @@ FROM centos:7
 RUN yum install -y java-1.8.0-openjdk-devel
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 
-ARG TEST_JAR_VERSION
-ENV TEST_JAR_VERSION 2.0.0-SNAPSHOT
-ENV TEST_JAR_PATH /opt/accumulo-testing-${TEST_JAR_VERSION}-shaded.jar
-ENV ACCUMULO_CLIENT_PROPS /opt/conf/accumulo-client.properties
-ENV TEST_PROPS /opt/conf/accumulo-testing.properties
-ENV TEST_LOG4J /opt/conf/log4j.properties.example
+ENV HADOOP_API_JAR /opt/at/hadoop-client-api.jar
+ENV HADOOP_RUNTIME_JAR /opt/at/hadoop-client-runtime.jar
+ENV TEST_JAR_PATH /opt/at/accumulo-testing-shaded.jar
+ENV ACCUMULO_CLIENT_PROPS /opt/at/conf/accumulo-client.properties
+ENV TEST_PROPS /opt/at/conf/accumulo-testing.properties
+ENV TEST_LOG4J /opt/at/conf/log4j.properties
 
-RUN mkdir /opt/bin
-RUN mkdir /opt/conf
-RUN touch /opt/conf/env.sh
+RUN mkdir /opt/at
+RUN mkdir /opt/at/bin
+RUN mkdir /opt/at/conf
 
-ADD ./conf/accumulo-client.properties /opt/conf/
-ADD ./conf/accumulo-testing.properties /opt/conf/
-ADD ./conf/log4j.properties.example /opt/conf/
-ADD ./bin/cingest /opt/bin
-ADD ./bin/rwalk /opt/bin
-ADD ./src/main/docker/docker-entry /opt/bin
-ADD ./target/accumulo-testing-${TEST_JAR_VERSION}-shaded.jar /opt/
+COPY ./conf/accumulo-client.properties /opt/at/conf/
+COPY ./conf/accumulo-testing.properties /opt/at/conf/
+COPY ./conf/log4j.properties* /opt/at/conf/
+RUN if [[ ! -f /opt/at/conf/log4j.properties ]]; then mv /opt/at/conf/log4j.properties.example /opt/at/conf/log4j.properties; fi
+RUN touch /opt/at/conf/env.sh
 
-ENTRYPOINT ["/opt/bin/docker-entry"]
+COPY ./bin/cingest /opt/at/bin
+COPY ./bin/rwalk /opt/at/bin
+COPY ./src/main/docker/docker-entry /opt/at/bin
+
+COPY ./target/accumulo-testing-shaded.jar /opt/at/
+COPY ./target/dependency/hadoop-client-api.jar /opt/at/
+COPY ./target/dependency/hadoop-client-runtime.jar /opt/at/
+
+ENTRYPOINT ["/opt/at/bin/docker-entry"]
 CMD ["help"]

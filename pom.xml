@@ -208,11 +208,13 @@
                 </goals>
                 <phase>package</phase>
                 <configuration>
+                  <finalName>${project.artifactId}-shaded</finalName>
                   <shadedArtifactAttached>true</shadedArtifactAttached>
                   <shadedClassifierName>shaded</shadedClassifierName>
                   <artifactSet>
                     <excludes>
                       <exclude>org.apache.accumulo:accumulo-native</exclude>
+                      <exclude>org.apache.hadoop:*</exclude>
                     </excludes>
                   </artifactSet>
                   <filters>
@@ -222,8 +224,6 @@
                         <exclude>META-INF/*.SF</exclude>
                         <exclude>META-INF/*.DSA</exclude>
                         <exclude>META-INF/*.RSA</exclude>
-                        <!-- Twill 0.13 fails if shaded jar includes this directory !-->
-                        <exclude>META-INF/license/*</exclude>
                       </excludes>
                     </filter>
                   </filters>

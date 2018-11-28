@@ -77,12 +77,11 @@ case "$1" in
     exit 1
 esac
 
-export CLASSPATH="$TEST_JAR_PATH:$CLASSPATH"
+export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
 case "$1" in
   verify|moru)
     if [ ! -z $HADOOP_HOME ]; then
-      export CLASSPATH=$HADOOP_HOME/etc/hadoop:$CLASSPATH
       export HADOOP_USE_CLIENT_CLASSLOADER=true
       "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$ci_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
     else
