@@ -55,10 +55,11 @@ public class BulkPlusOne extends BulkImportTest {
   private static final Value ONE = new Value("1".getBytes());
 
   static void bulkLoadLots(Logger log, State state, RandWalkEnv env, Value value) throws Exception {
-    final Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
+    final FileSystem fs = (FileSystem) state.get("fs");
+    final Path dir = new Path(fs.getUri() + "/tmp", "bulk_" + UUID.randomUUID().toString());
+    log.debug("Bulk loading from {}", dir);
     final Path fail = new Path(dir.toString() + "_fail");
     final Random rand = (Random) state.get("rand");
-    final FileSystem fs = (FileSystem) state.get("fs");
     fs.mkdirs(fail);
     final int parts = rand.nextInt(10) + 1;
 
@@ -80,6 +81,7 @@ public class BulkPlusOne extends BulkImportTest {
     for (int i = 0; i < parts; i++) {
       String fileName = dir + "/" + String.format("part_%d.rf", i);
 
+      log.debug("Creating {}", fileName);
       RFileWriter writer = RFile.newWriter().to(fileName).withFileSystem(fs).build();
       writer.startDefaultLocalityGroup();
       int start = rows.get(i);
