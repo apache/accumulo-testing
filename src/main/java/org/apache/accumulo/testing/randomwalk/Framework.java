@@ -88,9 +88,9 @@ public class Framework {
     log.info("Running random walk test with module: " + args[2]);
 
     State state = new State();
-    RandWalkEnv env = new RandWalkEnv(args[0], args[1]);
-    getInstance().run(args[2], state, env);
-
-    log.info("Test finished");
+    try (RandWalkEnv env = new RandWalkEnv(args[0], args[1])) {
+      getInstance().run(args[2], state, env);
+      log.info("Test finished");
+    }
   }
 }

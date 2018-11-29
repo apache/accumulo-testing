@@ -50,44 +50,45 @@ public class DropTable extends Test {
       principal = WalkingSecurity.get(state, env).getSysUserName();
       token = WalkingSecurity.get(state, env).getSysToken();
     }
-    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
+    try (AccumuloClient client = env.createClient(principal, token)) {
 
-    String tableName = WalkingSecurity.get(state, env).getTableName();
+      String tableName = WalkingSecurity.get(state, env).getTableName();
 
-    boolean exists = WalkingSecurity.get(state, env).getTableExists();
+      boolean exists = WalkingSecurity.get(state, env).getTableExists();
 
-    try {
-      hasPermission = client.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
-          || client.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
-      client.tableOperations().delete(tableName);
-    } catch (AccumuloSecurityException ae) {
-      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
+      try {
+        hasPermission = client.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
+            || client.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
+        client.tableOperations().delete(tableName);
+      } catch (AccumuloSecurityException ae) {
+        if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
+          if (exists)
+            throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", ae);
+          else
+            return;
+        } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
+          if (hasPermission)
+            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+          else {
+            // Drop anyway for sake of state
+            env.getAccumuloClient().tableOperations().delete(tableName);
+            WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
+            return;
+          }
+        } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
+          if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
+            return;
+        }
+        throw new AccumuloException("Got unexpected ae error code", ae);
+      } catch (TableNotFoundException tnfe) {
         if (exists)
-          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", ae);
+          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", tnfe);
         else
           return;
-      } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
-        if (hasPermission)
-          throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-        else {
-          // Drop anyway for sake of state
-          env.getAccumuloClient().tableOperations().delete(tableName);
-          WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
-          return;
-        }
-      } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
-        if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
-          return;
       }
-      throw new AccumuloException("Got unexpected ae error code", ae);
-    } catch (TableNotFoundException tnfe) {
-      if (exists)
-        throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", tnfe);
-      else
-        return;
+      WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
     }
-    WalkingSecurity.get(state, env).cleanTablePermissions(tableName);
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
   }
 }

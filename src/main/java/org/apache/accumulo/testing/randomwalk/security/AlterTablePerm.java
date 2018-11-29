@@ -76,118 +76,118 @@ public class AlterTablePerm extends Test {
       sourceUser = env.getAccumuloUserName();
       sourceToken = env.getToken();
     }
-    AccumuloClient client = env.getAccumuloClient().changeUser(sourceUser, sourceToken);
-    SecurityOperations secOps = client.securityOperations();
+    try (AccumuloClient client = env.createClient(sourceUser, sourceToken)) {
+      SecurityOperations secOps = client.securityOperations();
 
-    try {
-      canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE) || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
-    } catch (AccumuloSecurityException ae) {
-      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
-        if (tableExists)
-          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
-        else
-          return;
-      } else {
-        throw new AccumuloException("Got unexpected ae error code", ae);
-      }
-    }
-
-    // toggle
-    if (!"take".equals(action) && !"give".equals(action)) {
       try {
-        boolean res;
-        if (hasPerm != (res = env.getAccumuloClient().securityOperations().hasTablePermission(target, tableName, tabPerm)))
-          throw new AccumuloException("Test framework and accumulo are out of sync for user " + client.whoami() + " for perm " + tabPerm.name()
-              + " with local vs. accumulo being " + hasPerm + " " + res);
-
-        if (hasPerm)
-          action = "take";
-        else
-          action = "give";
+        canGive = secOps.hasSystemPermission(sourceUser, SystemPermission.ALTER_TABLE)
+            || secOps.hasTablePermission(sourceUser, tableName, TablePermission.GRANT);
       } catch (AccumuloSecurityException ae) {
-        switch (ae.getSecurityErrorCode()) {
-          case USER_DOESNT_EXIST:
-            if (userExists)
-              throw new AccumuloException("Framework and Accumulo are out of sync, we think user exists", ae);
-            else
+        if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
+          if (tableExists)
+            throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+          else
+            return;
+        } else {
+          throw new AccumuloException("Got unexpected ae error code", ae);
+        }
+      }
+
+      // toggle
+      if (!"take".equals(action) && !"give".equals(action)) {
+        try {
+          boolean res;
+          if (hasPerm != (res = env.getAccumuloClient().securityOperations().hasTablePermission(target, tableName, tabPerm)))
+            throw new AccumuloException("Test framework and accumulo are out of sync for user " + client.whoami() + " for perm " + tabPerm.name()
+                + " with local vs. accumulo being " + hasPerm + " " + res);
+
+          if (hasPerm)
+            action = "take";
+          else
+            action = "give";
+        } catch (AccumuloSecurityException ae) {
+          switch (ae.getSecurityErrorCode()) {
+            case USER_DOESNT_EXIST:
+              if (userExists)
+                throw new AccumuloException("Framework and Accumulo are out of sync, we think user exists", ae);
+              else
+                return;
+            case TABLE_DOESNT_EXIST:
+              if (tableExists)
+                throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+              else
+                return;
+            default:
+              throw ae;
+          }
+        }
+      }
+
+      boolean trans = WalkingSecurity.get(state, env).userPassTransient(client.whoami());
+      if ("take".equals(action)) {
+        try {
+          client.securityOperations().revokeTablePermission(target, tableName, tabPerm);
+        } catch (AccumuloSecurityException ae) {
+          switch (ae.getSecurityErrorCode()) {
+            case GRANT_INVALID:
+              throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
+            case PERMISSION_DENIED:
+              if (canGive)
+                throw new AccumuloException(client.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
               return;
-          case TABLE_DOESNT_EXIST:
-            if (tableExists)
-              throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
-            else
+            case USER_DOESNT_EXIST:
+              if (userExists)
+                throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
               return;
-          default:
-            throw ae;
+            case TABLE_DOESNT_EXIST:
+              if (tableExists)
+                throw new AccumuloException("Table doesn't exist but it should", ae);
+              return;
+            case BAD_CREDENTIALS:
+              if (!trans)
+                throw new AccumuloException("Bad credentials for user " + client.whoami());
+              return;
+            default:
+              throw new AccumuloException("Got unexpected exception", ae);
+          }
         }
+        WalkingSecurity.get(state, env).revokeTablePermission(target, tableName, tabPerm);
+      } else if ("give".equals(action)) {
+        try {
+          client.securityOperations().grantTablePermission(target, tableName, tabPerm);
+        } catch (AccumuloSecurityException ae) {
+          switch (ae.getSecurityErrorCode()) {
+            case GRANT_INVALID:
+              throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
+            case PERMISSION_DENIED:
+              if (canGive)
+                throw new AccumuloException(client.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
+              return;
+            case USER_DOESNT_EXIST:
+              if (userExists)
+                throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
+              return;
+            case TABLE_DOESNT_EXIST:
+              if (tableExists)
+                throw new AccumuloException("Table doesn't exist but it should", ae);
+              return;
+            case BAD_CREDENTIALS:
+              if (!trans)
+                throw new AccumuloException("Bad credentials for user " + client.whoami());
+              return;
+            default:
+              throw new AccumuloException("Got unexpected exception", ae);
+          }
+        }
+        WalkingSecurity.get(state, env).grantTablePermission(target, tableName, tabPerm);
       }
+
+      if (!userExists)
+        throw new AccumuloException("User shouldn't have existed, but apparently does");
+      if (!tableExists)
+        throw new AccumuloException("Table shouldn't have existed, but apparently does");
+      if (!canGive)
+        throw new AccumuloException(client.whoami() + " shouldn't have been able to grant privilege");
     }
-
-    boolean trans = WalkingSecurity.get(state, env).userPassTransient(client.whoami());
-    if ("take".equals(action)) {
-      try {
-        client.securityOperations().revokeTablePermission(target, tableName, tabPerm);
-      } catch (AccumuloSecurityException ae) {
-        switch (ae.getSecurityErrorCode()) {
-          case GRANT_INVALID:
-            throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
-          case PERMISSION_DENIED:
-            if (canGive)
-              throw new AccumuloException(client.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
-            return;
-          case USER_DOESNT_EXIST:
-            if (userExists)
-              throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
-            return;
-          case TABLE_DOESNT_EXIST:
-            if (tableExists)
-              throw new AccumuloException("Table doesn't exist but it should", ae);
-            return;
-          case BAD_CREDENTIALS:
-            if (!trans)
-              throw new AccumuloException("Bad credentials for user " + client.whoami());
-            return;
-          default:
-            throw new AccumuloException("Got unexpected exception", ae);
-        }
-      }
-      WalkingSecurity.get(state, env).revokeTablePermission(target, tableName, tabPerm);
-    } else if ("give".equals(action)) {
-      try {
-        client.securityOperations().grantTablePermission(target, tableName, tabPerm);
-      } catch (AccumuloSecurityException ae) {
-        switch (ae.getSecurityErrorCode()) {
-          case GRANT_INVALID:
-            throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
-          case PERMISSION_DENIED:
-            if (canGive)
-              throw new AccumuloException(client.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
-            return;
-          case USER_DOESNT_EXIST:
-            if (userExists)
-              throw new AccumuloException("Table user doesn't exist and they SHOULD.", ae);
-            return;
-          case TABLE_DOESNT_EXIST:
-            if (tableExists)
-              throw new AccumuloException("Table doesn't exist but it should", ae);
-            return;
-          case BAD_CREDENTIALS:
-            if (!trans)
-              throw new AccumuloException("Bad credentials for user " + client.whoami());
-            return;
-          default:
-            throw new AccumuloException("Got unexpected exception", ae);
-        }
-      }
-      WalkingSecurity.get(state, env).grantTablePermission(target, tableName, tabPerm);
-    }
-
-    if (!userExists)
-      throw new AccumuloException("User shouldn't have existed, but apparently does");
-    if (!tableExists)
-      throw new AccumuloException("Table shouldn't have existed, but apparently does");
-    if (!canGive)
-      throw new AccumuloException(client.whoami() + " shouldn't have been able to grant privilege");
-
   }
-
 }

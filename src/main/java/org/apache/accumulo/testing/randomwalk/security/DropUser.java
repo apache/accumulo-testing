@@ -31,40 +31,41 @@ public class DropUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
-    AccumuloClient client = env.getAccumuloClient().changeUser(sysPrincipal, WalkingSecurity.get(state, env).getSysToken());
+    try (AccumuloClient client = env.createClient(sysPrincipal, WalkingSecurity.get(state, env).getSysToken())) {
 
-    String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
+      String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
-    boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
-    boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.DROP_USER);
+      boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.DROP_USER);
 
-    try {
-      client.securityOperations().dropLocalUser(tableUserName);
-    } catch (AccumuloSecurityException ae) {
-      switch (ae.getSecurityErrorCode()) {
-        case PERMISSION_DENIED:
-          if (hasPermission)
-            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-          else {
-            if (exists) {
-              env.getAccumuloClient().securityOperations().dropLocalUser(tableUserName);
-              WalkingSecurity.get(state, env).dropUser(tableUserName);
+      try {
+        client.securityOperations().dropLocalUser(tableUserName);
+      } catch (AccumuloSecurityException ae) {
+        switch (ae.getSecurityErrorCode()) {
+          case PERMISSION_DENIED:
+            if (hasPermission)
+              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+            else {
+              if (exists) {
+                env.getAccumuloClient().securityOperations().dropLocalUser(tableUserName);
+                WalkingSecurity.get(state, env).dropUser(tableUserName);
+              }
+              return;
             }
-            return;
-          }
 
-        case USER_DOESNT_EXIST:
-          if (exists)
-            throw new AccumuloException("Got user DNE exception when user should exists.", ae);
-          else
-            return;
-        default:
-          throw new AccumuloException("Got unexpected exception", ae);
+          case USER_DOESNT_EXIST:
+            if (exists)
+              throw new AccumuloException("Got user DNE exception when user should exists.", ae);
+            else
+              return;
+          default:
+            throw new AccumuloException("Got unexpected exception", ae);
+        }
       }
+      WalkingSecurity.get(state, env).dropUser(tableUserName);
+      Thread.sleep(1000);
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
     }
-    WalkingSecurity.get(state, env).dropUser(tableUserName);
-    Thread.sleep(1000);
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
   }
 }

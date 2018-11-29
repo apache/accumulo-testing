@@ -40,43 +40,44 @@ public class Authenticate extends Test {
     String targetProp = props.getProperty("target");
     boolean success = Boolean.parseBoolean(props.getProperty("valid"));
 
-    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
+    try (AccumuloClient client = env.createClient(principal, token)) {
 
-    String target;
+      String target;
 
-    if (targetProp.equals("table")) {
-      target = WalkingSecurity.get(state, env).getTabUserName();
-    } else {
-      target = WalkingSecurity.get(state, env).getSysUserName();
-    }
-    boolean exists = WalkingSecurity.get(state, env).userExists(target);
-    // Copy so if failed it doesn't mess with the password stored in state
-    byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target), WalkingSecurity.get(state, env).getUserPassword(target).length);
-    boolean hasPermission = client.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM) || principal.equals(target);
-
-    if (!success)
-      for (int i = 0; i < password.length; i++)
-        password[i]++;
-
-    boolean result;
-
-    try {
-      result = client.securityOperations().authenticateUser(target, new PasswordToken(password));
-    } catch (AccumuloSecurityException ae) {
-      switch (ae.getSecurityErrorCode()) {
-        case PERMISSION_DENIED:
-          if (exists && hasPermission)
-            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-          else
-            return;
-        default:
-          throw new AccumuloException("Unexpected exception!", ae);
+      if (targetProp.equals("table")) {
+        target = WalkingSecurity.get(state, env).getTabUserName();
+      } else {
+        target = WalkingSecurity.get(state, env).getSysUserName();
       }
+      boolean exists = WalkingSecurity.get(state, env).userExists(target);
+      // Copy so if failed it doesn't mess with the password stored in state
+      byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target), WalkingSecurity.get(state, env).getUserPassword(target).length);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM) || principal.equals(target);
+
+      if (!success)
+        for (int i = 0; i < password.length; i++)
+          password[i]++;
+
+      boolean result;
+
+      try {
+        result = client.securityOperations().authenticateUser(target, new PasswordToken(password));
+      } catch (AccumuloSecurityException ae) {
+        switch (ae.getSecurityErrorCode()) {
+          case PERMISSION_DENIED:
+            if (exists && hasPermission)
+              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+            else
+              return;
+          default:
+            throw new AccumuloException("Unexpected exception!", ae);
+        }
+      }
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
+      if (result != (success && exists))
+        throw new AccumuloException("Authentication " + (result ? "succeeded" : "failed") + " when it should have "
+            + ((success && exists) ? "succeeded" : "failed") + " while the user exists? " + exists);
     }
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
-    if (result != (success && exists))
-      throw new AccumuloException("Authentication " + (result ? "succeeded" : "failed") + " when it should have "
-          + ((success && exists) ? "succeeded" : "failed") + " while the user exists? " + exists);
   }
 }

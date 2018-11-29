@@ -45,50 +45,51 @@ public class ChangePass extends Test {
       principal = WalkingSecurity.get(state, env).getTabUserName();
       token = WalkingSecurity.get(state, env).getTabToken();
     }
-    AccumuloClient client = env.getAccumuloClient().changeUser(principal, token);
+    try (AccumuloClient client = env.createClient(principal, token)) {
 
-    boolean hasPerm;
-    boolean targetExists;
-    if (target.equals("table")) {
-      target = WalkingSecurity.get(state, env).getTabUserName();
-    } else
-      target = WalkingSecurity.get(state, env).getSysUserName();
+      boolean hasPerm;
+      boolean targetExists;
+      if (target.equals("table")) {
+        target = WalkingSecurity.get(state, env).getTabUserName();
+      } else
+        target = WalkingSecurity.get(state, env).getSysUserName();
 
-    targetExists = WalkingSecurity.get(state, env).userExists(target);
+      targetExists = WalkingSecurity.get(state, env).userExists(target);
 
-    hasPerm = client.securityOperations().hasSystemPermission(principal, SystemPermission.ALTER_USER) || principal.equals(target);
+      hasPerm = client.securityOperations().hasSystemPermission(principal, SystemPermission.ALTER_USER) || principal.equals(target);
 
-    Random r = new Random();
+      Random r = new Random();
 
-    byte[] newPassw = new byte[r.nextInt(50) + 1];
-    for (int i = 0; i < newPassw.length; i++)
-      newPassw[i] = (byte) ((r.nextInt(26) + 65) & 0xFF);
+      byte[] newPassw = new byte[r.nextInt(50) + 1];
+      for (int i = 0; i < newPassw.length; i++)
+        newPassw[i] = (byte) ((r.nextInt(26) + 65) & 0xFF);
 
-    PasswordToken newPass = new PasswordToken(newPassw);
-    try {
-      client.securityOperations().changeLocalUserPassword(target, newPass);
-    } catch (AccumuloSecurityException ae) {
-      switch (ae.getSecurityErrorCode()) {
-        case PERMISSION_DENIED:
-          if (hasPerm)
-            throw new AccumuloException("Change failed when it should have succeeded to change " + target + "'s password", ae);
-          return;
-        case USER_DOESNT_EXIST:
-          if (targetExists)
-            throw new AccumuloException("User " + target + " doesn't exist and they SHOULD.", ae);
-          return;
-        case BAD_CREDENTIALS:
-          if (!WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
-            throw new AccumuloException("Bad credentials for user " + client.whoami());
-          return;
-        default:
-          throw new AccumuloException("Got unexpected exception", ae);
+      PasswordToken newPass = new PasswordToken(newPassw);
+      try {
+        client.securityOperations().changeLocalUserPassword(target, newPass);
+      } catch (AccumuloSecurityException ae) {
+        switch (ae.getSecurityErrorCode()) {
+          case PERMISSION_DENIED:
+            if (hasPerm)
+              throw new AccumuloException("Change failed when it should have succeeded to change " + target + "'s password", ae);
+            return;
+          case USER_DOESNT_EXIST:
+            if (targetExists)
+              throw new AccumuloException("User " + target + " doesn't exist and they SHOULD.", ae);
+            return;
+          case BAD_CREDENTIALS:
+            if (!WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
+              throw new AccumuloException("Bad credentials for user " + client.whoami());
+            return;
+          default:
+            throw new AccumuloException("Got unexpected exception", ae);
+        }
       }
+      WalkingSecurity.get(state, env).changePassword(target, newPass);
+      // Waiting 1 second for password to propogate through Zk
+      Thread.sleep(1000);
+      if (!hasPerm)
+        throw new AccumuloException("Password change succeeded when it should have failed for " + source + " changing the password for " + target + ".");
     }
-    WalkingSecurity.get(state, env).changePassword(target, newPass);
-    // Waiting 1 second for password to propogate through Zk
-    Thread.sleep(1000);
-    if (!hasPerm)
-      throw new AccumuloException("Password change succeeded when it should have failed for " + source + " changing the password for " + target + ".");
   }
 }
