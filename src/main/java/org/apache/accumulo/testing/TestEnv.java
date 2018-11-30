@@ -14,7 +14,7 @@ import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.hadoop.conf.Configuration;
 
-public class TestEnv {
+public class TestEnv implements AutoCloseable {
 
   protected final Properties testProps;
   private String clientPropsPath;
@@ -115,10 +115,22 @@ public class TestEnv {
   /**
    * Gets an Accumulo client. The same client is reused after the first call.
    */
-  public AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
+  public synchronized AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
     if (client == null) {
       client = Accumulo.newClient().from(info).build();
     }
     return client;
+  }
+
+  public AccumuloClient createClient(String principal, AuthenticationToken token)
+      throws AccumuloSecurityException, AccumuloException {
+    return Accumulo.newClient().from(getInfo()).as(principal, token).build();
+  }
+
+  @Override
+  public void close() throws Exception {
+    if (client != null) {
+      client.close();
+    }
   }
 }

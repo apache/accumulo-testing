@@ -48,52 +48,53 @@ public class SetAuths extends Test {
       authPrincipal = env.getAccumuloUserName();
       authToken = env.getToken();
     }
-    AccumuloClient client = env.getAccumuloClient().changeUser(authPrincipal, authToken);
+    try (AccumuloClient client = env.createClient(authPrincipal, authToken)) {
 
-    boolean exists = WalkingSecurity.get(state, env).userExists(target);
-    boolean hasPermission = client.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
+      boolean exists = WalkingSecurity.get(state, env).userExists(target);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
 
-    Authorizations auths;
-    if (authsString.equals("_random")) {
-      String[] possibleAuths = WalkingSecurity.get(state, env).getAuthsArray();
+      Authorizations auths;
+      if (authsString.equals("_random")) {
+        String[] possibleAuths = WalkingSecurity.get(state, env).getAuthsArray();
 
-      Random r = new Random();
-      int i = r.nextInt(possibleAuths.length);
-      String[] authSet = new String[i];
-      int length = possibleAuths.length;
-      for (int j = 0; j < i; j++) {
-        int nextRand = r.nextInt(length);
-        authSet[j] = possibleAuths[nextRand];
-        length--;
-        possibleAuths[nextRand] = possibleAuths[length];
-        possibleAuths[length] = authSet[j];
+        Random r = new Random();
+        int i = r.nextInt(possibleAuths.length);
+        String[] authSet = new String[i];
+        int length = possibleAuths.length;
+        for (int j = 0; j < i; j++) {
+          int nextRand = r.nextInt(length);
+          authSet[j] = possibleAuths[nextRand];
+          length--;
+          possibleAuths[nextRand] = possibleAuths[length];
+          possibleAuths[length] = authSet[j];
+        }
+        auths = new Authorizations(authSet);
+      } else {
+        auths = new Authorizations(authsString.split(","));
       }
-      auths = new Authorizations(authSet);
-    } else {
-      auths = new Authorizations(authsString.split(","));
-    }
 
-    try {
-      client.securityOperations().changeUserAuthorizations(target, auths);
-    } catch (AccumuloSecurityException ae) {
-      switch (ae.getSecurityErrorCode()) {
-        case PERMISSION_DENIED:
-          if (hasPermission)
-            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-          else
-            return;
-        case USER_DOESNT_EXIST:
-          if (exists)
-            throw new AccumuloException("Got security exception when the user should have existed", ae);
-          else
-            return;
-        default:
-          throw new AccumuloException("Got unexpected exception", ae);
+      try {
+        client.securityOperations().changeUserAuthorizations(target, auths);
+      } catch (AccumuloSecurityException ae) {
+        switch (ae.getSecurityErrorCode()) {
+          case PERMISSION_DENIED:
+            if (hasPermission)
+              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+            else
+              return;
+          case USER_DOESNT_EXIST:
+            if (exists)
+              throw new AccumuloException("Got security exception when the user should have existed", ae);
+            else
+              return;
+          default:
+            throw new AccumuloException("Got unexpected exception", ae);
+        }
       }
+      WalkingSecurity.get(state, env).changeAuthorizations(target, auths);
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
     }
-    WalkingSecurity.get(state, env).changeAuthorizations(target, auths);
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
   }
 
 }

@@ -32,41 +32,42 @@ public class CreateUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
-    AccumuloClient client = env.getAccumuloClient().changeUser(sysPrincipal, WalkingSecurity.get(state, env).getSysToken());
+    try (AccumuloClient client = env.createClient(sysPrincipal, WalkingSecurity.get(state, env).getSysToken())) {
 
-    String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
+      String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
-    boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
-    boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.CREATE_USER);
-    PasswordToken tabUserPass = new PasswordToken("Super Sekret Table User Password");
-    try {
-      client.securityOperations().createLocalUser(tableUserName, tabUserPass);
-    } catch (AccumuloSecurityException ae) {
-      switch (ae.getSecurityErrorCode()) {
-        case PERMISSION_DENIED:
-          if (hasPermission)
-            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-          else {
-            // create user anyway for sake of state
-            if (!exists) {
-              env.getAccumuloClient().securityOperations().createLocalUser(tableUserName, tabUserPass);
-              WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
-              Thread.sleep(1000);
+      boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.CREATE_USER);
+      PasswordToken tabUserPass = new PasswordToken("Super Sekret Table User Password");
+      try {
+        client.securityOperations().createLocalUser(tableUserName, tabUserPass);
+      } catch (AccumuloSecurityException ae) {
+        switch (ae.getSecurityErrorCode()) {
+          case PERMISSION_DENIED:
+            if (hasPermission)
+              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+            else {
+              // create user anyway for sake of state
+              if (!exists) {
+                env.getAccumuloClient().securityOperations().createLocalUser(tableUserName, tabUserPass);
+                WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
+                Thread.sleep(1000);
+              }
+              return;
             }
-            return;
-          }
-        case USER_EXISTS:
-          if (!exists)
-            throw new AccumuloException("Got security exception when the user shouldn't have existed", ae);
-          else
-            return;
-        default:
-          throw new AccumuloException("Got unexpected exception", ae);
+          case USER_EXISTS:
+            if (!exists)
+              throw new AccumuloException("Got security exception when the user shouldn't have existed", ae);
+            else
+              return;
+          default:
+            throw new AccumuloException("Got unexpected exception", ae);
+        }
       }
+      WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
+      Thread.sleep(1000);
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
     }
-    WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
-    Thread.sleep(1000);
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
   }
 }

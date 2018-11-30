@@ -33,44 +33,46 @@ public class CreateTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    AccumuloClient client = env.getAccumuloClient().changeUser(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken());
+    try (AccumuloClient client = env.createClient(WalkingSecurity.get(state, env).getSysUserName(),
+        WalkingSecurity.get(state, env).getSysToken())) {
 
-    String tableName = WalkingSecurity.get(state, env).getTableName();
+      String tableName = WalkingSecurity.get(state, env).getTableName();
 
-    boolean exists = WalkingSecurity.get(state, env).getTableExists();
-    boolean hasPermission = client.securityOperations().hasSystemPermission(WalkingSecurity.get(state, env).getSysUserName(), SystemPermission.CREATE_TABLE);
+      boolean exists = WalkingSecurity.get(state, env).getTableExists();
+      boolean hasPermission = client.securityOperations().hasSystemPermission(WalkingSecurity.get(state, env).getSysUserName(), SystemPermission.CREATE_TABLE);
 
-    try {
-      client.tableOperations().create(tableName);
-    } catch (AccumuloSecurityException ae) {
-      if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
-        if (hasPermission)
-          throw new AccumuloException("Got a security exception when I should have had permission.", ae);
-        else {
-          // create table anyway for sake of state
-          try {
-            env.getAccumuloClient().tableOperations().create(tableName);
-            WalkingSecurity.get(state, env).initTable(tableName);
-          } catch (TableExistsException tee) {
-            if (exists)
-              return;
-            else
-              throw new AccumuloException("Test and Accumulo are out of sync");
+      try {
+        client.tableOperations().create(tableName);
+      } catch (AccumuloSecurityException ae) {
+        if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
+          if (hasPermission)
+            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+          else {
+            // create table anyway for sake of state
+            try {
+              env.getAccumuloClient().tableOperations().create(tableName);
+              WalkingSecurity.get(state, env).initTable(tableName);
+            } catch (TableExistsException tee) {
+              if (exists)
+                return;
+              else
+                throw new AccumuloException("Test and Accumulo are out of sync");
+            }
+            return;
           }
+        } else
+          throw new AccumuloException("Got unexpected error", ae);
+      } catch (TableExistsException tee) {
+        if (!exists)
+          throw new TableExistsException(null, tableName, "Got a TableExistsException but it shouldn't have existed", tee);
+        else
           return;
-        }
-      } else
-        throw new AccumuloException("Got unexpected error", ae);
-    } catch (TableExistsException tee) {
-      if (!exists)
-        throw new TableExistsException(null, tableName, "Got a TableExistsException but it shouldn't have existed", tee);
-      else
-        return;
+      }
+      WalkingSecurity.get(state, env).initTable(tableName);
+      for (TablePermission tp : TablePermission.values())
+        WalkingSecurity.get(state, env).grantTablePermission(client.whoami(), tableName, tp);
+      if (!hasPermission)
+        throw new AccumuloException("Didn't get Security Exception when we should have");
     }
-    WalkingSecurity.get(state, env).initTable(tableName);
-    for (TablePermission tp : TablePermission.values())
-      WalkingSecurity.get(state, env).grantTablePermission(client.whoami(), tableName, tp);
-    if (!hasPermission)
-      throw new AccumuloException("Didn't get Security Exception when we should have");
   }
 }
