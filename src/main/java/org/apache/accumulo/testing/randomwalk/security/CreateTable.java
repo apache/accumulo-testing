@@ -33,8 +33,7 @@ public class CreateTable extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    try (AccumuloClient client = env.createClient(WalkingSecurity.get(state, env).getSysUserName(),
-        WalkingSecurity.get(state, env).getSysToken())) {
+    try (AccumuloClient client = env.createClient(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env).getSysToken())) {
 
       String tableName = WalkingSecurity.get(state, env).getTableName();
 

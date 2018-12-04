@@ -26,6 +26,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -174,7 +175,7 @@ public class ContinuousVerify extends Configured implements Tool {
 
     AccumuloInputFormat.setRanges(job, ranges);
     AccumuloInputFormat.setAutoAdjustRanges(job, false);
-    AccumuloInputFormat.setClientInfo(job, env.getInfo());
+    AccumuloInputFormat.setClientInfo(job, ClientInfo.from(env.getClientProps()));
 
     job.setMapperClass(CMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
