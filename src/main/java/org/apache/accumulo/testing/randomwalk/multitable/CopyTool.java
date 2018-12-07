@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -58,9 +57,8 @@ public class CopyTool extends Configured implements Tool {
     }
 
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
-    ClientInfo info = ClientInfo.from(props);
     job.setInputFormatClass(AccumuloInputFormat.class);
-    AccumuloInputFormat.setClientInfo(job, info);
+    AccumuloInputFormat.setClientProperties(job, props);
     AccumuloInputFormat.setInputTableName(job, args[1]);
     AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
 
@@ -70,7 +68,7 @@ public class CopyTool extends Configured implements Tool {
     job.setNumReduceTasks(0);
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setClientInfo(job, info);
+    AccumuloOutputFormat.setClientProperties(job, props);
     AccumuloOutputFormat.setCreateTables(job, true);
     AccumuloOutputFormat.setDefaultTableName(job, args[2]);
 

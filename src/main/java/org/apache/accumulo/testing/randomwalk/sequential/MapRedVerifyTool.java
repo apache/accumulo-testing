@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -89,10 +88,10 @@ public class MapRedVerifyTool extends Configured implements Tool {
     }
 
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
-    AccumuloInputFormat.setClientInfo(job, ClientInfo.from(props));
+    AccumuloInputFormat.setClientProperties(job, props);
     AccumuloInputFormat.setInputTableName(job, args[1]);
 
-    AccumuloOutputFormat.setClientInfo(job, ClientInfo.from(props));
+    AccumuloOutputFormat.setClientProperties(job, props);
     AccumuloOutputFormat.setDefaultTableName(job, args[2]);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
