@@ -35,7 +35,7 @@ public class SecurityFixture extends Fixture {
   public void setUp(State state, RandWalkEnv env) throws Exception {
     String secTableName, systemUserName, tableUserName, secNamespaceName;
     // A best-effort sanity check to guard against not password-based auth
-    if (env.getInfo().getProperties().getProperty(ClientProperty.AUTH_TYPE.getKey()).equals("kerberos")) {
+    if (env.getClientProps().getProperty(ClientProperty.AUTH_TYPE.getKey()).equals("kerberos")) {
       throw new IllegalStateException("Security module currently cannot support Kerberos/SASL instances");
     }
 

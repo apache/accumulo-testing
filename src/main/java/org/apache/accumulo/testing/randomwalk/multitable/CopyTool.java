@@ -17,6 +17,7 @@
 package org.apache.accumulo.testing.randomwalk.multitable;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.ClientInfo;
@@ -56,7 +57,8 @@ public class CopyTool extends Configured implements Tool {
       return 1;
     }
 
-    ClientInfo info = Accumulo.newClient().from(args[0]).info();
+    Properties props = Accumulo.newClientProperties().from(args[0]).build();
+    ClientInfo info = ClientInfo.from(props);
     job.setInputFormatClass(AccumuloInputFormat.class);
     AccumuloInputFormat.setClientInfo(job, info);
     AccumuloInputFormat.setInputTableName(job, args[1]);

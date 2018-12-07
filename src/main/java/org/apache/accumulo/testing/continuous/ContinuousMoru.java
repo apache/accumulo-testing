@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -123,7 +124,7 @@ public class ContinuousMoru extends Configured implements Tool {
 
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    AccumuloInputFormat.setClientInfo(job, env.getInfo());
+    AccumuloInputFormat.setClientInfo(job, ClientInfo.from(env.getClientProps()));
     AccumuloInputFormat.setInputTableName(job, env.getAccumuloTableName());
 
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
@@ -140,7 +141,7 @@ public class ContinuousMoru extends Configured implements Tool {
     job.setMapperClass(CMapper.class);
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setClientInfo(job, env.getInfo());
+    AccumuloOutputFormat.setClientInfo(job, ClientInfo.from(env.getClientProps()));
     AccumuloOutputFormat.setCreateTables(job, true);
     AccumuloOutputFormat.setDefaultTableName(job, env.getAccumuloTableName());
 

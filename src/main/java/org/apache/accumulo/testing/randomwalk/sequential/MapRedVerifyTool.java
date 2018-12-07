@@ -18,6 +18,7 @@ package org.apache.accumulo.testing.randomwalk.sequential;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.ClientInfo;
@@ -87,11 +88,11 @@ public class MapRedVerifyTool extends Configured implements Tool {
       return 1;
     }
 
-    ClientInfo info = Accumulo.newClient().from(args[0]).info();
-    AccumuloInputFormat.setClientInfo(job, info);
+    Properties props = Accumulo.newClientProperties().from(args[0]).build();
+    AccumuloInputFormat.setClientInfo(job, ClientInfo.from(props));
     AccumuloInputFormat.setInputTableName(job, args[1]);
 
-    AccumuloOutputFormat.setClientInfo(job, info);
+    AccumuloOutputFormat.setClientInfo(job, ClientInfo.from(props));
     AccumuloOutputFormat.setDefaultTableName(job, args[2]);
 
     job.setInputFormatClass(AccumuloInputFormat.class);

@@ -42,6 +42,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.InstanceOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -60,14 +61,14 @@ public class Replication extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     final AccumuloClient c = env.getAccumuloClient();
-    final String instName = c.info().getInstanceName();
+    final String instName = ClientProperty.INSTANCE_NAME.getValue(c.properties());
+    final String zookeepers = ClientProperty.INSTANCE_ZOOKEEPERS.getValue(c.properties());
     final InstanceOperations iOps = c.instanceOperations();
     final TableOperations tOps = c.tableOperations();
 
     // Replicate to ourselves
     iOps.setProperty(REPLICATION_NAME.getKey(), instName);
-    iOps.setProperty(REPLICATION_PEERS.getKey() + instName, "org.apache.accumulo.tserver.replication.AccumuloReplicaSystem," + instName + ","
-        + c.info().getZooKeepers());
+    iOps.setProperty(REPLICATION_PEERS.getKey() + instName, "org.apache.accumulo.tserver.replication.AccumuloReplicaSystem," + instName + "," + zookeepers);
     iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getAccumuloUserName());
     iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getAccumuloPassword());
     // Tweak some replication parameters to make the replication go faster

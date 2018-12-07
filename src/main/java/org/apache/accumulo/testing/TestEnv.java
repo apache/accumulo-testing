@@ -7,9 +7,6 @@ import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientInfo;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.hadoop.conf.Configuration;
@@ -18,7 +15,7 @@ public class TestEnv implements AutoCloseable {
 
   protected final Properties testProps;
   private String clientPropsPath;
-  private ClientInfo info;
+  private final Properties clientProps;
   private AccumuloClient client = null;
   private Configuration hadoopConfig = null;
 
@@ -27,14 +24,20 @@ public class TestEnv implements AutoCloseable {
     requireNonNull(clientPropsPath);
     this.testProps = TestProps.loadFromFile(testPropsPath);
     this.clientPropsPath = clientPropsPath;
-    this.info = ClientInfo.from(TestProps.loadFromFile(clientPropsPath));
+    this.clientProps = Accumulo.newClientProperties().from(clientPropsPath).build();
+  }
+
+  private Properties copyProperties(Properties props) {
+    Properties result = new Properties();
+    props.forEach((key, value) -> result.setProperty((String) key, (String) value));
+    return result;
   }
 
   /**
    * @return a copy of the test properties
    */
   public Properties getTestProperties() {
-    return new Properties(testProps);
+    return copyProperties(testProps);
   }
 
   /**
@@ -48,8 +51,8 @@ public class TestEnv implements AutoCloseable {
     return clientPropsPath;
   }
 
-  public ClientInfo getInfo() {
-    return info;
+  public Properties getClientProps() {
+    return copyProperties(clientProps);
   }
 
   /**
@@ -58,7 +61,7 @@ public class TestEnv implements AutoCloseable {
    * @return username
    */
   public String getAccumuloUserName() {
-    return info.getPrincipal();
+    return ClientProperty.AUTH_PRINCIPAL.getValue(clientProps);
   }
 
   /**
@@ -67,9 +70,9 @@ public class TestEnv implements AutoCloseable {
    * @return password
    */
   public String getAccumuloPassword() {
-    String authType = info.getProperties().getProperty(ClientProperty.AUTH_TYPE.getKey());
+    String authType = ClientProperty.AUTH_TYPE.getValue(clientProps);
     if (authType.equals("password")) {
-      return info.getProperties().getProperty(ClientProperty.AUTH_TOKEN.getKey());
+      return ClientProperty.AUTH_TOKEN.getValue(clientProps);
     }
     return null;
   }
@@ -101,7 +104,7 @@ public class TestEnv implements AutoCloseable {
    * Gets an authentication token based on the configured password.
    */
   public AuthenticationToken getToken() {
-    return info.getAuthenticationToken();
+    return ClientProperty.getAuthenticationToken(clientProps);
   }
 
   public String getHdfsRoot() {
@@ -115,16 +118,15 @@ public class TestEnv implements AutoCloseable {
   /**
    * Gets an Accumulo client. The same client is reused after the first call.
    */
-  public synchronized AccumuloClient getAccumuloClient() throws AccumuloException, AccumuloSecurityException {
+  public synchronized AccumuloClient getAccumuloClient() {
     if (client == null) {
-      client = Accumulo.newClient().from(info).build();
+      client = Accumulo.newClient().from(clientProps).build();
     }
     return client;
   }
 
-  public AccumuloClient createClient(String principal, AuthenticationToken token)
-      throws AccumuloSecurityException, AccumuloException {
-    return Accumulo.newClient().from(getInfo()).as(principal, token).build();
+  public AccumuloClient createClient(String principal, AuthenticationToken token) {
+    return Accumulo.newClient().from(clientProps).as(principal, token).build();
   }
 
   @Override
