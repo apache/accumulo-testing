@@ -61,7 +61,9 @@ public class RandomWorkload {
   }
 
   public void run(RandomWorkloadOpts opts, BatchWriterConfig cfg) throws Exception {
-    run(opts.getClient(), opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax, opts.deletePercent);
+    try (AccumuloClient client = opts.createClient()) {
+      run(client, opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax, opts.deletePercent);
+    }
   }
 
   public void run(final AccumuloClient client, final String tableName, final BatchWriterConfig cfg, final long numRecords, int rowMax, int cfMax, int cqMax,
@@ -71,14 +73,13 @@ public class RandomWorkload {
     final Random cfRand = new Random(12346);
     final Random cqRand = new Random(12347);
     final Random deleteRand = new Random(12348);
-    long valueCounter = 0l;
+    long valueCounter = 0L;
 
     if (!client.tableOperations().exists(tableName)) {
       client.tableOperations().create(tableName);
     }
 
-    BatchWriter bw = client.createBatchWriter(tableName, cfg);
-    try {
+    try (BatchWriter bw = client.createBatchWriter(tableName, cfg)) {
       final Text row = new Text(), cf = new Text(), cq = new Text();
       final Value value = new Value();
       for (long i = 0; i < numRecords; i++) {
@@ -104,8 +105,6 @@ public class RandomWorkload {
 
         valueCounter++;
       }
-    } finally {
-      bw.close();
     }
   }
 

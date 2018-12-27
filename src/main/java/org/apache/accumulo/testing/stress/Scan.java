@@ -38,28 +38,29 @@ public class Scan {
     ScanOpts opts = new ScanOpts();
     opts.parseArgs(Scan.class.getName(), args);
 
-    AccumuloClient client = opts.getClient();
-    Scanner scanner = client.createScanner(opts.getTableName(), new Authorizations());
+    try (AccumuloClient client = opts.createClient()) {
+      Scanner scanner = client.createScanner(opts.getTableName(), new Authorizations());
 
-    if (opts.isolate) {
-      scanner.enableIsolation();
-    }
-
-    Random tablet_index_generator = new Random(opts.scan_seed);
-
-    LoopControl scanning_condition = opts.continuous ? new ContinuousLoopControl() : new IterativeLoopControl(opts.scan_iterations);
-
-    while (scanning_condition.keepScanning()) {
-      Range range = pickRange(client.tableOperations(), opts.getTableName(), tablet_index_generator);
-      scanner.setRange(range);
-      if (opts.batch_size > 0) {
-        scanner.setBatchSize(opts.batch_size);
+      if (opts.isolate) {
+        scanner.enableIsolation();
       }
-      try {
-        consume(scanner);
-      } catch (Exception e) {
-        System.err.println(String.format("Exception while scanning range %s. Check the state of Accumulo for errors.", range));
-        throw e;
+
+      Random tablet_index_generator = new Random(opts.scan_seed);
+
+      LoopControl scanning_condition = opts.continuous ? new ContinuousLoopControl() : new IterativeLoopControl(opts.scan_iterations);
+
+      while (scanning_condition.keepScanning()) {
+        Range range = pickRange(client.tableOperations(), opts.getTableName(), tablet_index_generator);
+        scanner.setRange(range);
+        if (opts.batch_size > 0) {
+          scanner.setBatchSize(opts.batch_size);
+        }
+        try {
+          consume(scanner);
+        } catch (Exception e) {
+          System.err.println(String.format("Exception while scanning range %s. Check the state of Accumulo for errors.", range));
+          throw e;
+        }
       }
     }
   }

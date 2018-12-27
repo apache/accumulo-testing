@@ -18,11 +18,15 @@ package org.apache.accumulo.testing.mapreduce;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.core.clientImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
+import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -68,14 +72,18 @@ public class RowHash extends Configured implements Tool {
     Opts opts = new Opts();
     opts.parseArgs(RowHash.class.getName(), args);
     job.setInputFormatClass(AccumuloInputFormat.class);
-    opts.setAccumuloConfigs(job);
 
     String col = opts.column;
     int idx = col.indexOf(":");
     Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
     Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
+    Collection<IteratorSetting.Column> cols = Collections.emptyList();
     if (cf.getLength() > 0)
-      AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<>(cf, cq)));
+      cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
+
+    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties()).table(opts.getTableName()).auths(opts.auths).fetchColumns(cols).store(job);
+
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties()).defaultTable(opts.getTableName()).createTables(true).store(job);
 
     job.setMapperClass(HashDataMapper.class);
     job.setMapOutputKeyClass(Text.class);

@@ -80,48 +80,29 @@ public class GenerateHashes {
     @Parameter(names = {"-s", "--splits"}, required = false, description = "File of splits to use for merkle tree")
     private String splitsFile = null;
 
-    public String getHashName() {
+    String getHashName() {
       return hashName;
     }
 
-    public void setHashName(String hashName) {
-      this.hashName = hashName;
-    }
-
-    public String getOutputTableName() {
+    String getOutputTableName() {
       return outputTableName;
     }
 
-    public void setOutputTableName(String outputTableName) {
-      this.outputTableName = outputTableName;
-    }
-
-    public int getNumThreads() {
+    int getNumThreads() {
       return numThreads;
     }
 
-    public void setNumThreads(int numThreads) {
-      this.numThreads = numThreads;
-    }
-
-    public boolean isIteratorPushdown() {
+    boolean isIteratorPushdown() {
       return iteratorPushdown;
     }
 
-    public void setIteratorPushdown(boolean iteratorPushdown) {
-      this.iteratorPushdown = iteratorPushdown;
-    }
-
-    public String getSplitsFile() {
+    String getSplitsFile() {
       return splitsFile;
     }
 
-    public void setSplitsFile(String splitsFile) {
-      this.splitsFile = splitsFile;
-    }
   }
 
-  public Collection<Range> getRanges(AccumuloClient client, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
+  Collection<Range> getRanges(AccumuloClient client, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
       AccumuloException, FileNotFoundException {
     if (null == splitsFile) {
       log.info("Using table split points");
@@ -132,16 +113,13 @@ public class GenerateHashes {
       ArrayList<Text> splits = new ArrayList<>();
 
       String line;
-      java.util.Scanner file = new java.util.Scanner(new File(splitsFile), UTF_8.name());
-      try {
+      try (java.util.Scanner file = new java.util.Scanner(new File(splitsFile), UTF_8.name())) {
         while (file.hasNextLine()) {
           line = file.nextLine();
           if (!line.isEmpty()) {
             splits.add(new Text(line));
           }
         }
-      } finally {
-        file.close();
       }
 
       Collections.sort(splits);
@@ -151,13 +129,14 @@ public class GenerateHashes {
 
   public void run(GenerateHashesOpts opts) throws TableNotFoundException, AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException,
       FileNotFoundException {
-    Collection<Range> ranges = getRanges(opts.getClient(), opts.getTableName(), opts.getSplitsFile());
-
-    run(opts.getClient(), opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+    try (AccumuloClient client = opts.createClient()) {
+      Collection<Range> ranges = getRanges(client, opts.getTableName(), opts.getSplitsFile());
+      run(client, opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+    }
   }
 
   public void run(final AccumuloClient client, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
-      final boolean iteratorPushdown, final Collection<Range> ranges) throws TableNotFoundException, AccumuloSecurityException, AccumuloException,
+      final boolean iteratorPushdown, final Collection<Range> ranges) throws TableNotFoundException, AccumuloException,
       NoSuchAlgorithmException {
     if (!client.tableOperations().exists(outputTableName)) {
       throw new IllegalArgumentException(outputTableName + " does not exist, please create it");
@@ -165,68 +144,63 @@ public class GenerateHashes {
 
     // Get some parallelism
     ExecutorService svc = Executors.newFixedThreadPool(numThreads);
-    final BatchWriter bw = client.createBatchWriter(outputTableName, new BatchWriterConfig());
 
-    try {
+    try (BatchWriter bw = client.createBatchWriter(outputTableName, new BatchWriterConfig())) {
       for (final Range range : ranges) {
         final MessageDigest digest = getDigestAlgorithm(digestName);
 
-        svc.execute(new Runnable() {
+        svc.execute(() -> {
+          Scanner s;
+          try {
+            s = client.createScanner(inputTableName, Authorizations.EMPTY);
+          } catch (Exception e) {
+            log.error("Could not get scanner for " + inputTableName, e);
+            throw new RuntimeException(e);
+          }
 
-          @Override
-          public void run() {
-            Scanner s;
-            try {
-              s = client.createScanner(inputTableName, Authorizations.EMPTY);
-            } catch (Exception e) {
-              log.error("Could not get scanner for " + inputTableName, e);
-              throw new RuntimeException(e);
-            }
+          s.setRange(range);
 
-            s.setRange(range);
+          Value v;
+          Mutation m;
+          if (iteratorPushdown) {
+            IteratorSetting cfg = new IteratorSetting(50, DigestIterator.class);
+            cfg.addOption(DigestIterator.HASH_NAME_KEY, digestName);
+            s.addScanIterator(cfg);
 
-            Value v = null;
-            Mutation m = null;
-            if (iteratorPushdown) {
-              IteratorSetting cfg = new IteratorSetting(50, DigestIterator.class);
-              cfg.addOption(DigestIterator.HASH_NAME_KEY, digestName);
-              s.addScanIterator(cfg);
+            // The scanner should only ever return us one
+            // Key-Value, otherwise this approach won't work
+            Entry<Key,Value> entry = Iterables.getOnlyElement(s);
 
-              // The scanner should only ever return us one
-              // Key-Value, otherwise this approach won't work
-              Entry<Key,Value> entry = Iterables.getOnlyElement(s);
-
-              v = entry.getValue();
-              m = RangeSerialization.toMutation(range, v);
-            } else {
-              ByteArrayOutputStream baos = new ByteArrayOutputStream();
-              for (Entry<Key,Value> entry : s) {
-                DataOutputStream out = new DataOutputStream(baos);
-                try {
-                  entry.getKey().write(out);
-                  entry.getValue().write(out);
-                } catch (Exception e) {
-                  log.error("Error writing {}", entry, e);
-                  throw new RuntimeException(e);
-                }
-
-                digest.update(baos.toByteArray());
-                baos.reset();
+            v = entry.getValue();
+            m = RangeSerialization.toMutation(range, v);
+          } else {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            for (Entry<Key,Value> entry : s) {
+              DataOutputStream out = new DataOutputStream(baos);
+              try {
+                entry.getKey().write(out);
+                entry.getValue().write(out);
+              } catch (Exception e) {
+                log.error("Error writing {}", entry, e);
+                throw new RuntimeException(e);
               }
 
-              v = new Value(digest.digest());
-              m = RangeSerialization.toMutation(range, v);
+              digest.update(baos.toByteArray());
+              baos.reset();
             }
 
-            // Log some progress
-            log.info("{} computed digest for {} of {}", Thread.currentThread().getName(), range, Hex.encodeHexString(v.get()));
+            v = new Value(digest.digest());
+            m = RangeSerialization.toMutation(range, v);
+          }
 
-            try {
-              bw.addMutation(m);
-            } catch (MutationsRejectedException e) {
-              log.error("Could not write mutation", e);
-              throw new RuntimeException(e);
-            }
+          // Log some progress
+          log.info("{} computed digest for {} of {}", Thread.currentThread().getName(), range, Hex.encodeHexString(v.get()));
+
+          try {
+            bw.addMutation(m);
+          } catch (MutationsRejectedException e) {
+            log.error("Could not write mutation", e);
+            throw new RuntimeException(e);
           }
         });
       }
@@ -243,14 +217,10 @@ public class GenerateHashes {
           return;
         }
       }
-    } finally {
-      // We can only safely close this when we're exiting or we've
-      // completely all tasks
-      bw.close();
     }
   }
 
-  public TreeSet<Range> endRowsToRanges(Collection<Text> endRows) {
+  private TreeSet<Range> endRowsToRanges(Collection<Text> endRows) {
     ArrayList<Text> sortedEndRows = new ArrayList<>(endRows);
     Collections.sort(sortedEndRows);
 
@@ -270,7 +240,7 @@ public class GenerateHashes {
     return ranges;
   }
 
-  protected MessageDigest getDigestAlgorithm(String digestName) throws NoSuchAlgorithmException {
+  private MessageDigest getDigestAlgorithm(String digestName) throws NoSuchAlgorithmException {
     return MessageDigest.getInstance(digestName);
   }
 

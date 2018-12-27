@@ -42,7 +42,7 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
     RandWalkEnv env = EasyMock.createMock(RandWalkEnv.class);
     EasyMock.expect(env.getAccumuloUserName()).andReturn("root").anyTimes();
     EasyMock.expect(env.getAccumuloPassword()).andReturn(ROOT_PASSWORD).anyTimes();
-    EasyMock.expect(env.getAccumuloClient()).andReturn(this.getClient()).anyTimes();
+    EasyMock.expect(env.getAccumuloClient()).andReturn(this.createClient()).anyTimes();
     EasyMock.replay(env);
 
     r.visit(null, env, null);

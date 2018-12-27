@@ -184,7 +184,7 @@ public class TestIngest {
     String name = TestIngest.class.getSimpleName();
     DistributedTrace.enable(name);
 
-    try {
+    try (AccumuloClient client = opts.createClient()) {
       opts.startTracing(name);
 
       if (opts.debug)
@@ -192,7 +192,7 @@ public class TestIngest {
 
       // test batch update
 
-      ingest(opts.getClient(), opts, bwOpts);
+      ingest(client, opts, bwOpts);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {

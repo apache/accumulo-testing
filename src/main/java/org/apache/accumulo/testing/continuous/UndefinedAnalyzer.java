@@ -16,12 +16,9 @@
  */
 package org.apache.accumulo.testing.continuous;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.cli.BatchScannerOpts;
 import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -44,18 +42,17 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 
-import com.beust.jcommander.Parameter;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * BUGS This code does not handle the fact that these files could include log events from previous months. It therefore it assumes all dates are in the current
  * month. One solution might be to skip log files that haven't been touched in the last month, but that doesn't prevent newer files that have old dates in them.
- *
  */
 public class UndefinedAnalyzer {
 
   static class UndefinedNode {
 
-    public UndefinedNode(String undef2, String ref2) {
+    UndefinedNode(String undef2, String ref2) {
       this.undef = undef2;
       this.ref = ref2;
     }
@@ -68,14 +65,9 @@ public class UndefinedAnalyzer {
 
     Map<String,TreeMap<Long,Long>> flushes = new HashMap<>();
 
-    public IngestInfo(String logDir) throws Exception {
+    IngestInfo(String logDir) throws Exception {
       File dir = new File(logDir);
-      File[] ingestLogs = dir.listFiles(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.endsWith("ingest.out");
-        }
-      });
+      File[] ingestLogs = dir.listFiles((dir1, name) -> name.endsWith("ingest.out"));
 
       if (ingestLogs != null) {
         for (File log : ingestLogs) {
@@ -85,10 +77,9 @@ public class UndefinedAnalyzer {
     }
 
     private void parseLog(File log) throws Exception {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(log), UTF_8));
       String line;
       TreeMap<Long,Long> tm = null;
-      try {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(log), UTF_8))) {
         while ((line = reader.readLine()) != null) {
           if (!line.startsWith("UUID"))
             continue;
@@ -102,7 +93,7 @@ public class UndefinedAnalyzer {
           }
 
           tm = new TreeMap<>(Collections.reverseOrder());
-          tm.put(0l, Long.parseLong(time));
+          tm.put(0L, Long.parseLong(time));
           flushes.put(uuid, tm);
           break;
 
@@ -123,8 +114,6 @@ public class UndefinedAnalyzer {
 
           tm.put(Long.parseLong(count), Long.parseLong(time));
         }
-      } finally {
-        reader.close();
       }
     }
 
@@ -174,21 +163,16 @@ public class UndefinedAnalyzer {
       // The command may need to be adjusted if formatting changes.
 
       File dir = new File(acuLogDir);
-      File[] masterLogs = dir.listFiles(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.matches("load_events.log");
-        }
-      });
+      File[] masterLogs = dir.listFiles((dir1, name) -> name.matches("load_events.log"));
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
       if (masterLogs != null) {
         for (File masterLog : masterLogs) {
 
-          BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(masterLog), UTF_8));
           String line;
-          try {
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+              new FileInputStream(masterLog), UTF_8))) {
             while ((line = reader.readLine()) != null) {
               String[] tokens = line.split("\\s+");
               String day = tokens[0];
@@ -228,8 +212,6 @@ public class UndefinedAnalyzer {
                 System.err.println("Cannot parse tablet " + tablet);
               }
             }
-          } finally {
-            reader.close();
           }
         }
       }
@@ -280,77 +262,69 @@ public class UndefinedAnalyzer {
       undefs.add(new UndefinedNode(undef, ref));
     }
 
-    AccumuloClient client = opts.getClient();
-    BatchScanner bscanner = client.createBatchScanner(opts.getTableName(), opts.auths, bsOpts.scanThreads);
-    bscanner.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
-    List<Range> refs = new ArrayList<>();
+    try (AccumuloClient client = opts.createClient();
+         BatchScanner bscanner = client.createBatchScanner(opts.getTableName(), opts.auths,
+             bsOpts.scanThreads)) {
+      bscanner.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
+      List<Range> refs = new ArrayList<>();
 
-    for (UndefinedNode undefinedNode : undefs)
-      refs.add(new Range(new Text(undefinedNode.ref)));
+      for (UndefinedNode undefinedNode : undefs)
+        refs.add(new Range(new Text(undefinedNode.ref)));
 
-    bscanner.setRanges(refs);
+      bscanner.setRanges(refs);
 
-    HashMap<String,List<String>> refInfo = new HashMap<>();
+      HashMap<String, List<String>> refInfo = new HashMap<>();
 
-    for (Entry<Key,Value> entry : bscanner) {
-      String ref = entry.getKey().getRow().toString();
-      List<String> vals = refInfo.get(ref);
-      if (vals == null) {
-        vals = new ArrayList<>();
-        refInfo.put(ref, vals);
+      for (Entry<Key, Value> entry : bscanner) {
+        String ref = entry.getKey().getRow().toString();
+        List<String> vals = refInfo.computeIfAbsent(ref, k -> new ArrayList<>());
+        vals.add(entry.getValue().toString());
       }
 
-      vals.add(entry.getValue().toString());
-    }
+      IngestInfo ingestInfo = new IngestInfo(opts.logDir);
+      String tableId = client.tableOperations().tableIdMap().get(opts.getTableName());
+      TabletHistory tabletHistory = new TabletHistory(tableId, opts.logDir);
 
-    bscanner.close();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-    IngestInfo ingestInfo = new IngestInfo(opts.logDir);
-    String tableId = client.tableOperations().tableIdMap().get(opts.getTableName());
-    TabletHistory tabletHistory = new TabletHistory(tableId, opts.logDir);
+      for (UndefinedNode undefinedNode : undefs) {
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        List<String> refVals = refInfo.get(undefinedNode.ref);
+        if (refVals != null) {
+          for (String refVal : refVals) {
+            TabletAssignment ta = null;
 
-    for (UndefinedNode undefinedNode : undefs) {
+            String[] tokens = refVal.split(":");
 
-      List<String> refVals = refInfo.get(undefinedNode.ref);
-      if (refVals != null) {
-        for (String refVal : refVals) {
-          TabletAssignment ta = null;
+            String uuid = tokens[0];
+            String count = tokens[1];
 
-          String[] tokens = refVal.split(":");
+            String t1 = "";
+            String t2 = "";
 
-          String uuid = tokens[0];
-          String count = tokens[1];
-
-          String t1 = "";
-          String t2 = "";
-
-          Iterator<Long> times = ingestInfo.getTimes(uuid, Long.parseLong(count, 16));
-          if (times != null) {
-            if (times.hasNext()) {
-              long time2 = times.next();
-              t2 = sdf.format(new Date(time2));
+            Iterator<Long> times = ingestInfo.getTimes(uuid, Long.parseLong(count, 16));
+            if (times != null) {
               if (times.hasNext()) {
-                long time1 = times.next();
-                t1 = sdf.format(new Date(time1));
-                ta = tabletHistory.findMostRecentAssignment(undefinedNode.undef, time1, time2);
+                long time2 = times.next();
+                t2 = sdf.format(new Date(time2));
+                if (times.hasNext()) {
+                  long time1 = times.next();
+                  t1 = sdf.format(new Date(time1));
+                  ta = tabletHistory.findMostRecentAssignment(undefinedNode.undef, time1, time2);
+                }
               }
             }
+
+            if (ta == null)
+              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + uuid + " " + t1 + " " + t2);
+            else
+              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + ta.tablet + " " + ta.server + " " + uuid + " " + t1 + " " + t2);
+
           }
-
-          if (ta == null)
-            System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + uuid + " " + t1 + " " + t2);
-          else
-            System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + ta.tablet + " " + ta.server + " " + uuid + " " + t1 + " " + t2);
-
+        } else {
+          System.out.println(undefinedNode.undef + " " + undefinedNode.ref);
         }
-      } else {
-        System.out.println(undefinedNode.undef + " " + undefinedNode.ref);
       }
-
     }
-
   }
-
 }

@@ -46,50 +46,51 @@ public class ManualComparison {
     ManualComparisonOpts opts = new ManualComparisonOpts();
     opts.parseArgs("ManualComparison", args);
 
-    AccumuloClient client = opts.getClient();
+    try (AccumuloClient client = opts.createClient()) {
 
-    Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY), s2 = client.createScanner(opts.table2, Authorizations.EMPTY);
-    Iterator<Entry<Key,Value>> iter1 = s1.iterator(), iter2 = s2.iterator();
-    boolean incrementFirst = true, incrementSecond = true;
+      Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY), s2 = client.createScanner(opts.table2, Authorizations.EMPTY);
+      Iterator<Entry<Key,Value>> iter1 = s1.iterator(), iter2 = s2.iterator();
+      boolean incrementFirst = true, incrementSecond = true;
 
-    Entry<Key,Value> entry1 = iter1.next(), entry2 = iter2.next();
-    while (iter1.hasNext() && iter2.hasNext()) {
-      if (incrementFirst) {
-        entry1 = iter1.next();
-      }
-      if (incrementSecond) {
-        entry2 = iter2.next();
-      }
-      incrementFirst = false;
-      incrementSecond = false;
+      Entry<Key,Value> entry1 = iter1.next(), entry2 = iter2.next();
+      while (iter1.hasNext() && iter2.hasNext()) {
+        if (incrementFirst) {
+          entry1 = iter1.next();
+        }
+        if (incrementSecond) {
+          entry2 = iter2.next();
+        }
+        incrementFirst = false;
+        incrementSecond = false;
 
-      if (!entry1.equals(entry2)) {
+        if (!entry1.equals(entry2)) {
 
-        if (entry1.getKey().compareTo(entry2.getKey()) < 0) {
-          System.out.println("Exist in original " + entry1);
-          incrementFirst = true;
-        } else if (entry2.getKey().compareTo(entry1.getKey()) < 0) {
-          System.out.println("Exist in replica " + entry2);
-          incrementSecond = true;
+          if (entry1.getKey().compareTo(entry2.getKey()) < 0) {
+            System.out.println("Exist in original " + entry1);
+            incrementFirst = true;
+          } else if (entry2.getKey().compareTo(entry1.getKey()) < 0) {
+            System.out.println("Exist in replica " + entry2);
+            incrementSecond = true;
+          } else {
+            System.out.println("Differ... " + entry1 + " " + entry2);
+            incrementFirst = true;
+            incrementSecond = true;
+          }
         } else {
-          System.out.println("Differ... " + entry1 + " " + entry2);
           incrementFirst = true;
           incrementSecond = true;
         }
-      } else {
-        incrementFirst = true;
-        incrementSecond = true;
       }
-    }
 
-    System.out.println("\nExtra entries from " + opts.table1);
-    while (iter1.hasNext()) {
-      System.out.println(iter1.next());
-    }
+      System.out.println("\nExtra entries from " + opts.table1);
+      while (iter1.hasNext()) {
+        System.out.println(iter1.next());
+      }
 
-    System.out.println("\nExtra entries from " + opts.table2);
-    while (iter2.hasNext()) {
-      System.out.println(iter2.next());
+      System.out.println("\nExtra entries from " + opts.table2);
+      while (iter2.hasNext()) {
+        System.out.println(iter2.next());
+      }
     }
   }
 }

@@ -49,23 +49,20 @@ public class ComputeRootHash {
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
     private String hashName;
 
-    public String getHashName() {
+    String getHashName() {
       return hashName;
     }
 
-    public void setHashName(String hashName) {
-      this.hashName = hashName;
+  }
+
+  private byte[] getHash(ComputeRootHashOpts opts) throws TableNotFoundException, NoSuchAlgorithmException {
+    try (AccumuloClient client = opts.createClient()) {
+      String table = opts.getTableName();
+      return getHash(client, table, opts.getHashName());
     }
   }
 
-  public byte[] getHash(ComputeRootHashOpts opts) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, NoSuchAlgorithmException {
-    AccumuloClient client = opts.getClient();
-    String table = opts.getTableName();
-
-    return getHash(client, table, opts.getHashName());
-  }
-
-  public byte[] getHash(AccumuloClient client, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
+  byte[] getHash(AccumuloClient client, String table, String hashName) throws TableNotFoundException, NoSuchAlgorithmException {
     List<MerkleTreeNode> leaves = getLeaves(client, table);
 
     MerkleTree tree = new MerkleTree(leaves, hashName);
@@ -73,7 +70,7 @@ public class ComputeRootHash {
     return tree.getRootNode().getHash();
   }
 
-  protected ArrayList<MerkleTreeNode> getLeaves(AccumuloClient client, String tableName) throws TableNotFoundException {
+  private ArrayList<MerkleTreeNode> getLeaves(AccumuloClient client, String tableName) throws TableNotFoundException {
     // TODO make this a bit more resilient to very large merkle trees by
     // lazily reading more data from the table when necessary
     final Scanner s = client.createScanner(tableName, Authorizations.EMPTY);
@@ -83,7 +80,7 @@ public class ComputeRootHash {
       Range range = RangeSerialization.toRange(entry.getKey());
       byte[] hash = entry.getValue().get();
 
-      leaves.add(new MerkleTreeNode(range, 0, Collections.<Range> emptyList(), hash));
+      leaves.add(new MerkleTreeNode(range, 0, Collections.emptyList(), hash));
     }
 
     return leaves;

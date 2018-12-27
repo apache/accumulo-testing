@@ -27,7 +27,7 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.core.clientImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
+import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
@@ -76,8 +76,6 @@ public class TeraSortIngest extends Configured implements Tool {
     static class RangeInputSplit extends InputSplit implements Writable {
       long firstRow;
       long rowCount;
-
-      public RangeInputSplit() {}
 
       public RangeInputSplit(long offset, long length) {
         firstRow = offset;

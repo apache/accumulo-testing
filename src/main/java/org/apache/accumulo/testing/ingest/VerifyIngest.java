@@ -48,20 +48,20 @@ public class VerifyIngest {
     return Integer.parseInt(k.getRow().toString().split("_")[1]);
   }
 
-  public static int getCol(Key k) {
+  private static int getCol(Key k) {
     return Integer.parseInt(k.getColumnQualifier().toString().split("_")[1]);
   }
 
   public static class Opts extends TestIngest.Opts {
     @Parameter(names = "-useGet", description = "fetches values one at a time, instead of scanning")
-    public boolean useGet = false;
+    boolean useGet = false;
   }
 
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     ScannerOpts scanOpts = new ScannerOpts();
     opts.parseArgs(VerifyIngest.class.getName(), args, scanOpts);
-    try {
+    try (AccumuloClient client = opts.createClient()) {
       if (opts.trace) {
         String name = VerifyIngest.class.getSimpleName();
         DistributedTrace.enable();
@@ -69,7 +69,7 @@ public class VerifyIngest {
         Trace.data("cmdLine", Arrays.asList(args).toString());
       }
 
-      verifyIngest(opts.getClient(), opts, scanOpts);
+      verifyIngest(client, opts, scanOpts);
 
     } finally {
       Trace.off();
@@ -77,7 +77,7 @@ public class VerifyIngest {
     }
   }
 
-  public static void verifyIngest(AccumuloClient client, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
+  private static void verifyIngest(AccumuloClient client, Opts opts, ScannerOpts scanOpts) throws AccumuloException, AccumuloSecurityException,
       TableNotFoundException {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 
@@ -121,7 +121,7 @@ public class VerifyIngest {
 
         byte ev[];
         if (opts.random != null) {
-          ev = TestIngest.genRandomValue(random, randomValue, opts.random.intValue(), expectedRow, expectedCol);
+          ev = TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow, expectedCol);
         } else {
           ev = bytevals[expectedCol % bytevals.length];
         }
@@ -188,7 +188,7 @@ public class VerifyIngest {
 
           byte value[];
           if (opts.random != null) {
-            value = TestIngest.genRandomValue(random, randomValue, opts.random.intValue(), expectedRow, colNum);
+            value = TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow, colNum);
           } else {
             value = bytevals[colNum % bytevals.length];
           }
