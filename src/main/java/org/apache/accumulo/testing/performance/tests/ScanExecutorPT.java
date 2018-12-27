@@ -61,7 +61,8 @@ public class ScanExecutorPT implements PerformanceTest {
   private static final String TEST_DESC = "Scan Executor Test.  Test running lots of short scans "
       + "while long scans are running in the background.  Each short scan reads a random row and "
       + "family. Using execution hints, short scans are randomly either given a high priority or "
-      + "a dedicated executor.  If the scan prioritizer or dispatcher is not working properly, " + "then the short scans will be orders of magnitude slower.";
+      + "a dedicated executor.  If the scan prioritizer or dispatcher is not working properly, "
+      + "then the short scans will be orders of magnitude slower.";
 
   @Override
   public SystemConfiguration getSystemConfig() {
@@ -69,10 +70,14 @@ public class ScanExecutorPT implements PerformanceTest {
 
     siteCfg.put(Property.TSERV_SCAN_MAX_OPENFILES.getKey(), "200");
     siteCfg.put(Property.TSERV_MINTHREADS.getKey(), "200");
-    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.threads", SCAN_EXECUTOR_THREADS);
-    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer", SCAN_PRIORITIZER);
-    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.threads", SCAN_EXECUTOR_THREADS);
-    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer", SCAN_PRIORITIZER);
+    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.threads",
+        SCAN_EXECUTOR_THREADS);
+    siteCfg
+        .put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer", SCAN_PRIORITIZER);
+    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.threads",
+        SCAN_EXECUTOR_THREADS);
+    siteCfg
+        .put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer", SCAN_PRIORITIZER);
 
     return new SystemConfiguration().setAccumuloConfig(siteCfg);
   }
@@ -135,7 +140,8 @@ public class ScanExecutorPT implements PerformanceTest {
     return builder.build();
   }
 
-  private static long scan(String tableName, AccumuloClient c, byte[] row, byte[] fam, Map<String,String> hints) throws TableNotFoundException {
+  private static long scan(String tableName, AccumuloClient c, byte[] row, byte[] fam,
+      Map<String,String> hints) throws TableNotFoundException {
     long t1 = System.currentTimeMillis();
     int count = 0;
     try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
@@ -149,7 +155,8 @@ public class ScanExecutorPT implements PerformanceTest {
     return System.currentTimeMillis() - t1;
   }
 
-  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, Map<String,String> hints) throws TableNotFoundException {
+  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, Map<String,String> hints)
+      throws TableNotFoundException {
     long count = 0;
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {

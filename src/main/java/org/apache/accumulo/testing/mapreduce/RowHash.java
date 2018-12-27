@@ -50,7 +50,8 @@ public class RowHash extends Configured implements Tool {
     @Override
     public void map(Key row, Value data, Context context) throws IOException, InterruptedException {
       Mutation m = new Mutation(row.getRow());
-      m.put(new Text("cf-HASHTYPE"), new Text("cq-MD5BASE64"), new Value(Base64.getEncoder().encode(MD5Hash.digest(data.toString()).getDigest())));
+      m.put(new Text("cf-HASHTYPE"), new Text("cq-MD5BASE64"), new Value(Base64.getEncoder()
+          .encode(MD5Hash.digest(data.toString()).getDigest())));
       context.write(null, m);
       context.progress();
     }
@@ -81,9 +82,11 @@ public class RowHash extends Configured implements Tool {
     if (cf.getLength() > 0)
       cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
 
-    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties()).table(opts.getTableName()).auths(opts.auths).fetchColumns(cols).store(job);
+    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties())
+        .table(opts.getTableName()).auths(opts.auths).fetchColumns(cols).store(job);
 
-    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties()).defaultTable(opts.getTableName()).createTables(true).store(job);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
+        .defaultTable(opts.getTableName()).createTables(true).store(job);
 
     job.setMapperClass(HashDataMapper.class);
     job.setMapOutputKeyClass(Text.class);

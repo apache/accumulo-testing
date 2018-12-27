@@ -29,8 +29,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import com.beust.jcommander.Parameter;
 
 /**
- * Accepts two table names and enumerates all key-values pairs in both checking for correctness. All differences between the two tables will be printed to the
- * console.
+ * Accepts two table names and enumerates all key-values pairs in both checking for correctness. All
+ * differences between the two tables will be printed to the console.
  */
 public class ManualComparison {
 
@@ -48,7 +48,8 @@ public class ManualComparison {
 
     try (AccumuloClient client = opts.createClient()) {
 
-      Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY), s2 = client.createScanner(opts.table2, Authorizations.EMPTY);
+      Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY), s2 = client
+          .createScanner(opts.table2, Authorizations.EMPTY);
       Iterator<Entry<Key,Value>> iter1 = s1.iterator(), iter2 = s2.iterator();
       boolean incrementFirst = true, incrementSecond = true;
 

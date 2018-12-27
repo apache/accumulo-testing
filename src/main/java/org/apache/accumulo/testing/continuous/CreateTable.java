@@ -40,7 +40,8 @@ public class CreateTable {
       System.exit(-1);
     }
 
-    int numTablets = Integer.parseInt(env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
+    int numTablets = Integer
+        .parseInt(env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
     if (numTablets < 1) {
       System.err.println("ERROR: numTablets < 1");
       System.exit(-1);
@@ -66,6 +67,7 @@ public class CreateTable {
     }
 
     client.tableOperations().addSplits(tableName, splits);
-    System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
+    System.out
+        .println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
   }
 }

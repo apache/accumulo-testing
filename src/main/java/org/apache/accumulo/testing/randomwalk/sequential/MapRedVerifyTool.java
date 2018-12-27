@@ -50,7 +50,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
 
   public static class SeqReduceClass extends Reducer<NullWritable,IntWritable,Text,Mutation> {
     @Override
-    public void reduce(NullWritable ignore, Iterable<IntWritable> values, Context output) throws IOException, InterruptedException {
+    public void reduce(NullWritable ignore, Iterable<IntWritable> values, Context output)
+        throws IOException, InterruptedException {
       Iterator<IntWritable> iterator = values.iterator();
 
       if (!iterator.hasNext()) {
@@ -70,7 +71,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
       writeMutation(output, start, index);
     }
 
-    private void writeMutation(Context output, int start, int end) throws IOException, InterruptedException {
+    private void writeMutation(Context output, int start, int end) throws IOException,
+        InterruptedException {
       Mutation m = new Mutation(new Text(String.format("%010d", start)));
       m.put(new Text(String.format("%010d", end)), new Text(""), new Value(new byte[0]));
       output.write(null, m);
@@ -90,7 +92,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
 
     AccumuloInputFormat.configure().clientProperties(props).table(args[1]).store(job);
-    AccumuloOutputFormat.configure().clientProperties(props).defaultTable(args[2]).createTables(true).store(job);
+    AccumuloOutputFormat.configure().clientProperties(props).defaultTable(args[2])
+        .createTables(true).store(job);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
     job.setMapperClass(SeqMapClass.class);

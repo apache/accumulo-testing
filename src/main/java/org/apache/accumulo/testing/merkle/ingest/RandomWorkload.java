@@ -39,16 +39,20 @@ public class RandomWorkload {
     @Parameter(names = {"-n", "--num"}, required = true, description = "Num records to write")
     public long numRecords;
 
-    @Parameter(names = {"-r", "--rows"}, required = true, description = "Range of rows that can be generated")
+    @Parameter(names = {"-r", "--rows"}, required = true,
+        description = "Range of rows that can be generated")
     public int rowMax;
 
-    @Parameter(names = {"-cf", "--colfams"}, required = true, description = "Range of column families that can be generated")
+    @Parameter(names = {"-cf", "--colfams"}, required = true,
+        description = "Range of column families that can be generated")
     public int cfMax;
 
-    @Parameter(names = {"-cq", "--colquals"}, required = true, description = "Range of column qualifiers that can be generated")
+    @Parameter(names = {"-cq", "--colquals"}, required = true,
+        description = "Range of column qualifiers that can be generated")
     public int cqMax;
 
-    @Parameter(names = {"-d", "--deletes"}, required = false, description = "Percentage of updates that should be deletes")
+    @Parameter(names = {"-d", "--deletes"}, required = false,
+        description = "Percentage of updates that should be deletes")
     public int deletePercent = 5;
 
     public RandomWorkloadOpts() {
@@ -62,12 +66,13 @@ public class RandomWorkload {
 
   public void run(RandomWorkloadOpts opts, BatchWriterConfig cfg) throws Exception {
     try (AccumuloClient client = opts.createClient()) {
-      run(client, opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax, opts.deletePercent);
+      run(client, opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax,
+          opts.deletePercent);
     }
   }
 
-  public void run(final AccumuloClient client, final String tableName, final BatchWriterConfig cfg, final long numRecords, int rowMax, int cfMax, int cqMax,
-      int deletePercent) throws Exception {
+  public void run(final AccumuloClient client, final String tableName, final BatchWriterConfig cfg,
+      final long numRecords, int rowMax, int cfMax, int cqMax, int deletePercent) throws Exception {
 
     final Random rowRand = new Random(12345);
     final Random cfRand = new Random(12346);

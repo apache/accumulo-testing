@@ -126,7 +126,8 @@ public class ContinuousIngest {
     AccumuloClient client = env.getAccumuloClient();
     String tableName = env.getAccumuloTableName();
     if (!client.tableOperations().exists(tableName)) {
-      throw new TableNotFoundException(null, tableName, "Consult the README and create the table before starting ingest.");
+      throw new TableNotFoundException(null, tableName,
+          "Consult the README and create the table before starting ingest.");
     }
 
     BatchWriter bw = client.createBatchWriter(tableName);
@@ -136,7 +137,8 @@ public class ContinuousIngest {
 
     byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
 
-    log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId, UTF_8)));
+    log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId,
+        UTF_8)));
 
     long count = 0;
     final int flushInterval = 1000000;
@@ -200,7 +202,8 @@ public class ContinuousIngest {
           long rowLong = genLong(rowMin, rowMax, r);
           byte[] prevRow = genRow(prevRows[index]);
           prevRows[index] = rowLong;
-          Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv, ingestInstanceId, count, prevRow, checksum);
+          Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv,
+              ingestInstanceId, count, prevRow, checksum);
           count++;
           bw.addMutation(m);
         }
@@ -214,8 +217,8 @@ public class ContinuousIngest {
       // create one big linked list, this makes all of the first inserts
       // point to something
       for (int index = 0; index < flushInterval - 1; index++) {
-        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv, ingestInstanceId, count, genRow(prevRows[index + 1]),
-            checksum);
+        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
+            ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
         count++;
         bw.addMutation(m);
       }
@@ -227,17 +230,19 @@ public class ContinuousIngest {
     bw.close();
   }
 
-  private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime) throws MutationsRejectedException {
+  private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime)
+      throws MutationsRejectedException {
     long t1 = System.currentTimeMillis();
     bw.flush();
     long t2 = System.currentTimeMillis();
-    log.info(String.format("FLUSH %d %d %d %d %d", t2, (t2 - lastFlushTime), (t2 - t1), count, flushInterval));
+    log.info(String.format("FLUSH %d %d %d %d %d", t2, (t2 - lastFlushTime), (t2 - t1), count,
+        flushInterval));
     lastFlushTime = t2;
     return lastFlushTime;
   }
 
-  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv, byte[] ingestInstanceId, long count, byte[] prevRow,
-      boolean checksum) {
+  public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
+      byte[] ingestInstanceId, long count, byte[] prevRow, boolean checksum) {
     // Adler32 is supposed to be faster, but according to wikipedia is not
     // good for small data.... so used CRC32 instead
     CRC32 cksum = null;
@@ -257,7 +262,8 @@ public class ContinuousIngest {
 
     Mutation m = new Mutation(new Text(rowString));
 
-    m.put(new Text(cfString), new Text(cqString), cv, createValue(ingestInstanceId, count, prevRow, cksum));
+    m.put(new Text(cfString), new Text(cqString), cv,
+        createValue(ingestInstanceId, count, prevRow, cksum));
     return m;
   }
 
@@ -273,7 +279,8 @@ public class ContinuousIngest {
     return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
   }
 
-  private static Value createValue(byte[] ingestInstanceId, long count, byte[] prevRow, Checksum cksum) {
+  private static Value createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
+      Checksum cksum) {
     int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
     if (cksum != null)
       dataLen += 8;

@@ -37,12 +37,14 @@ public class SequentialFixture extends Fixture {
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
 
-    seqTableName = String.format("sequential_%s_%s_%d", hostname, env.getPid(), System.currentTimeMillis());
+    seqTableName = String.format("sequential_%s_%s_%d", hostname, env.getPid(),
+        System.currentTimeMillis());
     state.set("seqTableName", seqTableName);
 
     try {
       client.tableOperations().create(seqTableName);
-      log.debug("Created table " + seqTableName + " (id:" + client.tableOperations().tableIdMap().get(seqTableName) + ")");
+      log.debug("Created table " + seqTableName + " (id:"
+          + client.tableOperations().tableIdMap().get(seqTableName) + ")");
     } catch (TableExistsException e) {
       log.warn("Table " + seqTableName + " already exists!");
       throw e;

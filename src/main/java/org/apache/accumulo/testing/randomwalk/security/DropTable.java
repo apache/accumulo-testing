@@ -57,18 +57,22 @@ public class DropTable extends Test {
       boolean exists = WalkingSecurity.get(state, env).getTableExists();
 
       try {
-        hasPermission = client.securityOperations().hasTablePermission(principal, tableName, TablePermission.DROP_TABLE)
-            || client.securityOperations().hasSystemPermission(principal, SystemPermission.DROP_TABLE);
+        hasPermission = client.securityOperations().hasTablePermission(principal, tableName,
+            TablePermission.DROP_TABLE)
+            || client.securityOperations().hasSystemPermission(principal,
+                SystemPermission.DROP_TABLE);
         client.tableOperations().delete(tableName);
       } catch (AccumuloSecurityException ae) {
         if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
           if (exists)
-            throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", ae);
+            throw new TableExistsException(null, tableName,
+                "Got a TableNotFoundException but it should have existed", ae);
           else
             return;
         } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
           if (hasPermission)
-            throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+            throw new AccumuloException(
+                "Got a security exception when I should have had permission.", ae);
           else {
             // Drop anyway for sake of state
             env.getAccumuloClient().tableOperations().delete(tableName);
@@ -82,7 +86,8 @@ public class DropTable extends Test {
         throw new AccumuloException("Got unexpected ae error code", ae);
       } catch (TableNotFoundException tnfe) {
         if (exists)
-          throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should have existed", tnfe);
+          throw new TableExistsException(null, tableName,
+              "Got a TableNotFoundException but it should have existed", tnfe);
         else
           return;
       }

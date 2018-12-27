@@ -39,10 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.Parameter;
 
 /**
- * Accepts a set of tables, computes the hashes for each, and prints the top-level hash for each table.
+ * Accepts a set of tables, computes the hashes for each, and prints the top-level hash for each
+ * table.
  * <p>
- * Will automatically create output tables for intermediate hashes instead of requiring their existence. This will raise an exception when the table we want to
- * use already exists.
+ * Will automatically create output tables for intermediate hashes instead of requiring their
+ * existence. This will raise an exception when the table we want to use already exists.
  */
 public class CompareTables {
   private static final Logger log = LoggerFactory.getLogger(CompareTables.class);
@@ -51,7 +52,8 @@ public class CompareTables {
     @Parameter(names = {"--tables"}, description = "Tables to compare", variableArity = true)
     public List<String> tables;
 
-    @Parameter(names = {"-nt", "--numThreads"}, description = "number of concurrent threads calculating digests")
+    @Parameter(names = {"-nt", "--numThreads"},
+        description = "number of concurrent threads calculating digests")
     private int numThreads = 4;
 
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
@@ -94,7 +96,8 @@ public class CompareTables {
     this.opts = opts;
   }
 
-  private Map<String,String> computeAllHashes() throws AccumuloException, AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
+  private Map<String,String> computeAllHashes() throws AccumuloException,
+      AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
       TableNotFoundException, FileNotFoundException {
     try (AccumuloClient client = opts.createClient()) {
       final Map<String,String> hashesByTable = new HashMap<>();
@@ -103,7 +106,8 @@ public class CompareTables {
         final String outputTableName = table + "_merkle";
 
         if (client.tableOperations().exists(outputTableName)) {
-          throw new IllegalArgumentException("Expected output table name to not yet exist: " + outputTableName);
+          throw new IllegalArgumentException("Expected output table name to not yet exist: "
+              + outputTableName);
         }
 
         client.tableOperations().create(outputTableName);
@@ -112,14 +116,16 @@ public class CompareTables {
         Collection<Range> ranges = genHashes.getRanges(client, table, opts.getSplitsFile());
 
         try {
-          genHashes.run(client, table, table + "_merkle", opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+          genHashes.run(client, table, table + "_merkle", opts.getHashName(), opts.getNumThreads(),
+              opts.isIteratorPushdown(), ranges);
         } catch (Exception e) {
           log.error("Error generating hashes for {}", table, e);
           throw new RuntimeException(e);
         }
 
         ComputeRootHash computeRootHash = new ComputeRootHash();
-        String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName, opts.getHashName()));
+        String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName,
+            opts.getHashName()));
 
         hashesByTable.put(table, hash);
       }
@@ -133,7 +139,8 @@ public class CompareTables {
     opts.parseArgs("CompareTables", args, bwOpts);
 
     if (opts.isIteratorPushdown() && null != opts.getSplitsFile()) {
-      throw new IllegalArgumentException("Cannot use iterator pushdown with anything other than table split points");
+      throw new IllegalArgumentException(
+          "Cannot use iterator pushdown with anything other than table split points");
     }
 
     CompareTables compareTables = new CompareTables(opts);

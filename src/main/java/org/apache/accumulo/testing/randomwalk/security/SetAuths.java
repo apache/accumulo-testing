@@ -51,7 +51,8 @@ public class SetAuths extends Test {
     try (AccumuloClient client = env.createClient(authPrincipal, authToken)) {
 
       boolean exists = WalkingSecurity.get(state, env).userExists(target);
-      boolean hasPermission = client.securityOperations().hasSystemPermission(authPrincipal, SystemPermission.ALTER_USER);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(authPrincipal,
+          SystemPermission.ALTER_USER);
 
       Authorizations auths;
       if (authsString.equals("_random")) {
@@ -79,12 +80,14 @@ public class SetAuths extends Test {
         switch (ae.getSecurityErrorCode()) {
           case PERMISSION_DENIED:
             if (hasPermission)
-              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+              throw new AccumuloException(
+                  "Got a security exception when I should have had permission.", ae);
             else
               return;
           case USER_DOESNT_EXIST:
             if (exists)
-              throw new AccumuloException("Got security exception when the user should have existed", ae);
+              throw new AccumuloException(
+                  "Got security exception when the user should have existed", ae);
             else
               return;
           default:

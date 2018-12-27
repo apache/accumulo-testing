@@ -59,7 +59,8 @@ public class CopyTool extends Configured implements Tool {
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    AccumuloInputFormat.configure().clientProperties(props).table(args[1]).auths(Authorizations.EMPTY).store(job);
+    AccumuloInputFormat.configure().clientProperties(props).table(args[1])
+        .auths(Authorizations.EMPTY).store(job);
 
     job.setMapperClass(SeqMapClass.class);
     job.setMapOutputKeyClass(Text.class);
@@ -68,7 +69,8 @@ public class CopyTool extends Configured implements Tool {
     job.getConfiguration().set("mapreduce.job.classloader", "true");
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.configure().clientProperties(props).createTables(true).defaultTable(args[2]).store(job);
+    AccumuloOutputFormat.configure().clientProperties(props).createTables(true)
+        .defaultTable(args[2]).store(job);
 
     job.waitForCompletion(true);
     return job.isSuccessful() ? 0 : 1;

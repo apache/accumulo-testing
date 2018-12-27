@@ -39,7 +39,8 @@ public class FrameworkTest {
   // Need to use fully qualified name here because of conflict with
   // org.apache.accumulo.testing.randomwalk.Test
   @org.junit.Test
-  public void testXML() throws SAXException, URISyntaxException, ParserConfigurationException, IOException {
+  public void testXML() throws SAXException, URISyntaxException, ParserConfigurationException,
+      IOException {
     SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     Schema moduleSchema = sf.newSchema(getFile("/randomwalk/module.xsd"));
 
@@ -49,7 +50,8 @@ public class FrameworkTest {
     DocumentBuilder docbuilder = dbf.newDocumentBuilder();
     Document document = docbuilder.parse(getFile("/randomwalk/modules/unit/Basic.xml"));
 
-    assertNotEquals("Parsing randomwalk xml should result in nodes.", 0, document.getChildNodes().getLength());
+    assertNotEquals("Parsing randomwalk xml should result in nodes.", 0, document.getChildNodes()
+        .getLength());
   }
 
   private File getFile(String resource) throws URISyntaxException {

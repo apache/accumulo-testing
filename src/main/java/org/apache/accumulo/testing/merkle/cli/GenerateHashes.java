@@ -59,7 +59,8 @@ import com.beust.jcommander.Parameter;
 import com.google.common.collect.Iterables;
 
 /**
- * Read from a table, compute a Merkle tree and output it to a table. Each key-value pair in the destination table is a leaf node of the Merkle tree.
+ * Read from a table, compute a Merkle tree and output it to a table. Each key-value pair in the
+ * destination table is a leaf node of the Merkle tree.
  */
 public class GenerateHashes {
   private static final Logger log = LoggerFactory.getLogger(GenerateHashes.class);
@@ -68,16 +69,20 @@ public class GenerateHashes {
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
     private String hashName;
 
-    @Parameter(names = {"-o", "--output"}, required = true, description = "output table name, expected to exist and be writable")
+    @Parameter(names = {"-o", "--output"}, required = true,
+        description = "output table name, expected to exist and be writable")
     private String outputTableName;
 
-    @Parameter(names = {"-nt", "--numThreads"}, required = false, description = "number of concurrent threads calculating digests")
+    @Parameter(names = {"-nt", "--numThreads"}, required = false,
+        description = "number of concurrent threads calculating digests")
     private int numThreads = 4;
 
-    @Parameter(names = {"-iter", "--iterator"}, required = false, description = "Should we push down logic with an iterator")
+    @Parameter(names = {"-iter", "--iterator"}, required = false,
+        description = "Should we push down logic with an iterator")
     private boolean iteratorPushdown = false;
 
-    @Parameter(names = {"-s", "--splits"}, required = false, description = "File of splits to use for merkle tree")
+    @Parameter(names = {"-s", "--splits"}, required = false,
+        description = "File of splits to use for merkle tree")
     private String splitsFile = null;
 
     String getHashName() {
@@ -102,8 +107,9 @@ public class GenerateHashes {
 
   }
 
-  Collection<Range> getRanges(AccumuloClient client, String tableName, String splitsFile) throws TableNotFoundException, AccumuloSecurityException,
-      AccumuloException, FileNotFoundException {
+  Collection<Range> getRanges(AccumuloClient client, String tableName, String splitsFile)
+      throws TableNotFoundException, AccumuloSecurityException, AccumuloException,
+      FileNotFoundException {
     if (null == splitsFile) {
       log.info("Using table split points");
       Collection<Text> endRows = client.tableOperations().listSplits(tableName);
@@ -127,11 +133,12 @@ public class GenerateHashes {
     }
   }
 
-  public void run(GenerateHashesOpts opts) throws TableNotFoundException, AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException,
-      FileNotFoundException {
+  public void run(GenerateHashesOpts opts) throws TableNotFoundException,
+      AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException, FileNotFoundException {
     try (AccumuloClient client = opts.createClient()) {
       Collection<Range> ranges = getRanges(client, opts.getTableName(), opts.getSplitsFile());
-      run(client, opts.getTableName(), opts.getOutputTableName(), opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
+      run(client, opts.getTableName(), opts.getOutputTableName(), opts.getHashName(),
+          opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
     }
   }
 
@@ -250,7 +257,8 @@ public class GenerateHashes {
     opts.parseArgs(GenerateHashes.class.getName(), args, bwOpts);
 
     if (opts.isIteratorPushdown() && null != opts.getSplitsFile()) {
-      throw new IllegalArgumentException("Cannot use iterator pushdown with anything other than table split points");
+      throw new IllegalArgumentException(
+          "Cannot use iterator pushdown with anything other than table split points");
     }
 
     GenerateHashes generate = new GenerateHashes();

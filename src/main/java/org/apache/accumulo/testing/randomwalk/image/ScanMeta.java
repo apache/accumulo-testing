@@ -102,7 +102,8 @@ public class ScanMeta extends Test {
     if (!hashes.equals(hashes2)) {
       log.error("uuids from doc table : " + hashes.values());
       log.error("uuids from index     : " + hashes2.values());
-      throw new Exception("Mismatch between document table and index " + indexTableName + " " + imageTableName);
+      throw new Exception("Mismatch between document table and index " + indexTableName + " "
+          + imageTableName);
     }
 
     indexScanner.close();

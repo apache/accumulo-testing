@@ -87,7 +87,8 @@ public class Verify extends Test {
         long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
 
         if (curr - 1 != prev)
-          throw new Exception("Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
+          throw new Exception("Bad marker count " + entry.getKey() + " " + entry.getValue() + " "
+              + prev);
 
         if (!entry.getValue().toString().equals("1"))
           throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());
@@ -96,7 +97,8 @@ public class Verify extends Test {
       }
 
       if (BulkPlusOne.counter.get() != prev) {
-        throw new Exception("Row " + rowText + " does not have all markers " + BulkPlusOne.counter.get() + " " + prev);
+        throw new Exception("Row " + rowText + " does not have all markers "
+            + BulkPlusOne.counter.get() + " " + prev);
       }
     }
 

@@ -66,7 +66,8 @@ public class TestIngest {
     @Parameter(names = "--createTable")
     public boolean createTable = false;
 
-    @Parameter(names = "--splits", description = "the number of splits to use when creating the table")
+    @Parameter(names = "--splits",
+        description = "the number of splits to use when creating the table")
     public int numsplits = 1;
 
     @Parameter(names = "--start", description = "the starting row number")
@@ -78,7 +79,9 @@ public class TestIngest {
     @Parameter(names = "--cols", description = "the number of columns to ingest per row")
     public int cols = 1;
 
-    @Parameter(names = "--random", description = "insert random rows and use the given number to seed the psuedo-random number generator")
+    @Parameter(
+        names = "--random",
+        description = "insert random rows and use the given number to seed the psuedo-random number generator")
     public Integer random = null;
 
     @Parameter(names = "--size", description = "the size of the value to ingest")
@@ -96,10 +99,12 @@ public class TestIngest {
     @Parameter(names = "--stride", description = "the difference between successive row ids")
     public int stride;
 
-    @Parameter(names = {"-cf", "--columnFamily"}, description = "place columns in this column family")
+    @Parameter(names = {"-cf", "--columnFamily"},
+        description = "place columns in this column family")
     public String columnFamily = "colf";
 
-    @Parameter(names = {"-cv", "--columnVisibility"}, description = "place columns in this column family", converter = VisibilityConverter.class)
+    @Parameter(names = {"-cv", "--columnVisibility"},
+        description = "place columns in this column family", converter = VisibilityConverter.class)
     public ColumnVisibility columnVisibility = new ColumnVisibility();
 
     public Configuration conf = null;
@@ -110,9 +115,11 @@ public class TestIngest {
     }
   }
 
-  public static void createTable(AccumuloClient client, Opts args) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+  public static void createTable(AccumuloClient client, Opts args) throws AccumuloException,
+      AccumuloSecurityException, TableExistsException {
     if (args.createTable) {
-      TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows, args.numsplits);
+      TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
+          args.numsplits);
 
       if (!client.tableOperations().exists(args.getTableName()))
         client.tableOperations().create(args.getTableName());
@@ -201,8 +208,9 @@ public class TestIngest {
     }
   }
 
-  public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, BatchWriterOpts bwOpts) throws IOException, AccumuloException,
-      AccumuloSecurityException, TableNotFoundException, MutationsRejectedException, TableExistsException {
+  public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, BatchWriterOpts bwOpts)
+      throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException,
+      MutationsRejectedException, TableExistsException {
     long stopTime;
 
     byte[][] bytevals = generateValues(opts.dataSize);
@@ -219,8 +227,11 @@ public class TestIngest {
 
     if (opts.outputFile != null) {
       Configuration conf = CachedConfiguration.getInstance();
-      writer = FileOperations.getInstance().newWriterBuilder()
-          .forFile(opts.outputFile + "." + RFile.EXTENSION, fs, conf, CryptoServiceFactory.newDefaultInstance())
+      writer = FileOperations
+          .getInstance()
+          .newWriterBuilder()
+          .forFile(opts.outputFile + "." + RFile.EXTENSION, fs, conf,
+              CryptoServiceFactory.newDefaultInstance())
           .withTableConfiguration(DefaultConfiguration.getInstance()).build();
       writer.startDefaultLocalityGroup();
     } else {
@@ -265,7 +276,8 @@ public class TestIngest {
           } else {
             byte value[];
             if (opts.random != null) {
-              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid + opts.startRow, j);
+              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid
+                  + opts.startRow, j);
             } else {
               value = bytevals[j % bytevals.length];
             }
@@ -287,7 +299,8 @@ public class TestIngest {
           } else {
             byte value[];
             if (opts.random != null) {
-              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid + opts.startRow, j);
+              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid
+                  + opts.startRow, j);
             } else {
               value = bytevals[j % bytevals.length];
             }
@@ -316,7 +329,8 @@ public class TestIngest {
       } catch (MutationsRejectedException e) {
         if (e.getSecurityErrorCodes().size() > 0) {
           for (Entry<TabletId,Set<SecurityErrorCode>> entry : e.getSecurityErrorCodes().entrySet()) {
-            System.err.println("ERROR : Not authorized to write to : " + entry.getKey() + " due to " + entry.getValue());
+            System.err.println("ERROR : Not authorized to write to : " + entry.getKey()
+                + " due to " + entry.getValue());
           }
         }
 
@@ -335,12 +349,16 @@ public class TestIngest {
     int totalValues = opts.rows * opts.cols;
     double elapsed = (stopTime - startTime) / 1000.0;
 
-    System.out.printf("%,12d records written | %,8d records/sec | %,12d bytes written | %,8d bytes/sec | %6.3f secs   %n", totalValues,
-        (int) (totalValues / elapsed), bytesWritten, (int) (bytesWritten / elapsed), elapsed);
+    System.out
+        .printf(
+            "%,12d records written | %,8d records/sec | %,12d bytes written | %,8d bytes/sec | %6.3f secs   %n",
+            totalValues, (int) (totalValues / elapsed), bytesWritten,
+            (int) (bytesWritten / elapsed), elapsed);
   }
 
-  public static void ingest(AccumuloClient c, Opts opts, BatchWriterOpts batchWriterOpts) throws MutationsRejectedException, IOException, AccumuloException,
-      AccumuloSecurityException, TableNotFoundException, TableExistsException {
+  public static void ingest(AccumuloClient c, Opts opts, BatchWriterOpts batchWriterOpts)
+      throws MutationsRejectedException, IOException, AccumuloException, AccumuloSecurityException,
+      TableNotFoundException, TableExistsException {
     ingest(c, FileSystem.get(CachedConfiguration.getInstance()), opts, batchWriterOpts);
   }
 }

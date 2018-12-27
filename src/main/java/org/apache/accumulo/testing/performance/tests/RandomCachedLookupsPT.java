@@ -90,23 +90,39 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     long d128 = doLookups(env.getClient(), 128, NUM_LOOKUPS_PER_THREAD);
 
     reportBuilder.id("smalls");
-    reportBuilder.description("Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
-    reportBuilder.info("warmup", 32 * NUM_LOOKUPS_PER_THREAD, warmup, "Random lookup per sec for 32 threads");
-    reportBuilder.info("lookups_1", NUM_LOOKUPS_PER_THREAD, d1, "Random lookup per sec rate for 1 thread");
-    reportBuilder.info("lookups_4", 4 * NUM_LOOKUPS_PER_THREAD, d4, "Random lookup per sec rate for 4 threads");
-    reportBuilder.info("lookups_8", 8 * NUM_LOOKUPS_PER_THREAD, d8, "Random lookup per sec rate for 8 threads");
-    reportBuilder.info("lookups_16", 16 * NUM_LOOKUPS_PER_THREAD, d16, "Random lookup per sec rate for 16 threads");
-    reportBuilder.info("lookups_32", 32 * NUM_LOOKUPS_PER_THREAD, d32, "Random lookup per sec rate for 32 threads");
-    reportBuilder.info("lookups_64", 64 * NUM_LOOKUPS_PER_THREAD, d64, "Random lookup per sec rate for 64 threads");
-    reportBuilder.info("lookups_128", 128 * NUM_LOOKUPS_PER_THREAD, d128, "Random lookup per sec rate for 128 threads");
+    reportBuilder
+        .description("Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
+    reportBuilder.info("warmup", 32 * NUM_LOOKUPS_PER_THREAD, warmup,
+        "Random lookup per sec for 32 threads");
+    reportBuilder.info("lookups_1", NUM_LOOKUPS_PER_THREAD, d1,
+        "Random lookup per sec rate for 1 thread");
+    reportBuilder.info("lookups_4", 4 * NUM_LOOKUPS_PER_THREAD, d4,
+        "Random lookup per sec rate for 4 threads");
+    reportBuilder.info("lookups_8", 8 * NUM_LOOKUPS_PER_THREAD, d8,
+        "Random lookup per sec rate for 8 threads");
+    reportBuilder.info("lookups_16", 16 * NUM_LOOKUPS_PER_THREAD, d16,
+        "Random lookup per sec rate for 16 threads");
+    reportBuilder.info("lookups_32", 32 * NUM_LOOKUPS_PER_THREAD, d32,
+        "Random lookup per sec rate for 32 threads");
+    reportBuilder.info("lookups_64", 64 * NUM_LOOKUPS_PER_THREAD, d64,
+        "Random lookup per sec rate for 64 threads");
+    reportBuilder.info("lookups_128", 128 * NUM_LOOKUPS_PER_THREAD, d128,
+        "Random lookup per sec rate for 128 threads");
 
-    reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 1 thread");
-    reportBuilder.result("avg_4", d4 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 4 threads");
-    reportBuilder.result("avg_8", d8 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 8 threads");
-    reportBuilder.result("avg_16", d16 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 16 threads");
-    reportBuilder.result("avg_32", d32 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 32 threads");
-    reportBuilder.result("avg_64", d64 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 64 threads");
-    reportBuilder.result("avg_128", d128 / (double) NUM_LOOKUPS_PER_THREAD, "Average milliseconds per lookup for 128 threads");
+    reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 1 thread");
+    reportBuilder.result("avg_4", d4 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 4 threads");
+    reportBuilder.result("avg_8", d8 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 8 threads");
+    reportBuilder.result("avg_16", d16 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 16 threads");
+    reportBuilder.result("avg_32", d32 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 32 threads");
+    reportBuilder.result("avg_64", d64 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 64 threads");
+    reportBuilder.result("avg_128", d128 / (double) NUM_LOOKUPS_PER_THREAD,
+        "Average milliseconds per lookup for 128 threads");
 
     return reportBuilder.build();
   }

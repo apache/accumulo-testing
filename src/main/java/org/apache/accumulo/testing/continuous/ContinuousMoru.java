@@ -41,8 +41,10 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * A map only job that reads a table created by continuous ingest and creates doubly linked list. This map reduce job tests the ability of a map only job to
- * read and write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
+ * A map only job that reads a table created by continuous ingest and creates doubly linked list.
+ * This map reduce job tests the ability of a map only job to read and write to accumulo at the same
+ * time. This map reduce job mutates the table in such a way that it should not create any undefined
+ * nodes.
  */
 public class ContinuousMoru extends Configured implements Tool {
   private static final String PREFIX = ContinuousMoru.class.getSimpleName() + ".";
@@ -97,8 +99,8 @@ public class ContinuousMoru extends Configured implements Tool {
         int offset = ContinuousWalk.getPrevRowOffset(val);
         if (offset > 0) {
           long rowLong = Long.parseLong(new String(val, offset, 16, UTF_8), 16);
-          Mutation m = ContinuousIngest.genMutation(rowLong, random.nextInt(max_cf), random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData()
-              .toArray(), true);
+          Mutation m = ContinuousIngest.genMutation(rowLong, random.nextInt(max_cf),
+              random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData().toArray(), true);
           context.write(null, m);
         }
 
@@ -117,20 +119,24 @@ public class ContinuousMoru extends Configured implements Tool {
     }
     ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
+    Job job = Job.getInstance(getConf(),
+        this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
     job.setInputFormatClass(AccumuloInputFormat.class);
 
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
-    Set<Range> ranges = env.getAccumuloClient().tableOperations().splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
+    Set<Range> ranges = env.getAccumuloClient().tableOperations()
+        .splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
 
-    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
+    AccumuloInputFormat.configure().clientProperties(env.getClientProps())
+        .table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
 
     job.setMapperClass(CMapper.class);
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true).defaultTable(env.getAccumuloTableName()).store(job);
+    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+        .defaultTable(env.getAccumuloTableName()).store(job);
 
     Configuration conf = job.getConfiguration();
     conf.setLong(MIN, env.getRowMin());

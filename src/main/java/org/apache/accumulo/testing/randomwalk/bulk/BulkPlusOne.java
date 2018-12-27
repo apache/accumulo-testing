@@ -73,7 +73,8 @@ public class BulkPlusOne extends BulkImportTest {
       printRows.add(String.format(FMT, row));
 
     String markerColumnQualifier = String.format("%07d", counter.incrementAndGet());
-    log.debug("preparing bulk files with start rows " + printRows + " last row " + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
+    log.debug("preparing bulk files with start rows " + printRows + " last row "
+        + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
 
     List<Integer> rows = new ArrayList<>(startRows);
     rows.add(LOTS);
@@ -95,7 +96,8 @@ public class BulkPlusOne extends BulkImportTest {
       }
       writer.close();
     }
-    env.getAccumuloClient().tableOperations().importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
+    env.getAccumuloClient().tableOperations()
+        .importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
     fs.delete(dir, true);
     FileStatus[] failures = fs.listStatus(fail);
     if (failures != null && failures.length > 0) {
@@ -103,7 +105,8 @@ public class BulkPlusOne extends BulkImportTest {
       throw new Exception(failures.length + " failure files found importing files from " + dir);
     }
     fs.delete(fail, true);
-    log.debug("Finished bulk import, start rows " + printRows + " last row " + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
+    log.debug("Finished bulk import, start rows " + printRows + " last row "
+        + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
   }
 
   @Override

@@ -52,7 +52,8 @@ public class DeleteSomeDocs extends Test {
 
     String pattern = patterns.get(rand.nextInt(patterns.size()));
     BatchWriterConfig bwc = new BatchWriterConfig();
-    BatchDeleter ibd = env.getAccumuloClient().createBatchDeleter(indexTableName, Authorizations.EMPTY, 8, bwc);
+    BatchDeleter ibd = env.getAccumuloClient().createBatchDeleter(indexTableName,
+        Authorizations.EMPTY, 8, bwc);
     ibd.setRanges(Collections.singletonList(new Range()));
 
     IteratorSetting iterSettings = new IteratorSetting(100, RegExFilter.class);
@@ -64,7 +65,8 @@ public class DeleteSomeDocs extends Test {
 
     ibd.close();
 
-    BatchDeleter dbd = env.getAccumuloClient().createBatchDeleter(dataTableName, Authorizations.EMPTY, 8, bwc);
+    BatchDeleter dbd = env.getAccumuloClient().createBatchDeleter(dataTableName,
+        Authorizations.EMPTY, 8, bwc);
     dbd.setRanges(Collections.singletonList(new Range()));
 
     iterSettings = new IteratorSetting(100, RegExFilter.class);

@@ -24,8 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The test environment that is available for randomwalk tests. This includes configuration properties that are available to any randomwalk test and facilities
- * for creating client-side objects. This class is not thread-safe.
+ * The test environment that is available for randomwalk tests. This includes configuration
+ * properties that are available to any randomwalk test and facilities for creating client-side
+ * objects. This class is not thread-safe.
  */
 public class RandWalkEnv extends TestEnv {
 
@@ -38,7 +39,8 @@ public class RandWalkEnv extends TestEnv {
   }
 
   /**
-   * Gets a multitable batch writer. The same object is reused after the first call unless it is reset.
+   * Gets a multitable batch writer. The same object is reused after the first call unless it is
+   * reset.
    *
    * @return multitable batch writer
    * @throws NumberFormatException
@@ -46,7 +48,8 @@ public class RandWalkEnv extends TestEnv {
    * @throws NumberFormatException
    *           if any configuration property cannot be parsed
    */
-  public MultiTableBatchWriter getMultiTableBatchWriter() throws AccumuloException, AccumuloSecurityException {
+  public MultiTableBatchWriter getMultiTableBatchWriter() throws AccumuloException,
+      AccumuloSecurityException {
     if (mtbw == null) {
       mtbw = getAccumuloClient().createMultiTableBatchWriter();
     }

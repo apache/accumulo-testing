@@ -38,13 +38,15 @@ public class Merge extends Test {
     log.debug("merging " + indexTableName);
     env.getAccumuloClient().tableOperations().merge(indexTableName, null, null);
     org.apache.accumulo.core.util.Merge merge = new org.apache.accumulo.core.util.Merge();
-    merge.mergomatic((AccumuloClient) env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true);
+    merge.mergomatic((AccumuloClient) env.getAccumuloClient(), indexTableName, null, null,
+        256 * 1024 * 1024, true);
     splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
       // throw an excpetion so that test will die an no further changes to
       // table will occur...
       // this way table is left as is for debugging.
-      throw new Exception("There are more tablets after a merge: " + splits.size() + " was " + splitSet.size());
+      throw new Exception("There are more tablets after a merge: " + splits.size() + " was "
+          + splitSet.size());
     }
   }
 

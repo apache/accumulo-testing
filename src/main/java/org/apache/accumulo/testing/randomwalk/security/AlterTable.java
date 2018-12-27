@@ -36,40 +36,46 @@ public class AlterTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String systemUser = WalkingSecurity.get(state, env).getSysUserName();
-    try (AccumuloClient client = env.createClient(systemUser, WalkingSecurity.get(state, env).getSysToken())) {
+    try (AccumuloClient client = env.createClient(systemUser, WalkingSecurity.get(state, env)
+        .getSysToken())) {
 
       String tableName = WalkingSecurity.get(state, env).getTableName();
 
       boolean exists = WalkingSecurity.get(state, env).getTableExists();
       boolean hasPermission;
       try {
-        hasPermission = client.securityOperations().hasTablePermission(systemUser, tableName, TablePermission.ALTER_TABLE)
-            || client.securityOperations().hasSystemPermission(systemUser, SystemPermission.ALTER_TABLE);
+        hasPermission = client.securityOperations().hasTablePermission(systemUser, tableName,
+            TablePermission.ALTER_TABLE)
+            || client.securityOperations().hasSystemPermission(systemUser,
+                SystemPermission.ALTER_TABLE);
       } catch (AccumuloSecurityException ae) {
         if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
           if (exists)
-            throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+            throw new TableExistsException(null, tableName,
+                "Got a TableNotFoundException but it should exist", ae);
           else
             return;
         } else {
           throw new AccumuloException("Got unexpected ae error code", ae);
         }
       }
-      String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_"), env.getPid(),
-          System.currentTimeMillis());
+      String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost()
+          .getHostName().replaceAll("[-.]", "_"), env.getPid(), System.currentTimeMillis());
 
       renameTable(client, state, env, tableName, newTableName, hasPermission, exists);
     }
   }
 
-  public static void renameTable(AccumuloClient client, State state, RandWalkEnv env, String oldName, String newName, boolean hasPermission, boolean tableExists)
+  public static void renameTable(AccumuloClient client, State state, RandWalkEnv env,
+      String oldName, String newName, boolean hasPermission, boolean tableExists)
       throws AccumuloSecurityException, AccumuloException, TableExistsException {
     try {
       client.tableOperations().rename(oldName, newName);
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
         if (hasPermission)
-          throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+          throw new AccumuloException(
+              "Got a security exception when I should have had permission.", ae);
         else
           return;
       } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
@@ -79,7 +85,8 @@ public class AlterTable extends Test {
       throw new AccumuloException("Got unexpected ae error code", ae);
     } catch (TableNotFoundException tnfe) {
       if (tableExists)
-        throw new TableExistsException(null, oldName, "Got a TableNotFoundException but it should exist", tnfe);
+        throw new TableExistsException(null, oldName,
+            "Got a TableNotFoundException but it should exist", tnfe);
       else
         return;
     }

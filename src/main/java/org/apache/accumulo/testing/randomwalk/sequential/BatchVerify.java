@@ -51,7 +51,8 @@ public class BatchVerify extends Test {
     }
 
     AccumuloClient client = env.getAccumuloClient();
-    BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"), new Authorizations(), 2);
+    BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"),
+        new Authorizations(), 2);
 
     try {
       int count = 0;
@@ -63,7 +64,8 @@ public class BatchVerify extends Test {
           rangeEnd = numWrites - 1;
         }
         count += rangeEnd - rangeStart + 1;
-        ranges.add(new Range(new Text(String.format("%010d", rangeStart)), new Text(String.format("%010d", rangeEnd))));
+        ranges.add(new Range(new Text(String.format("%010d", rangeStart)), new Text(String.format(
+            "%010d", rangeEnd))));
       }
 
       ranges = Range.mergeOverlapping(ranges);
@@ -95,7 +97,8 @@ public class BatchVerify extends Test {
       boolean done = false;
       for (Range r : ranges) {
         int start = Integer.parseInt(r.getStartKey().getRow().toString());
-        int end = Integer.parseInt(String.copyValueOf(r.getEndKey().getRow().toString().toCharArray(), 0, 10));
+        int end = Integer.parseInt(String.copyValueOf(r.getEndKey().getRow().toString()
+            .toCharArray(), 0, 10));
         for (int i = start; i <= end; i++) {
 
           if (done) {

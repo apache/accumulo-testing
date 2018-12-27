@@ -45,8 +45,10 @@ import org.apache.hadoop.io.Text;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * BUGS This code does not handle the fact that these files could include log events from previous months. It therefore it assumes all dates are in the current
- * month. One solution might be to skip log files that haven't been touched in the last month, but that doesn't prevent newer files that have old dates in them.
+ * BUGS This code does not handle the fact that these files could include log events from previous
+ * months. It therefore it assumes all dates are in the current month. One solution might be to skip
+ * log files that haven't been touched in the last month, but that doesn't prevent newer files that
+ * have old dates in them.
  */
 public class UndefinedAnalyzer {
 
@@ -79,7 +81,8 @@ public class UndefinedAnalyzer {
     private void parseLog(File log) throws Exception {
       String line;
       TreeMap<Long,Long> tm = null;
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(log), UTF_8))) {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+          new FileInputStream(log), UTF_8))) {
         while ((line = reader.readLine()) != null) {
           if (!line.startsWith("UUID"))
             continue;
@@ -234,7 +237,8 @@ public class UndefinedAnalyzer {
   }
 
   static class Opts extends ClientOnDefaultTable {
-    @Parameter(names = "--logdir", description = "directory containing the log files", required = true)
+    @Parameter(names = "--logdir", description = "directory containing the log files",
+        required = true)
     String logDir;
 
     Opts() {
@@ -243,7 +247,8 @@ public class UndefinedAnalyzer {
   }
 
   /**
-   * Class to analyze undefined references and accumulo logs to isolate the time/tablet where data was lost.
+   * Class to analyze undefined references and accumulo logs to isolate the time/tablet where data
+   * was lost.
    */
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();

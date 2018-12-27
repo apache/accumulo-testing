@@ -46,7 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A map reduce job that verifies a table created by continuous ingest. It verifies that all referenced nodes are defined.
+ * A map reduce job that verifies a table created by continuous ingest. It verifies that all
+ * referenced nodes are defined.
  */
 public class ContinuousVerify extends Configured implements Tool {
 
@@ -102,7 +103,8 @@ public class ContinuousVerify extends Configured implements Tool {
     private ArrayList<Long> refs = new ArrayList<>();
 
     @Override
-    public void reduce(LongWritable key, Iterable<VLongWritable> values, Context context) throws IOException, InterruptedException {
+    public void reduce(LongWritable key, Iterable<VLongWritable> values, Context context)
+        throws IOException, InterruptedException {
 
       int defCount = 0;
 
@@ -144,12 +146,14 @@ public class ContinuousVerify extends Configured implements Tool {
     }
     ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
+    Job job = Job.getInstance(getConf(),
+        this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    boolean scanOffline = Boolean.parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
+    boolean scanOffline = Boolean.parseBoolean(env
+        .getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
     String tableName = env.getAccumuloTableName();
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
     int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
@@ -172,8 +176,8 @@ public class ContinuousVerify extends Configured implements Tool {
       table = tableName;
     }
 
-    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table).ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline)
-        .store(job);
+    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
+        .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
 
     job.setMapperClass(CMapper.class);
     job.setMapOutputKeyClass(LongWritable.class);
