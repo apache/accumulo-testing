@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,8 +82,7 @@ public class UndefinedAnalyzer {
     private void parseLog(File log) throws Exception {
       String line;
       TreeMap<Long,Long> tm = null;
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-          new FileInputStream(log), UTF_8))) {
+      try (BufferedReader reader = Files.newBufferedReader(log.toPath())) {
         while ((line = reader.readLine()) != null) {
           if (!line.startsWith("UUID"))
             continue;
@@ -174,8 +174,7 @@ public class UndefinedAnalyzer {
         for (File masterLog : masterLogs) {
 
           String line;
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-              new FileInputStream(masterLog), UTF_8))) {
+          try (BufferedReader reader = Files.newBufferedReader(masterLog.toPath())) {
             while ((line = reader.readLine()) != null) {
               String[] tokens = line.split("\\s+");
               String day = tokens[0];
@@ -257,14 +256,15 @@ public class UndefinedAnalyzer {
 
     List<UndefinedNode> undefs = new ArrayList<>();
 
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, UTF_8));
-    String line;
-    while ((line = reader.readLine()) != null) {
-      String[] tokens = line.split("\\s");
-      String undef = tokens[0];
-      String ref = tokens[1];
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, UTF_8))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] tokens = line.split("\\s");
+        String undef = tokens[0];
+        String ref = tokens[1];
 
-      undefs.add(new UndefinedNode(undef, ref));
+        undefs.add(new UndefinedNode(undef, ref));
+      }
     }
 
     try (AccumuloClient client = opts.createClient();

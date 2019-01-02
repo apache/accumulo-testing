@@ -152,7 +152,7 @@ public class GenerateHashes {
     // Get some parallelism
     ExecutorService svc = Executors.newFixedThreadPool(numThreads);
 
-    try (BatchWriter bw = client.createBatchWriter(outputTableName, new BatchWriterConfig())) {
+    try (BatchWriter bw = client.createBatchWriter(outputTableName)) {
       for (final Range range : ranges) {
         final MessageDigest digest = getDigestAlgorithm(digestName);
 

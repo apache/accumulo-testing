@@ -38,9 +38,8 @@ public class Scan {
     ScanOpts opts = new ScanOpts();
     opts.parseArgs(Scan.class.getName(), args);
 
-    try (AccumuloClient client = opts.createClient()) {
-      Scanner scanner = client.createScanner(opts.getTableName(), new Authorizations());
-
+    try (AccumuloClient client = opts.createClient();
+        Scanner scanner = client.createScanner(opts.getTableName(), new Authorizations())) {
       if (opts.isolate) {
         scanner.enableIsolation();
       }
