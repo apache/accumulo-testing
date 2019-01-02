@@ -36,6 +36,11 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+if [ -z "$HADOOP_HOME" ]; then
+  echo "HADOOP_HOME must be set!"
+  exit 1
+fi
+
 case "$1" in
   cingest|rwalk)
     "${at_home}"/bin/"$1" "${@:2}"

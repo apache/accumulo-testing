@@ -53,7 +53,7 @@ run in Docker:
    Run the following command to create the image:
 
    ```
-   docker build -t accumulo-testing .
+   docker build --build-arg HADOOP_HOME=$HADOOP_HOME --build-arg HADOOP_USER_NAME=`whoami` -t accumulo-testing .
    ```
 
 2. The `accumulo-testing` image can run a single command:

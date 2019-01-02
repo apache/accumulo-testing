@@ -34,7 +34,7 @@ else
   . "$at_home"/conf/env.sh.example
 fi
 
-export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$HADOOP_CONF_DIR:$CLASSPATH"
+export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
 randomwalk_main="org.apache.accumulo.testing.randomwalk.Framework"
 
