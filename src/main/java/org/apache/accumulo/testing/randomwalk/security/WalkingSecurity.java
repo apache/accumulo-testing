@@ -75,7 +75,8 @@ public class WalkingSecurity {
     return instance;
   }
 
-  public void changeAuthorizations(String user, Authorizations authorizations) throws AccumuloSecurityException {
+  public void changeAuthorizations(String user, Authorizations authorizations)
+      throws AccumuloSecurityException {
     state.set(user + "_auths", authorizations);
     state.set("Auths-" + user + '-' + "time", System.currentTimeMillis());
   }
@@ -89,7 +90,8 @@ public class WalkingSecurity {
     return false;
   }
 
-  public void createUser(String principal, AuthenticationToken token) throws AccumuloSecurityException {
+  public void createUser(String principal, AuthenticationToken token)
+      throws AccumuloSecurityException {
     state.set(principal + userExists, Boolean.toString(true));
     changePassword(principal, token);
     cleanUser(principal);
@@ -102,7 +104,8 @@ public class WalkingSecurity {
       state.set("table" + connector, null);
   }
 
-  public void changePassword(String principal, AuthenticationToken token) throws AccumuloSecurityException {
+  public void changePassword(String principal, AuthenticationToken token)
+      throws AccumuloSecurityException {
     state.set(principal + userPass, token);
     state.set(principal + userPass + "time", System.currentTimeMillis());
   }
@@ -111,46 +114,56 @@ public class WalkingSecurity {
     return Boolean.parseBoolean(state.getString(user + userExists));
   }
 
-  public boolean hasSystemPermission(String user, SystemPermission permission) throws AccumuloSecurityException {
+  public boolean hasSystemPermission(String user, SystemPermission permission)
+      throws AccumuloSecurityException {
     boolean res = Boolean.parseBoolean(state.getString("Sys-" + user + '-' + permission.name()));
     return res;
   }
 
-  public boolean hasTablePermission(String user, String table, TablePermission permission) throws AccumuloSecurityException, TableNotFoundException {
+  public boolean hasTablePermission(String user, String table, TablePermission permission)
+      throws AccumuloSecurityException, TableNotFoundException {
     return Boolean.parseBoolean(state.getString("Tab-" + user + '-' + permission.name()));
   }
 
-  public void grantSystemPermission(String user, SystemPermission permission) throws AccumuloSecurityException {
+  public void grantSystemPermission(String user, SystemPermission permission)
+      throws AccumuloSecurityException {
     setSysPerm(state, user, permission, true);
   }
 
-  public void revokeSystemPermission(String user, SystemPermission permission) throws AccumuloSecurityException {
+  public void revokeSystemPermission(String user, SystemPermission permission)
+      throws AccumuloSecurityException {
     setSysPerm(state, user, permission, false);
   }
 
-  public void grantTablePermission(String user, String table, TablePermission permission) throws AccumuloSecurityException, TableNotFoundException {
+  public void grantTablePermission(String user, String table, TablePermission permission)
+      throws AccumuloSecurityException, TableNotFoundException {
     setTabPerm(state, user, permission, table, true);
   }
 
   private static void setSysPerm(State state, String userName, SystemPermission tp, boolean value) {
-    log.debug((value ? "Gave" : "Took") + " the system permission " + tp.name() + (value ? " to" : " from") + " user " + userName);
+    log.debug((value ? "Gave" : "Took") + " the system permission " + tp.name()
+        + (value ? " to" : " from") + " user " + userName);
     state.set("Sys-" + userName + '-' + tp.name(), Boolean.toString(value));
   }
 
-  private void setTabPerm(State state, String userName, TablePermission tp, String table, boolean value) {
+  private void setTabPerm(State state, String userName, TablePermission tp, String table,
+      boolean value) {
     if (table.equals(userName))
       throw new RuntimeException("Something went wrong: table is equal to userName: " + userName);
-    log.debug((value ? "Gave" : "Took") + " the table permission " + tp.name() + (value ? " to" : " from") + " user " + userName);
+    log.debug((value ? "Gave" : "Took") + " the table permission " + tp.name()
+        + (value ? " to" : " from") + " user " + userName);
     state.set("Tab-" + userName + '-' + tp.name(), Boolean.toString(value));
     if (tp.equals(TablePermission.READ) || tp.equals(TablePermission.WRITE))
       state.set("Tab-" + userName + '-' + tp.name() + '-' + "time", System.currentTimeMillis());
   }
 
-  public void revokeTablePermission(String user, String table, TablePermission permission) throws AccumuloSecurityException, TableNotFoundException {
+  public void revokeTablePermission(String user, String table, TablePermission permission)
+      throws AccumuloSecurityException, TableNotFoundException {
     setTabPerm(state, user, permission, table, false);
   }
 
-  public void cleanTablePermissions(String table) throws AccumuloSecurityException, TableNotFoundException {
+  public void cleanTablePermissions(String table) throws AccumuloSecurityException,
+      TableNotFoundException {
     for (String user : new String[] {getSysUserName(), getTabUserName()}) {
       for (TablePermission tp : TablePermission.values()) {
         revokeTablePermission(user, table, tp);
@@ -254,7 +267,8 @@ public class WalkingSecurity {
   }
 
   public String[] getAuthsArray() {
-    return new String[] {"Fishsticks", "PotatoSkins", "Ribs", "Asparagus", "Paper", "Towels", "Lint", "Brush", "Celery"};
+    return new String[] {"Fishsticks", "PotatoSkins", "Ribs", "Asparagus", "Paper", "Towels",
+        "Lint", "Brush", "Celery"};
   }
 
   public boolean inAmbiguousZone(String userName, TablePermission tp) {

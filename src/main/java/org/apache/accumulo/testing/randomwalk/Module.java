@@ -214,7 +214,8 @@ public class Module extends Node {
     else
       maxSec = Integer.parseInt(initProps.getProperty("maxSec", "0"));
 
-    if ((prop = initProps.getProperty("teardown")) == null || prop.equals("true") || prop.equals(""))
+    if ((prop = initProps.getProperty("teardown")) == null || prop.equals("true")
+        || prop.equals(""))
       teardown = true;
     else
       teardown = false;
@@ -271,7 +272,8 @@ public class Module extends Node {
         numHops++;
 
         if (!adjMap.containsKey(curNodeId) && !curNodeId.startsWith("alias.")) {
-          throw new Exception("Reached node(" + curNodeId + ") without outgoing edges in module(" + this + ")");
+          throw new Exception("Reached node(" + curNodeId + ") without outgoing edges in module("
+              + this + ")");
         }
         AdjList adj = adjMap.get(curNodeId);
         String nextNodeId = adj.randomNeighbor();
@@ -315,13 +317,15 @@ public class Module extends Node {
             // Bound the time we'll wait for the node to complete
             nodeException = task.get(secondsRemaining, TimeUnit.SECONDS);
           } catch (InterruptedException e) {
-            log.warn("Interrupted waiting for " + nextNode.getClass().getSimpleName() + " to complete. Exiting.", e);
+            log.warn("Interrupted waiting for " + nextNode.getClass().getSimpleName()
+                + " to complete. Exiting.", e);
             break;
           } catch (ExecutionException e) {
             log.error("Caught error executing " + nextNode.getClass().getSimpleName(), e);
             throw e;
           } catch (TimeoutException e) {
-            log.info("Timed out waiting for " + nextNode.getClass().getSimpleName() + " to complete (waited " + secondsRemaining + " seconds). Exiting.", e);
+            log.info("Timed out waiting for " + nextNode.getClass().getSimpleName()
+                + " to complete (waited " + secondsRemaining + " seconds). Exiting.", e);
             break;
           }
 
@@ -351,7 +355,8 @@ public class Module extends Node {
             String logMsg = "  " + key + ": ";
             if (value == null)
               logMsg += "null";
-            else if (value instanceof String || value instanceof Map || value instanceof Collection || value instanceof Number)
+            else if (value instanceof String || value instanceof Map || value instanceof Collection
+                || value instanceof Number)
               logMsg += value;
             else if (value instanceof byte[])
               logMsg += new String((byte[]) value, UTF_8);
@@ -406,7 +411,8 @@ public class Module extends Node {
         }
         long timeSinceLastProgress = System.currentTimeMillis() - initNode.lastProgress();
         if (timeSinceLastProgress > time) {
-          log.warn("Node " + initNode + " has been running for " + timeSinceLastProgress / 1000.0 + " seconds. You may want to look into it.");
+          log.warn("Node " + initNode + " has been running for " + timeSinceLastProgress / 1000.0
+              + " seconds. You may want to look into it.");
           runningLong.set(true);
         }
       }
@@ -428,7 +434,8 @@ public class Module extends Node {
       }
     }
     if (runningLong.get())
-      log.warn("Node " + nextNode + ", which was running long, has now completed after " + (System.currentTimeMillis() - systemTime) / 1000.0 + " seconds");
+      log.warn("Node " + nextNode + ", which was running long, has now completed after "
+          + (System.currentTimeMillis() - systemTime) / 1000.0 + " seconds");
   }
 
   @Override
@@ -512,7 +519,8 @@ public class Module extends Node {
 
     // set the schema
     SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-    Schema moduleSchema = sf.newSchema(this.getClass().getClassLoader().getResource("randomwalk/module.xsd"));
+    Schema moduleSchema = sf.newSchema(this.getClass().getClassLoader()
+        .getResource("randomwalk/module.xsd"));
     dbf.setSchema(moduleSchema);
 
     // parse the document

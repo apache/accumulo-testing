@@ -48,7 +48,8 @@ public class CloneTable extends Test {
 
     try {
       log.debug("Cloning table " + srcTableName + " " + newTableName + " " + flush);
-      client.tableOperations().clone(srcTableName, newTableName, flush, new HashMap<>(), new HashSet<>());
+      client.tableOperations().clone(srcTableName, newTableName, flush, new HashMap<>(),
+          new HashSet<>());
     } catch (TableExistsException e) {
       log.debug("Clone " + srcTableName + " failed, " + newTableName + " exists");
     } catch (TableNotFoundException e) {

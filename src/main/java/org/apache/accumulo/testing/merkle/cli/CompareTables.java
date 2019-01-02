@@ -39,10 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.Parameter;
 
 /**
- * Accepts a set of tables, computes the hashes for each, and prints the top-level hash for each table.
+ * Accepts a set of tables, computes the hashes for each, and prints the top-level hash for each
+ * table.
  * <p>
- * Will automatically create output tables for intermediate hashes instead of requiring their existence. This will raise an exception when the table we want to
- * use already exists.
+ * Will automatically create output tables for intermediate hashes instead of requiring their
+ * existence. This will raise an exception when the table we want to use already exists.
  */
 public class CompareTables {
   private static final Logger log = LoggerFactory.getLogger(CompareTables.class);
@@ -51,16 +52,17 @@ public class CompareTables {
     @Parameter(names = {"--tables"}, description = "Tables to compare", variableArity = true)
     public List<String> tables;
 
-    @Parameter(names = {"-nt", "--numThreads"}, required = false, description = "number of concurrent threads calculating digests")
+    @Parameter(names = {"-nt", "--numThreads"},
+        description = "number of concurrent threads calculating digests")
     private int numThreads = 4;
 
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
     private String hashName;
 
-    @Parameter(names = {"-iter", "--iterator"}, required = false, description = "Should pushdown digest to iterators")
+    @Parameter(names = {"-iter", "--iterator"}, description = "Should pushdown digest to iterators")
     private boolean iteratorPushdown = false;
 
-    @Parameter(names = {"-s", "--splits"}, required = false, description = "File of splits to use for merkle tree")
+    @Parameter(names = {"-s", "--splits"}, description = "File of splits to use for merkle tree")
     private String splitsFile = null;
 
     public List<String> getTables() {
@@ -71,78 +73,64 @@ public class CompareTables {
       this.tables = tables;
     }
 
-    public int getNumThreads() {
+    int getNumThreads() {
       return numThreads;
     }
 
-    public void setNumThreads(int numThreads) {
-      this.numThreads = numThreads;
-    }
-
-    public String getHashName() {
+    String getHashName() {
       return hashName;
     }
 
-    public void setHashName(String hashName) {
-      this.hashName = hashName;
-    }
-
-    public boolean isIteratorPushdown() {
+    boolean isIteratorPushdown() {
       return iteratorPushdown;
     }
 
-    public void setIteratorPushdown(boolean iteratorPushdown) {
-      this.iteratorPushdown = iteratorPushdown;
-    }
-
-    public String getSplitsFile() {
+    String getSplitsFile() {
       return splitsFile;
-    }
-
-    public void setSplitsFile(String splitsFile) {
-      this.splitsFile = splitsFile;
     }
   }
 
   private CompareTablesOpts opts;
 
-  protected CompareTables() {}
-
-  public CompareTables(CompareTablesOpts opts) {
+  private CompareTables(CompareTablesOpts opts) {
     this.opts = opts;
   }
 
-  public Map<String,String> computeAllHashes() throws AccumuloException, AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
+  private Map<String,String> computeAllHashes() throws AccumuloException,
+      AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
       TableNotFoundException, FileNotFoundException {
-    final AccumuloClient client = opts.getClient();
-    final Map<String,String> hashesByTable = new HashMap<>();
+    try (AccumuloClient client = opts.createClient()) {
+      final Map<String,String> hashesByTable = new HashMap<>();
 
-    for (String table : opts.getTables()) {
-      final String outputTableName = table + "_merkle";
+      for (String table : opts.getTables()) {
+        final String outputTableName = table + "_merkle";
 
-      if (client.tableOperations().exists(outputTableName)) {
-        throw new IllegalArgumentException("Expected output table name to not yet exist: " + outputTableName);
+        if (client.tableOperations().exists(outputTableName)) {
+          throw new IllegalArgumentException("Expected output table name to not yet exist: "
+              + outputTableName);
+        }
+
+        client.tableOperations().create(outputTableName);
+
+        GenerateHashes genHashes = new GenerateHashes();
+        Collection<Range> ranges = genHashes.getRanges(client, table, opts.getSplitsFile());
+
+        try {
+          genHashes.run(client, table, table + "_merkle", opts.getHashName(), opts.getNumThreads(),
+              opts.isIteratorPushdown(), ranges);
+        } catch (Exception e) {
+          log.error("Error generating hashes for {}", table, e);
+          throw new RuntimeException(e);
+        }
+
+        ComputeRootHash computeRootHash = new ComputeRootHash();
+        String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName,
+            opts.getHashName()));
+
+        hashesByTable.put(table, hash);
       }
-
-      client.tableOperations().create(outputTableName);
-
-      GenerateHashes genHashes = new GenerateHashes();
-      Collection<Range> ranges = genHashes.getRanges(opts.getClient(), table, opts.getSplitsFile());
-
-      try {
-        genHashes.run(opts.getClient(), table, table + "_merkle", opts.getHashName(), opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
-      } catch (Exception e) {
-        log.error("Error generating hashes for {}", table, e);
-        throw new RuntimeException(e);
-      }
-
-      ComputeRootHash computeRootHash = new ComputeRootHash();
-      String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName, opts.getHashName()));
-
-      hashesByTable.put(table, hash);
+      return hashesByTable;
     }
-
-    return hashesByTable;
   }
 
   public static void main(String[] args) throws Exception {
@@ -151,7 +139,8 @@ public class CompareTables {
     opts.parseArgs("CompareTables", args, bwOpts);
 
     if (opts.isIteratorPushdown() && null != opts.getSplitsFile()) {
-      throw new IllegalArgumentException("Cannot use iterator pushdown with anything other than table split points");
+      throw new IllegalArgumentException(
+          "Cannot use iterator pushdown with anything other than table split points");
     }
 
     CompareTables compareTables = new CompareTables(opts);

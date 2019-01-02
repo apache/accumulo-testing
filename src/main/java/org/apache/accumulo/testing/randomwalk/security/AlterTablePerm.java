@@ -62,7 +62,8 @@ public class AlterTablePerm extends Test {
     } else
       tabPerm = TablePermission.valueOf(perm);
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    boolean hasPerm = WalkingSecurity.get(state, env).hasTablePermission(target, tableName, tabPerm);
+    boolean hasPerm = WalkingSecurity.get(state, env)
+        .hasTablePermission(target, tableName, tabPerm);
     boolean canGive;
     String sourceUser;
     AuthenticationToken sourceToken;
@@ -85,7 +86,8 @@ public class AlterTablePerm extends Test {
       } catch (AccumuloSecurityException ae) {
         if (ae.getSecurityErrorCode().equals(SecurityErrorCode.TABLE_DOESNT_EXIST)) {
           if (tableExists)
-            throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+            throw new TableExistsException(null, tableName,
+                "Got a TableNotFoundException but it should exist", ae);
           else
             return;
         } else {
@@ -97,8 +99,10 @@ public class AlterTablePerm extends Test {
       if (!"take".equals(action) && !"give".equals(action)) {
         try {
           boolean res;
-          if (hasPerm != (res = env.getAccumuloClient().securityOperations().hasTablePermission(target, tableName, tabPerm)))
-            throw new AccumuloException("Test framework and accumulo are out of sync for user " + client.whoami() + " for perm " + tabPerm.name()
+          if (hasPerm != (res = env.getAccumuloClient().securityOperations()
+              .hasTablePermission(target, tableName, tabPerm)))
+            throw new AccumuloException("Test framework and accumulo are out of sync for user "
+                + client.whoami() + " for perm " + tabPerm.name()
                 + " with local vs. accumulo being " + hasPerm + " " + res);
 
           if (hasPerm)
@@ -109,12 +113,14 @@ public class AlterTablePerm extends Test {
           switch (ae.getSecurityErrorCode()) {
             case USER_DOESNT_EXIST:
               if (userExists)
-                throw new AccumuloException("Framework and Accumulo are out of sync, we think user exists", ae);
+                throw new AccumuloException(
+                    "Framework and Accumulo are out of sync, we think user exists", ae);
               else
                 return;
             case TABLE_DOESNT_EXIST:
               if (tableExists)
-                throw new TableExistsException(null, tableName, "Got a TableNotFoundException but it should exist", ae);
+                throw new TableExistsException(null, tableName,
+                    "Got a TableNotFoundException but it should exist", ae);
               else
                 return;
             default:
@@ -133,7 +139,8 @@ public class AlterTablePerm extends Test {
               throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
             case PERMISSION_DENIED:
               if (canGive)
-                throw new AccumuloException(client.whoami() + " failed to revoke permission to " + target + " when it should have worked", ae);
+                throw new AccumuloException(client.whoami() + " failed to revoke permission to "
+                    + target + " when it should have worked", ae);
               return;
             case USER_DOESNT_EXIST:
               if (userExists)
@@ -161,7 +168,8 @@ public class AlterTablePerm extends Test {
               throw new AccumuloException("Got a grant invalid on non-System.GRANT option", ae);
             case PERMISSION_DENIED:
               if (canGive)
-                throw new AccumuloException(client.whoami() + " failed to give permission to " + target + " when it should have worked", ae);
+                throw new AccumuloException(client.whoami() + " failed to give permission to "
+                    + target + " when it should have worked", ae);
               return;
             case USER_DOESNT_EXIST:
               if (userExists)
@@ -187,7 +195,8 @@ public class AlterTablePerm extends Test {
       if (!tableExists)
         throw new AccumuloException("Table shouldn't have existed, but apparently does");
       if (!canGive)
-        throw new AccumuloException(client.whoami() + " shouldn't have been able to grant privilege");
+        throw new AccumuloException(client.whoami()
+            + " shouldn't have been able to grant privilege");
     }
   }
 }

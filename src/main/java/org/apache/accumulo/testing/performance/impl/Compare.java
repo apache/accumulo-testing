@@ -79,7 +79,8 @@ public class Compare {
         System.out.printf("%s %s %.2f %.2f\n", testId.testClass, testId.id, oldResult, newResult);
       } else {
         double change = (newResult - oldResult) / oldResult;
-        System.out.printf("%s %s %.2f %.2f %.2f%s\n", testId.testClass, testId.id, oldResult, newResult, change * 100, "%");
+        System.out.printf("%s %s %.2f %.2f %.2f%s\n", testId.testClass, testId.id, oldResult,
+            newResult, change * 100, "%");
       }
     }
   }

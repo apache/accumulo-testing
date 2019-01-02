@@ -65,7 +65,8 @@ public class ChangePermissions extends Test {
     }
   }
 
-  private void changeTablePermission(AccumuloClient client, Random rand, String userName, String tableName) throws AccumuloException, AccumuloSecurityException {
+  private void changeTablePermission(AccumuloClient client, Random rand, String userName,
+      String tableName) throws AccumuloException, AccumuloSecurityException {
 
     EnumSet<TablePermission> perms = EnumSet.noneOf(TablePermission.class);
     for (TablePermission p : TablePermission.values()) {
@@ -91,7 +92,8 @@ public class ChangePermissions extends Test {
     }
   }
 
-  private void changeSystemPermission(AccumuloClient client, Random rand, String userName) throws AccumuloException, AccumuloSecurityException {
+  private void changeSystemPermission(AccumuloClient client, Random rand, String userName)
+      throws AccumuloException, AccumuloSecurityException {
     EnumSet<SystemPermission> perms = EnumSet.noneOf(SystemPermission.class);
     for (SystemPermission p : SystemPermission.values()) {
       if (client.securityOperations().hasSystemPermission(userName, p))
@@ -117,8 +119,8 @@ public class ChangePermissions extends Test {
     }
   }
 
-  private void changeNamespacePermission(AccumuloClient client, Random rand, String userName, String namespace) throws AccumuloException,
-      AccumuloSecurityException {
+  private void changeNamespacePermission(AccumuloClient client, Random rand, String userName,
+      String namespace) throws AccumuloException, AccumuloSecurityException {
 
     EnumSet<NamespacePermission> perms = EnumSet.noneOf(NamespacePermission.class);
     for (NamespacePermission p : NamespacePermission.values()) {

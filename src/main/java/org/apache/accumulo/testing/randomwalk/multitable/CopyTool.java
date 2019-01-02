@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -58,19 +58,19 @@ public class CopyTool extends Configured implements Tool {
 
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
     job.setInputFormatClass(AccumuloInputFormat.class);
-    AccumuloInputFormat.setClientProperties(job, props);
-    AccumuloInputFormat.setInputTableName(job, args[1]);
-    AccumuloInputFormat.setScanAuthorizations(job, Authorizations.EMPTY);
+
+    AccumuloInputFormat.configure().clientProperties(props).table(args[1])
+        .auths(Authorizations.EMPTY).store(job);
 
     job.setMapperClass(SeqMapClass.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Mutation.class);
     job.setNumReduceTasks(0);
+    job.getConfiguration().set("mapreduce.job.classloader", "true");
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setClientProperties(job, props);
-    AccumuloOutputFormat.setCreateTables(job, true);
-    AccumuloOutputFormat.setDefaultTableName(job, args[2]);
+    AccumuloOutputFormat.configure().clientProperties(props).createTables(true)
+        .defaultTable(args[2]).store(job);
 
     job.waitForCompletion(true);
     return job.isSuccessful() ? 0 : 1;

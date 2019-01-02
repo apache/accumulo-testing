@@ -41,7 +41,8 @@ public class PerfTestRunner {
     String accumuloVersion = args[2];
     String outputDir = args[3];
 
-    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).newInstance();
+    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class)
+        .newInstance();
 
     AccumuloClient client = Accumulo.newClient().from(clientProps).build();
 
@@ -62,7 +63,8 @@ public class PerfTestRunner {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String time = Instant.now().atZone(ZoneId.systemDefault()).format(formatter);
-    Path outputFile = Paths.get(outputDir, perfTest.getClass().getSimpleName() + "_" + time + ".json");
+    Path outputFile = Paths.get(outputDir, perfTest.getClass().getSimpleName() + "_" + time
+        + ".json");
 
     try (Writer writer = Files.newBufferedWriter(outputFile)) {
       gson.toJson(report, writer);

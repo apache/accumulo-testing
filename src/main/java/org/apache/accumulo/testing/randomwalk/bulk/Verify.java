@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.cli.ClientOnRequiredTable;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -38,7 +39,7 @@ import org.apache.hadoop.io.Text;
 
 public class Verify extends Test {
 
-  static byte[] zero = new byte[] {'0'};
+  private static byte[] zero = new byte[] {'0'};
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
@@ -86,7 +87,8 @@ public class Verify extends Test {
         long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
 
         if (curr - 1 != prev)
-          throw new Exception("Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
+          throw new Exception("Bad marker count " + entry.getKey() + " " + entry.getValue() + " "
+              + prev);
 
         if (!entry.getValue().toString().equals("1"))
           throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());
@@ -95,7 +97,8 @@ public class Verify extends Test {
       }
 
       if (BulkPlusOne.counter.get() != prev) {
-        throw new Exception("Row " + rowText + " does not have all markers " + BulkPlusOne.counter.get() + " " + prev);
+        throw new Exception("Row " + rowText + " does not have all markers "
+            + BulkPlusOne.counter.get() + " " + prev);
       }
     }
 
@@ -106,37 +109,39 @@ public class Verify extends Test {
   public static void main(String args[]) throws Exception {
     ClientOnRequiredTable opts = new ClientOnRequiredTable();
     opts.parseArgs(Verify.class.getName(), args);
-    Scanner scanner = opts.getClient().createScanner(opts.getTableName(), opts.auths);
-    scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
-    Text startBadRow = null;
-    Text lastBadRow = null;
-    Value currentBadValue = null;
-    for (Entry<Key,Value> entry : scanner) {
-      // System.out.println("Entry: " + entry);
-      byte[] value = entry.getValue().get();
-      if (!Arrays.equals(value, zero)) {
-        if (currentBadValue == null || entry.getValue().equals(currentBadValue)) {
-          // same value, keep skipping ahead
-          lastBadRow = new Text(entry.getKey().getRow());
-          if (startBadRow == null)
-            startBadRow = lastBadRow;
+    try (AccumuloClient client = opts.createClient()) {
+      Scanner scanner = client.createScanner(opts.getTableName(), opts.auths);
+      scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
+      Text startBadRow = null;
+      Text lastBadRow = null;
+      Value currentBadValue = null;
+      for (Entry<Key,Value> entry : scanner) {
+        // System.out.println("Entry: " + entry);
+        byte[] value = entry.getValue().get();
+        if (!Arrays.equals(value, zero)) {
+          if (currentBadValue == null || entry.getValue().equals(currentBadValue)) {
+            // same value, keep skipping ahead
+            lastBadRow = new Text(entry.getKey().getRow());
+            if (startBadRow == null)
+              startBadRow = lastBadRow;
+          } else {
+            // new bad value, report
+            report(startBadRow, lastBadRow, currentBadValue);
+            startBadRow = lastBadRow = new Text(entry.getKey().getRow());
+          }
+          currentBadValue = new Value(entry.getValue());
         } else {
-          // new bad value, report
-          report(startBadRow, lastBadRow, currentBadValue);
-          startBadRow = lastBadRow = new Text(entry.getKey().getRow());
+          // end of bad range, report
+          if (startBadRow != null) {
+            report(startBadRow, lastBadRow, currentBadValue);
+          }
+          startBadRow = lastBadRow = null;
+          currentBadValue = null;
         }
-        currentBadValue = new Value(entry.getValue());
-      } else {
-        // end of bad range, report
-        if (startBadRow != null) {
-          report(startBadRow, lastBadRow, currentBadValue);
-        }
-        startBadRow = lastBadRow = null;
-        currentBadValue = null;
       }
-    }
-    if (startBadRow != null) {
-      report(startBadRow, lastBadRow, currentBadValue);
+      if (startBadRow != null) {
+        report(startBadRow, lastBadRow, currentBadValue);
+      }
     }
   }
 

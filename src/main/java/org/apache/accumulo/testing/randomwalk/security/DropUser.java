@@ -31,12 +31,14 @@ public class DropUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
-    try (AccumuloClient client = env.createClient(sysPrincipal, WalkingSecurity.get(state, env).getSysToken())) {
+    try (AccumuloClient client = env.createClient(sysPrincipal, WalkingSecurity.get(state, env)
+        .getSysToken())) {
 
       String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
       boolean exists = WalkingSecurity.get(state, env).userExists(tableUserName);
-      boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal, SystemPermission.DROP_USER);
+      boolean hasPermission = client.securityOperations().hasSystemPermission(sysPrincipal,
+          SystemPermission.DROP_USER);
 
       try {
         client.securityOperations().dropLocalUser(tableUserName);
@@ -44,7 +46,8 @@ public class DropUser extends Test {
         switch (ae.getSecurityErrorCode()) {
           case PERMISSION_DENIED:
             if (hasPermission)
-              throw new AccumuloException("Got a security exception when I should have had permission.", ae);
+              throw new AccumuloException(
+                  "Got a security exception when I should have had permission.", ae);
             else {
               if (exists) {
                 env.getAccumuloClient().securityOperations().dropLocalUser(tableUserName);

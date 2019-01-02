@@ -28,7 +28,8 @@ public class ContextualReport extends Report {
   public final String startTime;
   public final String finishTime;
 
-  public ContextualReport(String testClass, String accumuloVersion, Instant startTime, Instant finishTime, Report r) {
+  public ContextualReport(String testClass, String accumuloVersion, Instant startTime,
+      Instant finishTime, Report r) {
     super(r.id, r.description, r.results, r.parameters);
     this.testClass = testClass;
     this.accumuloVersion = accumuloVersion;

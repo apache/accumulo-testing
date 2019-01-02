@@ -92,7 +92,8 @@ public class TestEnv implements AutoCloseable {
       hadoopConfig.set("fs.defaultFS", getHdfsRoot());
       // Below is required due to bundled jar breaking default config.
       // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
-      hadoopConfig.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+      hadoopConfig
+          .set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
       hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
       hadoopConfig.set("mapreduce.framework.name", "yarn");
       hadoopConfig.set("yarn.resourcemanager.hostname", getYarnResourceManager());

@@ -21,8 +21,8 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -44,16 +44,17 @@ public class MapRedVerifyTool extends Configured implements Tool {
     @Override
     public void map(Key row, Value data, Context output) throws IOException, InterruptedException {
       Integer num = Integer.valueOf(row.getRow().toString());
-      output.write(NullWritable.get(), new IntWritable(num.intValue()));
+      output.write(NullWritable.get(), new IntWritable(num));
     }
   }
 
   public static class SeqReduceClass extends Reducer<NullWritable,IntWritable,Text,Mutation> {
     @Override
-    public void reduce(NullWritable ignore, Iterable<IntWritable> values, Context output) throws IOException, InterruptedException {
+    public void reduce(NullWritable ignore, Iterable<IntWritable> values, Context output)
+        throws IOException, InterruptedException {
       Iterator<IntWritable> iterator = values.iterator();
 
-      if (iterator.hasNext() == false) {
+      if (!iterator.hasNext()) {
         return;
       }
 
@@ -70,7 +71,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
       writeMutation(output, start, index);
     }
 
-    public void writeMutation(Context output, int start, int end) throws IOException, InterruptedException {
+    private void writeMutation(Context output, int start, int end) throws IOException,
+        InterruptedException {
       Mutation m = new Mutation(new Text(String.format("%010d", start)));
       m.put(new Text(String.format("%010d", end)), new Text(""), new Value(new byte[0]));
       output.write(null, m);
@@ -88,11 +90,10 @@ public class MapRedVerifyTool extends Configured implements Tool {
     }
 
     Properties props = Accumulo.newClientProperties().from(args[0]).build();
-    AccumuloInputFormat.setClientProperties(job, props);
-    AccumuloInputFormat.setInputTableName(job, args[1]);
 
-    AccumuloOutputFormat.setClientProperties(job, props);
-    AccumuloOutputFormat.setDefaultTableName(job, args[2]);
+    AccumuloInputFormat.configure().clientProperties(props).table(args[1]).store(job);
+    AccumuloOutputFormat.configure().clientProperties(props).defaultTable(args[2])
+        .createTables(true).store(job);
 
     job.setInputFormatClass(AccumuloInputFormat.class);
     job.setMapperClass(SeqMapClass.class);
@@ -101,9 +102,9 @@ public class MapRedVerifyTool extends Configured implements Tool {
 
     job.setReducerClass(SeqReduceClass.class);
     job.setNumReduceTasks(1);
+    job.getConfiguration().set("mapreduce.job.classloader", "true");
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setCreateTables(job, true);
 
     job.waitForCompletion(true);
     return job.isSuccessful() ? 0 : 1;

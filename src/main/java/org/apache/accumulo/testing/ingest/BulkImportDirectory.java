@@ -32,17 +32,21 @@ public class BulkImportDirectory {
   static class Opts extends ClientOnRequiredTable {
     @Parameter(names = {"-s", "--source"}, description = "directory to import from")
     String source = null;
-    @Parameter(names = {"-f", "--failures"}, description = "directory to copy failures into: will be deleted before the bulk import")
+    @Parameter(names = {"-f", "--failures"},
+        description = "directory to copy failures into: will be deleted before the bulk import")
     String failures = null;
   }
 
-  public static void main(String[] args) throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args) throws IOException, AccumuloException,
+      AccumuloSecurityException, TableNotFoundException {
     final FileSystem fs = FileSystem.get(new Configuration());
     Opts opts = new Opts();
-    System.err.println("Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");
+    System.err
+        .println("Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");
     opts.parseArgs(BulkImportDirectory.class.getName(), args);
     fs.delete(new Path(opts.failures), true);
     fs.mkdirs(new Path(opts.failures));
-    opts.getClient().tableOperations().importDirectory(opts.getTableName(), opts.source, opts.failures, false);
+    opts.createClient().tableOperations()
+        .importDirectory(opts.getTableName(), opts.source, opts.failures, false);
   }
 }

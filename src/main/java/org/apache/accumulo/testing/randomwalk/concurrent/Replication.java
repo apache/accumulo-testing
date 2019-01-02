@@ -68,7 +68,9 @@ public class Replication extends Test {
 
     // Replicate to ourselves
     iOps.setProperty(REPLICATION_NAME.getKey(), instName);
-    iOps.setProperty(REPLICATION_PEERS.getKey() + instName, "org.apache.accumulo.tserver.replication.AccumuloReplicaSystem," + instName + "," + zookeepers);
+    iOps.setProperty(REPLICATION_PEERS.getKey() + instName,
+        "org.apache.accumulo.tserver.replication.AccumuloReplicaSystem," + instName + ","
+            + zookeepers);
     iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getAccumuloUserName());
     iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getAccumuloPassword());
     // Tweak some replication parameters to make the replication go faster
@@ -176,7 +178,8 @@ public class Replication extends Test {
   // junit isn't a dependency
   private void assertEquals(int expected, int actual) {
     if (expected != actual)
-      throw new RuntimeException(String.format("%d fails to match expected value %d", actual, expected));
+      throw new RuntimeException(String.format("%d fails to match expected value %d", actual,
+          expected));
   }
 
   // junit isn't a dependency

@@ -54,15 +54,17 @@ public class BulkInsert extends Test {
     SequenceFile.Writer writer;
 
     SeqfileBatchWriter(Configuration conf, FileSystem fs, String file) throws IOException {
-      writer = SequenceFile.createWriter(conf, SequenceFile.Writer.file(fs.makeQualified(new Path(file))), SequenceFile.Writer.keyClass(Key.class),
-          SequenceFile.Writer.valueClass(Value.class));
+      writer = SequenceFile.createWriter(conf,
+          SequenceFile.Writer.file(fs.makeQualified(new Path(file))),
+          SequenceFile.Writer.keyClass(Key.class), SequenceFile.Writer.valueClass(Value.class));
     }
 
     @Override
     public void addMutation(Mutation m) throws MutationsRejectedException {
       List<ColumnUpdate> updates = m.getUpdates();
       for (ColumnUpdate cu : updates) {
-        Key key = new Key(m.getRow(), cu.getColumnFamily(), cu.getColumnQualifier(), cu.getColumnVisibility(), Long.MAX_VALUE, false, false);
+        Key key = new Key(m.getRow(), cu.getColumnFamily(), cu.getColumnQualifier(),
+            cu.getColumnVisibility(), Long.MAX_VALUE, false, false);
         Value val = new Value(cu.getValue(), false);
 
         try {
@@ -119,7 +121,8 @@ public class BulkInsert extends Test {
     BatchWriter indexWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/index.seq");
 
     for (int i = 0; i < numToInsert; i++) {
-      String docID = Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter, indexTableName, dataTableName, numPartitions, rand);
+      String docID = Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter,
+          indexTableName, dataTableName, numPartitions, rand);
       log.debug("Bulk inserting document " + docID);
     }
 
@@ -128,8 +131,10 @@ public class BulkInsert extends Test {
     dataWriter.close();
     indexWriter.close();
 
-    sort(state, env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk", rootDir + "/data_work", maxSplits);
-    sort(state, env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk", rootDir + "/index_work", maxSplits);
+    sort(state, env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk", rootDir
+        + "/data_work", maxSplits);
+    sort(state, env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk", rootDir
+        + "/index_work", maxSplits);
 
     bulkImport(fs, state, env, dataTableName, rootDir, "data");
     bulkImport(fs, state, env, indexTableName, rootDir, "index");
@@ -137,7 +142,8 @@ public class BulkInsert extends Test {
     fs.delete(new Path(rootDir), true);
   }
 
-  private void bulkImport(FileSystem fs, State state, RandWalkEnv env, String tableName, String rootDir, String prefix) throws Exception {
+  private void bulkImport(FileSystem fs, State state, RandWalkEnv env, String tableName,
+      String rootDir, String prefix) throws Exception {
     while (true) {
       String bulkDir = rootDir + "/" + prefix + "_bulk";
       String failDir = rootDir + "/" + prefix + "_failure";
@@ -162,10 +168,11 @@ public class BulkInsert extends Test {
     }
   }
 
-  private void sort(State state, RandWalkEnv env, FileSystem fs, String tableName, String seqFile, String outputDir, String workDir, int maxSplits)
-      throws Exception {
+  private void sort(State state, RandWalkEnv env, FileSystem fs, String tableName, String seqFile,
+      String outputDir, String workDir, int maxSplits) throws Exception {
 
-    PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))), false, UTF_8.name());
+    PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir
+        + "/splits.txt"))), false, UTF_8.name());
 
     AccumuloClient client = env.getAccumuloClient();
 

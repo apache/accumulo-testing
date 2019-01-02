@@ -57,7 +57,8 @@ public class BulkImport extends Test {
     public void addMutation(Mutation m) throws MutationsRejectedException {
       List<ColumnUpdate> updates = m.getUpdates();
       for (ColumnUpdate cu : updates) {
-        Key key = new Key(m.getRow(), cu.getColumnFamily(), cu.getColumnQualifier(), cu.getColumnVisibility(), 42, false, false);
+        Key key = new Key(m.getRow(), cu.getColumnFamily(), cu.getColumnQualifier(),
+            cu.getColumnVisibility(), 42, false, false);
         Value val = new Value(cu.getValue(), false);
 
         try {
@@ -101,13 +102,15 @@ public class BulkImport extends Test {
 
     FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
 
-    String bulkDir = "/tmp/concurrent_bulk/b_" + String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl);
+    String bulkDir = "/tmp/concurrent_bulk/b_"
+        + String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl);
 
     fs.mkdirs(new Path(bulkDir));
     fs.mkdirs(new Path(bulkDir + "_f"));
 
     try {
-      BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs, bulkDir + "/file01.rf");
+      BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs, bulkDir
+          + "/file01.rf");
       try {
         TreeSet<Long> rows = new TreeSet<>();
         int numRows = rand.nextInt(100000);
@@ -128,7 +131,8 @@ public class BulkImport extends Test {
         bw.close();
       }
 
-      client.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f", rand.nextBoolean());
+      client.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f",
+          rand.nextBoolean());
 
       log.debug("BulkImported to " + tableName);
     } catch (TableNotFoundException e) {

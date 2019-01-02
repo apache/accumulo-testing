@@ -23,9 +23,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
@@ -42,8 +41,10 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * A map only job that reads a table created by continuous ingest and creates doubly linked list. This map reduce job tests the ability of a map only job to
- * read and write to accumulo at the same time. This map reduce job mutates the table in such a way that it should not create any undefined nodes.
+ * A map only job that reads a table created by continuous ingest and creates doubly linked list.
+ * This map reduce job tests the ability of a map only job to read and write to accumulo at the same
+ * time. This map reduce job mutates the table in such a way that it should not create any undefined
+ * nodes.
  */
 public class ContinuousMoru extends Configured implements Tool {
   private static final String PREFIX = ContinuousMoru.class.getSimpleName() + ".";
@@ -69,7 +70,7 @@ public class ContinuousMoru extends Configured implements Tool {
     private static final ColumnVisibility EMPTY_VIS = new ColumnVisibility();
 
     @Override
-    public void setup(Context context) throws IOException, InterruptedException {
+    public void setup(Context context) {
       int max_cf = context.getConfiguration().getInt(MAX_CF, -1);
       int max_cq = context.getConfiguration().getInt(MAX_CQ, -1);
 
@@ -98,8 +99,8 @@ public class ContinuousMoru extends Configured implements Tool {
         int offset = ContinuousWalk.getPrevRowOffset(val);
         if (offset > 0) {
           long rowLong = Long.parseLong(new String(val, offset, 16, UTF_8), 16);
-          Mutation m = ContinuousIngest.genMutation(rowLong, random.nextInt(max_cf), random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData()
-              .toArray(), true);
+          Mutation m = ContinuousIngest.genMutation(rowLong, random.nextInt(max_cf),
+              random.nextInt(max_cq), EMPTY_VIS, iiId, count++, key.getRowData().toArray(), true);
           context.write(null, m);
         }
 
@@ -110,7 +111,7 @@ public class ContinuousMoru extends Configured implements Tool {
   }
 
   @Override
-  public int run(String[] args) throws IOException, InterruptedException, ClassNotFoundException, AccumuloSecurityException {
+  public int run(String[] args) throws Exception {
 
     if (args.length != 2) {
       System.err.println("Usage: ContinuousMoru <testPropsPath> <clientPropsPath>");
@@ -118,31 +119,24 @@ public class ContinuousMoru extends Configured implements Tool {
     }
     ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
+    Job job = Job.getInstance(getConf(),
+        this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
-
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    AccumuloInputFormat.setClientProperties(job, env.getClientProps());
-    AccumuloInputFormat.setInputTableName(job, env.getAccumuloTableName());
-
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
+    Set<Range> ranges = env.getAccumuloClient().tableOperations()
+        .splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
 
-    // set up ranges
-    try {
-      Set<Range> ranges = env.getAccumuloClient().tableOperations().splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
-      AccumuloInputFormat.setRanges(job, ranges);
-      AccumuloInputFormat.setAutoAdjustRanges(job, false);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    AccumuloInputFormat.configure().clientProperties(env.getClientProps())
+        .table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
 
     job.setMapperClass(CMapper.class);
     job.setNumReduceTasks(0);
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.setClientProperties(job, env.getClientProps());
-    AccumuloOutputFormat.setCreateTables(job, true);
-    AccumuloOutputFormat.setDefaultTableName(job, env.getAccumuloTableName());
+
+    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+        .defaultTable(env.getAccumuloTableName()).store(job);
 
     Configuration conf = job.getConfiguration();
     conf.setLong(MIN, env.getRowMin());
