@@ -15,6 +15,11 @@
 
 FROM centos:7
 
+ARG HADOOP_HOME
+ARG HADOOP_USER_NAME
+ENV HADOOP_HOME ${HADOOP_HOME}
+ENV HADOOP_USER_NAME ${HADOOP_USER_NAME:-hadoop}
+
 RUN yum install -y java-1.8.0-openjdk-devel
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 

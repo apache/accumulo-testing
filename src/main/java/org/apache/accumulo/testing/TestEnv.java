@@ -97,6 +97,13 @@ public class TestEnv implements AutoCloseable {
       hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
       hadoopConfig.set("mapreduce.framework.name", "yarn");
       hadoopConfig.set("yarn.resourcemanager.hostname", getYarnResourceManager());
+      String hadoopHome = System.getenv("HADOOP_HOME");
+      if (hadoopHome == null) {
+        throw new IllegalArgumentException("HADOOP_HOME must be set in env");
+      }
+      hadoopConfig.set("yarn.app.mapreduce.am.env", "HADOOP_MAPRED_HOME=" + hadoopHome);
+      hadoopConfig.set("mapreduce.map.env", "HADOOP_MAPRED_HOME=" + hadoopHome);
+      hadoopConfig.set("mapreduce.reduce.env", "HADOOP_MAPRED_HOME=" + hadoopHome);
     }
     return hadoopConfig;
   }
