@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.testing.continuous;
 
+import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
@@ -32,75 +33,70 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
-
 public class ContinuousScanner {
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousScanner <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    Random r = new Random();
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    long distance = 1000000000000l;
+      Random r = new Random();
 
-    AccumuloClient client = env.getAccumuloClient();
-    Authorizations auths = env.getRandomAuthorizations();
-    Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
+      long distance = 1000000000000l;
 
-    int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
-    int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));
+      AccumuloClient client = env.getAccumuloClient();
+      Authorizations auths = env.getRandomAuthorizations();
+      Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
 
-    double delta = Math.min(.05, .05 / (numToScan / 1000.0));
+      int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
+      int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));
 
-    while (true) {
-      long startRow = ContinuousIngest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
-      byte[] scanStart = ContinuousIngest.genRow(startRow);
-      byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
+      double delta = Math.min(.05, .05 / (numToScan / 1000.0));
 
-      scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
+      while (true) {
+        long startRow = ContinuousIngest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
+        byte[] scanStart = ContinuousIngest.genRow(startRow);
+        byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
 
-      int count = 0;
-      Iterator<Entry<Key,Value>> iter = scanner.iterator();
+        scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
 
-      long t1 = System.currentTimeMillis();
+        int count = 0;
+        Iterator<Entry<Key,Value>> iter = scanner.iterator();
 
-      while (iter.hasNext()) {
-        Entry<Key,Value> entry = iter.next();
-        ContinuousWalk.validate(entry.getKey(), entry.getValue());
-        count++;
-      }
+        long t1 = System.currentTimeMillis();
 
-      long t2 = System.currentTimeMillis();
-
-      // System.out.println("P1 " +count +" "+((1-delta) *
-      // numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
-
-      if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
-        if (count == 0) {
-          distance = distance * 10;
-          if (distance < 0)
-            distance = 1000000000000l;
-        } else {
-          double ratio = (double) numToScan / count;
-          // move ratio closer to 1 to make change slower
-          ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
-          distance = (long) (ratio * distance);
+        while (iter.hasNext()) {
+          Entry<Key,Value> entry = iter.next();
+          ContinuousWalk.validate(entry.getKey(), entry.getValue());
+          count++;
         }
 
-        // System.out.println("P2 "+delta
-        // +" "+numToScan+" "+distance+"  "+((double)numToScan/count ));
-      }
+        long t2 = System.currentTimeMillis();
 
-      System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);
+        // System.out.println("P1 " +count +" "+((1-delta) *
+        // numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
 
-      if (scannerSleepMs > 0) {
-        sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+        if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
+          if (count == 0) {
+            distance = distance * 10;
+            if (distance < 0)
+              distance = 1000000000000l;
+          } else {
+            double ratio = (double) numToScan / count;
+            // move ratio closer to 1 to make change slower
+            ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
+            distance = (long) (ratio * distance);
+          }
+
+          // System.out.println("P2 "+delta
+          // +" "+numToScan+" "+distance+"  "+((double)numToScan/count ));
+        }
+
+        System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);
+
+        if (scannerSleepMs > 0) {
+          sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+        }
       }
     }
-
   }
 }

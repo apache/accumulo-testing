@@ -13,8 +13,8 @@ class ContinuousEnv extends TestEnv {
 
   private List<Authorizations> authList;
 
-  ContinuousEnv(String testPropsPath, String clientPropsPath) {
-    super(testPropsPath, clientPropsPath);
+  ContinuousEnv(String[] args) {
+    super(args);
   }
 
   /**

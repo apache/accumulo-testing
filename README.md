@@ -66,13 +66,18 @@ run in Docker:
 3. Multiple containers can also be run (if you have [Docker Swarm] enabled):
 
    ```bash
+   # the following can be used to get the image on all nodes if you do not have a registry.
+   for HOST in node1 node2 node3; do
+     docker save accumulo-testing | ssh -C $HOST docker load &
+   done
+
    docker service create --network="host" --replicas 2 --name ci accumulo-testing cingest ingest
    ```
 
 ## Random walk test
 
 The random walk test generates client behavior on an Apache Accumulo instance by randomly walking a
-graph of client operations. 
+graph of client operations.
 
 Before running random walk, review the `test.common.*` properties in `accumulo-testing.properties`
 file. A test module must also be specified. See the [modules] directory for a list of available ones.
@@ -101,12 +106,12 @@ First, run the command below to create an Accumulo table for the continuous inge
 table is set by the property `test.ci.common.accumulo.table` (its value defaults to `ci`) in the file
 `accumulo-testing.properties`:
 
-          ./bin/cingest createtable
+          ./bin/cingest createtable {-o <prop>=<value>}
 
 The continuous ingest tests have several applications that start a local application which will run
 continuously until you stop using `ctrl-c`:
 
-          ./bin/cingest <application>
+          ./bin/cingest <application> {-o <prop>=<value>}
 
 Below is a list of available continuous ingest applications. You should run the `ingest` application
 first to add data to your table.
@@ -130,6 +135,9 @@ latest nodes inserted.
 table. This MapReduce job will write out an entry for every entry in the table (except for ones
 created by the MapReduce job itself). Stop ingest before running this MapReduce job. Do not run more
 than one instance of this MapReduce job concurrently against a table.
+
+Checkout [ingest-test.md](docs/ingest-test.md) for pointers on running a long
+running ingest and verification test.
 
 ## Agitator
 
@@ -208,7 +216,7 @@ function stop_cluster {
 ```
 
 An example script for [Uno] is provided.  To use this do the following and set
-`UNO_HOME` after copying. 
+`UNO_HOME` after copying.
 
     cp conf/cluster-control.sh.uno conf/cluster-control.sh
 

@@ -44,6 +44,8 @@ test.ci.common.auths=
 # ------
 # Number of entries each ingest client should write
 test.ci.ingest.client.entries=9223372036854775807
+# Flush batch writer after this many entries.
+test.ci.ingest.entries.flush=1000000
 # Minimum random row to generate
 test.ci.ingest.row.min=0
 # Maximum random row to generate
@@ -57,7 +59,8 @@ test.ci.ingest.max.cq=32767
 test.ci.ingest.visibilities=
 # Checksums will be generated during ingest if set to true
 test.ci.ingest.checksum=true
-# Enables periodic pausing of ingest
+# Enables periodic pausing of ingest. Pause checks are only done after a flush. To write small
+# amounts of data and then pause, set pause.wait.max and entries.flush small.
 test.ci.ingest.pause.enabled=false
 # Minimum wait between ingest pauses (in seconds)
 test.ci.ingest.pause.wait.min=120
@@ -90,7 +93,7 @@ test.ci.scanner.entries=5000
 # Verify
 # -----
 # Maximum number of mapreduce mappers
-test.ci.verify.max.maps=64
+test.ci.verify.max.maps=4096
 # Number of mapreduce reducers
 test.ci.verify.reducers=64
 # Perform the verification directly on the files while the table is offline

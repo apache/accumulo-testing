@@ -16,6 +16,8 @@
  */
 package org.apache.accumulo.testing.continuous;
 
+import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,40 +37,34 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
-
 public class ContinuousBatchWalker {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousBatchWalker <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
+      Authorizations auths = env.getRandomAuthorizations();
+      AccumuloClient client = env.getAccumuloClient();
+      Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
+      int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
+      scanner.setBatchSize(scanBatchSize);
 
-    Authorizations auths = env.getRandomAuthorizations();
-    AccumuloClient client = env.getAccumuloClient();
-    Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
-    int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
-    scanner.setBatchSize(scanBatchSize);
+      Random r = new Random();
 
-    Random r = new Random();
+      while (true) {
+        BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths);
 
-    while (true) {
-      BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths);
+        Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
+        List<Range> ranges = new ArrayList<>(batch.size());
 
-      Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
-      List<Range> ranges = new ArrayList<>(batch.size());
+        for (Text row : batch) {
+          ranges.add(new Range(row));
+        }
 
-      for (Text row : batch) {
-        ranges.add(new Range(row));
+        runBatchScan(scanBatchSize, bs, batch, ranges);
+
+        int bwSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS));
+        sleepUninterruptibly(bwSleepMs, TimeUnit.MILLISECONDS);
       }
-
-      runBatchScan(scanBatchSize, bs, batch, ranges);
-
-      int bwSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS));
-      sleepUninterruptibly(bwSleepMs, TimeUnit.MILLISECONDS);
     }
   }
 

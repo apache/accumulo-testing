@@ -27,47 +27,44 @@ public class CreateTable {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 2) {
-      System.err.println("Usage: CreateTable <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    AccumuloClient client = env.getAccumuloClient();
-    String tableName = env.getAccumuloTableName();
-    if (client.tableOperations().exists(tableName)) {
-      System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
-      System.exit(-1);
-    }
-
-    int numTablets = Integer
-        .parseInt(env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
-    if (numTablets < 1) {
-      System.err.println("ERROR: numTablets < 1");
-      System.exit(-1);
-    }
-    if (env.getRowMin() >= env.getRowMax()) {
-      System.err.println("ERROR: min >= max");
-      System.exit(-1);
-    }
-
-    client.tableOperations().create(tableName);
-
-    SortedSet<Text> splits = new TreeSet<>();
-    int numSplits = numTablets - 1;
-    long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
-    long split = distance;
-    for (int i = 0; i < numSplits; i++) {
-      String s = String.format("%016x", split + env.getRowMin());
-      while (s.charAt(s.length() - 1) == '0') {
-        s = s.substring(0, s.length() - 1);
+      AccumuloClient client = env.getAccumuloClient();
+      String tableName = env.getAccumuloTableName();
+      if (client.tableOperations().exists(tableName)) {
+        System.err.println("ERROR: Accumulo table '" + tableName + "' already exists");
+        System.exit(-1);
       }
-      splits.add(new Text(s));
-      split += distance;
-    }
 
-    client.tableOperations().addSplits(tableName, splits);
-    System.out
-        .println("Created Accumulo table '" + tableName + "' with " + numTablets + " tablets");
+      int numTablets = Integer.parseInt(env
+          .getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
+      if (numTablets < 1) {
+        System.err.println("ERROR: numTablets < 1");
+        System.exit(-1);
+      }
+      if (env.getRowMin() >= env.getRowMax()) {
+        System.err.println("ERROR: min >= max");
+        System.exit(-1);
+      }
+
+      client.tableOperations().create(tableName);
+
+      SortedSet<Text> splits = new TreeSet<>();
+      int numSplits = numTablets - 1;
+      long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
+      long split = distance;
+      for (int i = 0; i < numSplits; i++) {
+        String s = String.format("%016x", split + env.getRowMin());
+        while (s.charAt(s.length() - 1) == '0') {
+          s = s.substring(0, s.length() - 1);
+        }
+        splits.add(new Text(s));
+        split += distance;
+      }
+
+      client.tableOperations().addSplits(tableName, splits);
+      System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets
+          + " tablets");
+    }
   }
 }

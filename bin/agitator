@@ -29,10 +29,10 @@ Possible commands:
 EOF
 }
 
-if [ -f "$at_home/conf/accumulo-testing-env.sh" ]; then
-  . "$at_home"/conf/accumulo-testing-env.sh
+if [ -f "$at_home/conf/env.sh" ]; then
+  . "$at_home"/conf/env.sh
 else
-  . "$at_home"/conf/accumulo-testing-env.sh.example
+  . "$at_home"/conf/env.sh.example
 fi
 
 function start_agitator() {

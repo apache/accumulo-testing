@@ -23,13 +23,13 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -113,11 +113,7 @@ public class ContinuousMoru extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
 
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousMoru <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+    ContinuousEnv env = new ContinuousEnv(args);
 
     Job job = Job.getInstance(getConf(),
         this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
@@ -151,11 +147,7 @@ public class ContinuousMoru extends Configured implements Tool {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousMoru <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+    ContinuousEnv env = new ContinuousEnv(args);
     int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousMoru(), args);
     if (res != 0)
       System.exit(res);

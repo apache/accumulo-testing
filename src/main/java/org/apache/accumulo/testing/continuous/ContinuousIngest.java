@@ -84,6 +84,10 @@ public class ContinuousIngest {
     return (rand.nextInt(durationMax - durationMin) + durationMin);
   }
 
+  private static int getFlushEntries(Properties props) {
+    return Integer.parseInt(props.getProperty(TestProps.CI_INGEST_FLUSH_ENTRIES, "1000000"));
+  }
+
   private static void pauseCheck(Properties props, Random rand) throws InterruptedException {
     if (pauseEnabled(props)) {
       long elapsedNano = System.nanoTime() - lastPauseNs;
@@ -100,110 +104,88 @@ public class ContinuousIngest {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousIngest <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
-
-    String vis = env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES);
-    if (vis == null) {
-      visibilities = Collections.singletonList(new ColumnVisibility());
-    } else {
-      visibilities = new ArrayList<>();
-      for (String v : vis.split(",")) {
-        visibilities.add(new ColumnVisibility(v.trim()));
-      }
-    }
-
-    long rowMin = env.getRowMin();
-    long rowMax = env.getRowMax();
-    if (rowMin < 0 || rowMax < 0 || rowMax <= rowMin) {
-      throw new IllegalArgumentException("bad min and max");
-    }
-
-    AccumuloClient client = env.getAccumuloClient();
-    String tableName = env.getAccumuloTableName();
-    if (!client.tableOperations().exists(tableName)) {
-      throw new TableNotFoundException(null, tableName,
-          "Consult the README and create the table before starting ingest.");
-    }
-
-    BatchWriter bw = client.createBatchWriter(tableName);
-    bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
-
-    Random r = new Random();
-
-    byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
-
-    log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId,
-        UTF_8)));
-
-    long count = 0;
-    final int flushInterval = 1000000;
-    final int maxDepth = 25;
-
-    // always want to point back to flushed data. This way the previous item
-    // should
-    // always exist in accumulo when verifying data. To do this make insert
-    // N point
-    // back to the row from insert (N - flushInterval). The array below is
-    // used to keep
-    // track of this.
-    long prevRows[] = new long[flushInterval];
-    long firstRows[] = new long[flushInterval];
-    int firstColFams[] = new int[flushInterval];
-    int firstColQuals[] = new int[flushInterval];
-
-    long lastFlushTime = System.currentTimeMillis();
-
-    int maxColF = env.getMaxColF();
-    int maxColQ = env.getMaxColQ();
-    boolean checksum = Boolean.parseBoolean(env.getTestProperty(TestProps.CI_INGEST_CHECKSUM));
-    long numEntries = Long.parseLong(env.getTestProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
-
-    Properties testProps = env.getTestProperties();
-    if (pauseEnabled(testProps)) {
-      lastPauseNs = System.nanoTime();
-      pauseWaitSec = getPauseWaitSec(testProps, r);
-      log.info("PAUSING enabled");
-      log.info("INGESTING for " + pauseWaitSec + "s");
-    }
-
-    out: while (true) {
-      // generate first set of nodes
-      ColumnVisibility cv = getVisibility(r);
-
-      for (int index = 0; index < flushInterval; index++) {
-        long rowLong = genLong(rowMin, rowMax, r);
-        prevRows[index] = rowLong;
-        firstRows[index] = rowLong;
-
-        int cf = r.nextInt(maxColF);
-        int cq = r.nextInt(maxColQ);
-
-        firstColFams[index] = cf;
-        firstColQuals[index] = cq;
-
-        Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
-        count++;
-        bw.addMutation(m);
+      String vis = env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES);
+      if (vis == null) {
+        visibilities = Collections.singletonList(new ColumnVisibility());
+      } else {
+        visibilities = new ArrayList<>();
+        for (String v : vis.split(",")) {
+          visibilities.add(new ColumnVisibility(v.trim()));
+        }
       }
 
-      lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-      if (count >= numEntries)
-        break out;
+      long rowMin = env.getRowMin();
+      long rowMax = env.getRowMax();
+      if (rowMin < 0 || rowMax < 0 || rowMax <= rowMin) {
+        throw new IllegalArgumentException("bad min and max");
+      }
 
-      // generate subsequent sets of nodes that link to previous set of
-      // nodes
-      for (int depth = 1; depth < maxDepth; depth++) {
+      AccumuloClient client = env.getAccumuloClient();
+      String tableName = env.getAccumuloTableName();
+      if (!client.tableOperations().exists(tableName)) {
+        throw new TableNotFoundException(null, tableName,
+            "Consult the README and create the table before starting ingest.");
+      }
+
+      BatchWriter bw = client.createBatchWriter(tableName);
+      bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
+
+      Random r = new Random();
+
+      byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
+
+      log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId,
+          UTF_8)));
+
+      long count = 0;
+      final int flushInterval = getFlushEntries(env.getTestProperties());
+      final int maxDepth = 25;
+
+      // always want to point back to flushed data. This way the previous item
+      // should
+      // always exist in accumulo when verifying data. To do this make insert
+      // N point
+      // back to the row from insert (N - flushInterval). The array below is
+      // used to keep
+      // track of this.
+      long prevRows[] = new long[flushInterval];
+      long firstRows[] = new long[flushInterval];
+      int firstColFams[] = new int[flushInterval];
+      int firstColQuals[] = new int[flushInterval];
+
+      long lastFlushTime = System.currentTimeMillis();
+
+      int maxColF = env.getMaxColF();
+      int maxColQ = env.getMaxColQ();
+      boolean checksum = Boolean.parseBoolean(env.getTestProperty(TestProps.CI_INGEST_CHECKSUM));
+      long numEntries = Long.parseLong(env.getTestProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+
+      Properties testProps = env.getTestProperties();
+      if (pauseEnabled(testProps)) {
+        lastPauseNs = System.nanoTime();
+        pauseWaitSec = getPauseWaitSec(testProps, r);
+        log.info("PAUSING enabled");
+        log.info("INGESTING for " + pauseWaitSec + "s");
+      }
+
+      out: while (true) {
+        // generate first set of nodes
+        ColumnVisibility cv = getVisibility(r);
+
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
-          byte[] prevRow = genRow(prevRows[index]);
           prevRows[index] = rowLong;
-          Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv,
-              ingestInstanceId, count, prevRow, checksum);
+          firstRows[index] = rowLong;
+
+          int cf = r.nextInt(maxColF);
+          int cq = r.nextInt(maxColQ);
+
+          firstColFams[index] = cf;
+          firstColQuals[index] = cq;
+
+          Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
           count++;
           bw.addMutation(m);
         }
@@ -211,23 +193,41 @@ public class ContinuousIngest {
         lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         if (count >= numEntries)
           break out;
+
+        // generate subsequent sets of nodes that link to previous set of
+        // nodes
+        for (int depth = 1; depth < maxDepth; depth++) {
+          for (int index = 0; index < flushInterval; index++) {
+            long rowLong = genLong(rowMin, rowMax, r);
+            byte[] prevRow = genRow(prevRows[index]);
+            prevRows[index] = rowLong;
+            Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv,
+                ingestInstanceId, count, prevRow, checksum);
+            count++;
+            bw.addMutation(m);
+          }
+
+          lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+          if (count >= numEntries)
+            break out;
+          pauseCheck(testProps, r);
+        }
+
+        // create one big linked list, this makes all of the first inserts
+        // point to something
+        for (int index = 0; index < flushInterval - 1; index++) {
+          Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
+              ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
+          count++;
+          bw.addMutation(m);
+        }
+        lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+        if (count >= numEntries)
+          break out;
         pauseCheck(testProps, r);
       }
-
-      // create one big linked list, this makes all of the first inserts
-      // point to something
-      for (int index = 0; index < flushInterval - 1; index++) {
-        Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
-            ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
-        count++;
-        bw.addMutation(m);
-      }
-      lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-      if (count >= numEntries)
-        break out;
-      pauseCheck(testProps, r);
+      bw.close();
     }
-    bw.close();
   }
 
   private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime)

@@ -26,10 +26,10 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -140,21 +140,19 @@ public class ContinuousVerify extends Configured implements Tool {
 
   @Override
   public int run(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousVerify <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+
+    ContinuousEnv env = new ContinuousEnv(args);
+
+    String tableName = env.getAccumuloTableName();
 
     Job job = Job.getInstance(getConf(),
-        this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
+        this.getClass().getSimpleName() + "_"+ tableName + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
 
     boolean scanOffline = Boolean.parseBoolean(env
         .getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
-    String tableName = env.getAccumuloTableName();
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
     int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
     String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
@@ -202,11 +200,7 @@ public class ContinuousVerify extends Configured implements Tool {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousVerify <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
+    ContinuousEnv env = new ContinuousEnv(args);
 
     int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousVerify(), args);
     if (res != 0)
