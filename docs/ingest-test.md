@@ -77,7 +77,7 @@ mkdir -p logs
 accumulo shell -u root -p secret -e tables | grep ci | while read table ; do
   nohup ./bin/cingest verify \
       -o test.ci.common.accumulo.table=$table \
-      -o test.ci.verify.output.dir=/tmp/ci-verify-$table \
+      -o test.ci.verify.output.dir=/tmp/$table-verify \
           &> logs/verify_$table.log &
 done
 ```
