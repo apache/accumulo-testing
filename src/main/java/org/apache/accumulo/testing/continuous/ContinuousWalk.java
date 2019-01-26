@@ -45,58 +45,56 @@ public class ContinuousWalk {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: ContinuousWalk <testPropsPath> <clientPropsPath>");
-      System.exit(-1);
-    }
-    ContinuousEnv env = new ContinuousEnv(args[0], args[1]);
 
-    AccumuloClient client = env.getAccumuloClient();
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    Random r = new Random();
+      AccumuloClient client = env.getAccumuloClient();
 
-    ArrayList<Value> values = new ArrayList<>();
+      Random r = new Random();
 
-    int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
+      ArrayList<Value> values = new ArrayList<>();
 
-    while (true) {
-      Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
-          env.getRandomAuthorizations());
-      String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, r);
+      int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
 
-      while (row != null) {
+      while (true) {
+        Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
+            env.getRandomAuthorizations());
+        String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, r);
 
-        values.clear();
+        while (row != null) {
 
-        long t1 = System.currentTimeMillis();
-        Span span = Trace.on("walk");
-        try {
-          scanner.setRange(new Range(new Text(row)));
-          for (Entry<Key,Value> entry : scanner) {
-            validate(entry.getKey(), entry.getValue());
-            values.add(entry.getValue());
+          values.clear();
+
+          long t1 = System.currentTimeMillis();
+          Span span = Trace.on("walk");
+          try {
+            scanner.setRange(new Range(new Text(row)));
+            for (Entry<Key,Value> entry : scanner) {
+              validate(entry.getKey(), entry.getValue());
+              values.add(entry.getValue());
+            }
+          } finally {
+            span.stop();
           }
-        } finally {
-          span.stop();
-        }
-        long t2 = System.currentTimeMillis();
+          long t2 = System.currentTimeMillis();
 
-        System.out.printf("SRQ %d %s %d %d%n", t1, row, (t2 - t1), values.size());
+          System.out.printf("SRQ %d %s %d %d%n", t1, row, (t2 - t1), values.size());
 
-        if (values.size() > 0) {
-          row = getPrevRow(values.get(r.nextInt(values.size())));
-        } else {
-          System.out.printf("MIS %d %s%n", t1, row);
-          System.err.printf("MIS %d %s%n", t1, row);
-          row = null;
+          if (values.size() > 0) {
+            row = getPrevRow(values.get(r.nextInt(values.size())));
+          } else {
+            System.out.printf("MIS %d %s%n", t1, row);
+            System.err.printf("MIS %d %s%n", t1, row);
+            row = null;
+          }
+
+          if (sleepTime > 0)
+            Thread.sleep(sleepTime);
         }
 
         if (sleepTime > 0)
           Thread.sleep(sleepTime);
       }
-
-      if (sleepTime > 0)
-        Thread.sleep(sleepTime);
     }
   }
 

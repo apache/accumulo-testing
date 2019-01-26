@@ -1,8 +1,10 @@
 package org.apache.accumulo.testing;
 
-import static java.util.Objects.requireNonNull;
-
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
@@ -19,12 +21,36 @@ public class TestEnv implements AutoCloseable {
   private AccumuloClient client = null;
   private Configuration hadoopConfig = null;
 
-  public TestEnv(String testPropsPath, String clientPropsPath) {
-    requireNonNull(testPropsPath);
-    requireNonNull(clientPropsPath);
+  public TestEnv(String[] args) {
+
+    Map<String, String> options = new HashMap<>();
+    List<String> arguments = new ArrayList<>();
+
+    for (int i = 0; i < args.length; i++) {
+      if(args[i].equals("-o")) {
+        i++;
+        String[] tokens = args[i].split("=",2);
+        options.put(tokens[0], tokens[1]);
+      } else {
+        arguments.add(args[i]);
+      }
+    }
+
+    if(arguments.size() != 2) {
+      throw new IllegalArgumentException("Expected <testPropsPath> <clientPropsPath> arguments.");
+    }
+
+    String testPropsPath = arguments.get(0);
+    clientPropsPath = arguments.get(1);
+
     this.testProps = TestProps.loadFromFile(testPropsPath);
-    this.clientPropsPath = clientPropsPath;
     this.clientProps = Accumulo.newClientProperties().from(clientPropsPath).build();
+
+    options.forEach((k,v) -> testProps.setProperty(k, v));
+  }
+
+  public TestEnv(String testPropsPath, String clientPropsPath) {
+    this(new String[] {testPropsPath, clientPropsPath});
   }
 
   private Properties copyProperties(Properties props) {
