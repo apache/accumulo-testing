@@ -21,7 +21,7 @@ at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: cingest <application> {-o <test prop>=<value>}
+Usage: cingest <application> {-o test.<prop>=<value>}
 
 Available applications:
 

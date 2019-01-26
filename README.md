@@ -106,12 +106,12 @@ First, run the command below to create an Accumulo table for the continuous inge
 table is set by the property `test.ci.common.accumulo.table` (its value defaults to `ci`) in the file
 `accumulo-testing.properties`:
 
-          ./bin/cingest createtable {-o <prop>=<value>}
+          ./bin/cingest createtable {-o test.<prop>=<value>}
 
 The continuous ingest tests have several applications that start a local application which will run
 continuously until you stop using `ctrl-c`:
 
-          ./bin/cingest <application> {-o <prop>=<value>}
+          ./bin/cingest <application> {-o test.<prop>=<value>}
 
 Below is a list of available continuous ingest applications. You should run the `ingest` application
 first to add data to your table.
