@@ -24,7 +24,7 @@ docker service create --network="host" --replicas $NUM_NODES --name ci \
 # seen with continuous writes.
 #
 for i in $(seq 1 $NUM_NODES); do
-  TABLE="cip-$i"
+  TABLE="cip_$i"
   docker run --network="host" accumulo-testing cingest createtable \
      -o test.ci.common.accumulo.table=$TABLE \
      -o test.ci.common.accumulo.num.tablets=$(( $NUM_NODES * 4 ))
@@ -43,7 +43,7 @@ done
 # https://github.com/apache/accumulo/issues/854
 #
 for FLUSH_SIZE in 97 101 997 1009 ; do
-  TABLE="cip-small-$FLUSH_SIZE"
+  TABLE="cip_small_$FLUSH_SIZE"
   docker run --network="host" accumulo-testing cingest createtable \
      -o test.ci.common.accumulo.table=$TABLE \
      -o test.ci.common.accumulo.num.tablets=$(( $NUM_NODES * 2 ))
