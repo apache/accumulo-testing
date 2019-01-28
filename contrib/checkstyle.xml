@@ -17,12 +17,16 @@
 <module name="Checker">
   <property name="charset" value="UTF-8"/>
   <module name="TreeWalker">
+    <!--check that only Accumulo public APIs are imported-->
+    <module name="ImportControl">
+      <property name="file" value="contrib/import-control.xml"/>
+    </module>
+    <!-- the following module was for accumulo 1.9 
     <module name="RegexpSinglelineJava">
-      <!--check that only Accumulo public APIs are imported-->
-      <property name="format" value="import\s+org\.apache\.accumulo\.(.*\.(impl|thrift|crypto)\..*|(?!core|minicluster|testing).*|core\.(?!client|data|security).*)"/>
+      <property name="format" value="import\s+org\.apache\.accumulo\.(.*\.(impl|thrift|crypto)\..*|(?!core|minicluster|testing|hadoop).*|core\.(?!client|data|security|iterators).*)"/>
       <property name="ignoreComments" value="true" />
       <property name="message" value="Accumulo non-public classes imported" />
-    </module>
+    </module> -->
   </module>
 </module>
 
