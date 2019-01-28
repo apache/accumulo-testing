@@ -145,8 +145,8 @@ public class ContinuousVerify extends Configured implements Tool {
 
     String tableName = env.getAccumuloTableName();
 
-    Job job = Job.getInstance(getConf(),
-        this.getClass().getSimpleName() + "_"+ tableName + "_" + System.currentTimeMillis());
+    Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + tableName + "_"
+        + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);

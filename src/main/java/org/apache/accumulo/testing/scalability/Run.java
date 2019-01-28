@@ -21,7 +21,6 @@ import java.net.InetAddress;
 import java.util.Properties;
 
 import org.apache.accumulo.core.cli.Help;
-import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -51,7 +50,7 @@ public class Run {
     Opts opts = new Opts();
     opts.parseArgs(Run.class.getName(), args);
 
-    Configuration conf = CachedConfiguration.getInstance();
+    Configuration conf = new Configuration();
     FileSystem fs;
     fs = FileSystem.get(conf);
 
