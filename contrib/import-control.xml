@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE import-control PUBLIC
+    "-//Checkstyle//DTD ImportControl Configuration 1.4//EN"
+    "https://checkstyle.org/dtds/import_control_1_4.dtd">
+
+<!-- This checkstyle rule is configured to ensure only use of Accumulo API -->
+<import-control pkg="org.apache.accumulo.testing" strategyOnMismatch="allowed">
+    <!-- allow this package -->
+    <allow pkg="org.apache.accumulo.testing"/>
+    <!-- API packages -->
+    <allow pkg="org.apache.accumulo.core.client"/>
+    <allow pkg="org.apache.accumulo.core.data"/>
+    <allow pkg="org.apache.accumulo.core.security"/>
+    <allow pkg="org.apache.accumulo.core.iterators"/>
+    <allow pkg="org.apache.accumulo.minicluster"/>
+    <allow pkg="org.apache.accumulo.hadoop.mapreduce"/>
+
+    <!-- exceptions for testing -->
+    <allow pkg="org.apache.accumulo.core.conf"/>
+
+    <!-- TODO refactor code to remove the following exceptions -->
+    <allow class="org.apache.accumulo.core.clientImpl.thrift.TableOperationExceptionType"/>
+    <allow class="org.apache.accumulo.core.clientImpl.thrift.ThriftTableOperationException"/>
+    <allow class="org.apache.accumulo.core.metadata.MetadataTable"/>
+    <allow class="org.apache.accumulo.core.replication.ReplicationTable"/>
+    <allow class="org.apache.accumulo.core.spi.scan.HintScanPrioritizer"/>
+    <allow class="org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable"/>
+    <allow class="org.apache.accumulo.core.crypto.CryptoServiceFactory"/>
+    <allow class="org.apache.accumulo.core.clientImpl.ClientContext"/>
+    <allow class="org.apache.accumulo.core.clientImpl.TabletServerBatchWriter"/>
+    <allow class="org.apache.accumulo.core.file.FileOperations"/>
+    <allow class="org.apache.accumulo.core.file.FileSKVWriter"/>
+    <allow class="org.apache.accumulo.core.file.rfile.RFile"/>
+    <allow class="org.apache.accumulo.core.util.SimpleThreadPool"/>
+    <allow class="org.apache.accumulo.core.util.FastFormat"/>
+    <allow class="org.apache.accumulo.core.cli.ClientOnRequiredTable"/>
+    <allow class="org.apache.accumulo.core.cli.BatchScannerOpts"/>
+    <allow class="org.apache.accumulo.core.cli.ClientOnDefaultTable"/>
+    <allow class="org.apache.accumulo.core.cli.ClientOpts.TimeConverter"/>
+    <allow class="org.apache.accumulo.core.cli.Help"/>
+    <allow class="org.apache.accumulo.core.cli.BatchWriterOpts"/>
+    <allow class="org.apache.accumulo.core.cli.ClientOpts"/>
+    <allow class="org.apache.accumulo.core.cli.ScannerOpts"/>
+    <allow class="org.apache.accumulo.core.util.Pair"/>
+    <allow class="org.apache.accumulo.core.trace.Trace"/>
+    <allow class="org.apache.accumulo.core.trace.TraceSamplers"/>
+    <allow class="org.apache.accumulo.core.trace.Span"/>
+    <allow class="org.apache.accumulo.core.trace.DistributedTrace"/>
+    <!-- End TODO section -->
+
+    <!-- disallow everything else coming from accumulo -->
+    <disallow pkg="org.apache.accumulo"/>
+</import-control>

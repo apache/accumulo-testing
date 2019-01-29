@@ -30,10 +30,12 @@ import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 public class IsolatedScan extends Test {
 
@@ -53,7 +55,7 @@ public class IsolatedScan extends Test {
           Authorizations.EMPTY)));
 
       while (iter.hasNext()) {
-        PeekingIterator<Entry<Key,Value>> row = new PeekingIterator<>(iter.next());
+        PeekingIterator<Entry<Key,Value>> row = Iterators.peekingIterator(iter.next());
         Entry<Key,Value> kv = null;
         if (row.hasNext())
           kv = row.peek();
