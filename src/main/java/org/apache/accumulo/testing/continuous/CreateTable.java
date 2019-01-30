@@ -16,10 +16,13 @@
  */
 package org.apache.accumulo.testing.continuous;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 
@@ -38,6 +41,7 @@ public class CreateTable {
 
       int numTablets = Integer.parseInt(env
           .getTestProperty(TestProps.CI_COMMON_ACCUMULO_NUM_TABLETS));
+
       if (numTablets < 1) {
         System.err.println("ERROR: numTablets < 1");
         System.exit(-1);
@@ -46,8 +50,6 @@ public class CreateTable {
         System.err.println("ERROR: min >= max");
         System.exit(-1);
       }
-
-      client.tableOperations().create(tableName);
 
       SortedSet<Text> splits = new TreeSet<>();
       int numSplits = numTablets - 1;
@@ -62,9 +64,25 @@ public class CreateTable {
         split += distance;
       }
 
-      client.tableOperations().addSplits(tableName, splits);
+      NewTableConfiguration ntc = new NewTableConfiguration();
+      ntc.withSplits(splits);
+      ntc.setProperties(getTableProps(env));
+
+      client.tableOperations().create(tableName, ntc);
+
       System.out.println("Created Accumulo table '" + tableName + "' with " + numTablets
           + " tablets");
     }
+  }
+
+  private static Map<String,String> getTableProps(ContinuousEnv env) {
+    String[] props = env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_TABLE_PROPS).split(" ");
+    Map<String,String> tableProps = new HashMap<>();
+    for (String prop : props) {
+      System.out.println("prop" + prop);
+      String[] kv = prop.split("=");
+      tableProps.put(kv[0], kv[1]);
+    }
+    return tableProps;
   }
 }
