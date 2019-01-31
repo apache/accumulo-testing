@@ -39,6 +39,11 @@ test.ci.common.accumulo.num.tablets=20
 # Optional authorizations that if specified will be randomly selected by scanners and walkers
 # Format: a,b|a,b,c|c
 test.ci.common.auths=
+# Accumulo table properties to set when creating table
+test.ci.common.accumulo.table.props=table.file.compress.type=snappy \
+table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.TwoTierCompactionStrategy \
+table.majc.compaction.strategy.opts.file.large.compress.threshold=100M \
+table.majc.compaction.strategy.opts.file.large.compress.type=gz
 
 # Ingest
 # ------

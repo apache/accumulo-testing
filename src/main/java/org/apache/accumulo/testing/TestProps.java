@@ -48,6 +48,8 @@ public class TestProps {
   /** Common **/
   // Accumulo table used by continuous ingest tests
   public static final String CI_COMMON_ACCUMULO_TABLE = CI_COMMON + "accumulo.table";
+  // props to set on the table when created
+  public static final String CI_COMMON_ACCUMULO_TABLE_PROPS = CI_COMMON + "accumulo.table.props";
   // Number of tablets that should exist in Accumulo table when created
   public static final String CI_COMMON_ACCUMULO_NUM_TABLETS = CI_COMMON + "accumulo.num.tablets";
   // Optional authorizations (in CSV format) that if specified will be
