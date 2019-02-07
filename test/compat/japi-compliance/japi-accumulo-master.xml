@@ -45,17 +45,16 @@
 
 -->
 <skip_packages>
-  org.apache.accumulo.core.client.impl
-  org.apache.accumulo.core.client.lexicoders.impl
-  org.apache.accumulo.core.client.mapred.impl
-  org.apache.accumulo.core.client.mapreduce.impl
-  org.apache.accumulo.core.client.mapreduce.lib.impl
-  org.apache.accumulo.core.client.mock.impl
-  org.apache.accumulo.core.data.impl
-  org.apache.accumulo.core.data.thrift
-  org.apache.accumulo.core.security.crypto
-  org.apache.accumulo.core.security.thrift
-  org.apache.accumulo.minicluster.impl
+  org.apache.accumulo.core.clientImpl
+  org.apache.accumulo.core.clientImpl.lexicoder
+  org.apache.accumulo.core.clientImpl.mapred
+  org.apache.accumulo.core.clientImpl.mapreduce
+  org.apache.accumulo.core.clientImpl.mapreduce.lib
+  org.apache.accumulo.core.dataImpl
+  org.apache.accumulo.core.dataImpl.thrift
+  org.apache.accumulo.core.securityImpl
+  org.apache.accumulo.core.securityImpl.thrift
+  org.apache.accumulo.miniclusterImpl
 </skip_packages>
 
 
