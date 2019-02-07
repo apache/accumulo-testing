@@ -29,6 +29,10 @@
     <allow pkg="org.apache.accumulo.minicluster"/>
     <allow pkg="org.apache.accumulo.hadoop.mapreduce"/>
 
+    <!-- SPI package -->
+    <allow pkg="org.apache.accumulo.core.spi"/>
+
+
     <!-- exceptions for testing -->
     <allow pkg="org.apache.accumulo.core.conf"/>
 
