@@ -22,8 +22,12 @@ function get_ah {
   echo "$($UNO env | grep ACCUMULO_HOME | sed 's/export ACCUMULO_HOME=//' | sed 's/"//g')"
 }
 
-
 # functions required for accumulo testing cluster control
+
+function get_hadoop_client {
+  echo "$($UNO env | grep HADOOP_HOME | sed 's/export HADOOP_HOME=//' | sed 's/"//g')/share/hadoop/client/*"
+}
+
 
 function get_version {
   case $1 in
