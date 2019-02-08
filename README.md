@@ -165,6 +165,11 @@ To run performance test a `cluster-control.sh` script is needed to assist with s
 wiping, and confguring an Accumulo instance.  This script should define the following functions.
 
 ```bash
+
+function get_hadoop_client {
+  # TODO return hadoop client libs in a form suitable for appending to a classpath
+}
+
 function get_version {
   case $1 in
     ACCUMULO)

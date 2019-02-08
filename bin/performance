@@ -59,8 +59,7 @@ fi
 
 . $at_home/conf/cluster-control.sh
 build_shade_jar
-# TODO be more specific with hadoop jars
-CP="$at_home/target/accumulo-testing-shaded.jar:$HADOOP_HOME/share/hadoop/client/*"
+CP="$at_home/target/accumulo-testing-shaded.jar:$(get_hadoop_client)"
 perf_pkg="org.apache.accumulo.testing.performance.impl"
 case "$1" in
   run)
