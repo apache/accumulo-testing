@@ -27,7 +27,6 @@
   Then check the relevant pom files to see what the artifact is named.
 -->
 <archives>
-  /path/to/accumulo-client-mapreduce-2.0.0-SNAPSHOT.jar
   /path/to/accumulo-core-2.0.0-SNAPSHOT.jar
   /path/to/accumulo-minicluster-2.0.0-SNAPSHOT.jar
 </archives>
