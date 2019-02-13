@@ -12,7 +12,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.YieldCallback;
-import org.slf4j.LoggerFactory;
 
 public abstract class YieldingFilter implements SortedKeyValueIterator<Key,Value> {
 
@@ -20,24 +19,26 @@ public abstract class YieldingFilter implements SortedKeyValueIterator<Key,Value
   private BiPredicate<Key,Value> predicate;
   private YieldCallback<Key> yield;
   private long yieldTime;
+  private long start;
 
-  protected abstract BiPredicate<Key,Value> createPredicate();
+  protected abstract BiPredicate<Key,Value> createPredicate(Map<String,String> options);
 
   @Override
   public void init(SortedKeyValueIterator<Key,Value> source, Map<String,String> options,
       IteratorEnvironment env) throws IOException {
     this.source = source;
-    this.predicate = createPredicate();
+    this.predicate = createPredicate(options);
     this.yieldTime = Long.parseLong(options.getOrDefault("yieldTimeMS", "100"));
+    start = System.nanoTime();
   }
 
   protected void findTop() throws IOException {
-    long start = System.nanoTime();
     while (source.hasTop() && !source.getTopKey().isDeleted()
         && !predicate.test(source.getTopKey(), source.getTopValue())) {
       long duration = (System.nanoTime() - start) / 1000000;
       if (duration > yieldTime) {
         yield.yield(source.getTopKey());
+        start = System.nanoTime();
         break;
       }
 

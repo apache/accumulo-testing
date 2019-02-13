@@ -18,6 +18,7 @@
 package org.apache.accumulo.testing.performance.tests;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,8 +44,8 @@ import org.apache.accumulo.testing.performance.util.TestData;
 import org.apache.accumulo.testing.performance.util.TestExecutor;
 import org.apache.hadoop.io.Text;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 public class YieldingScanExecutorPT implements PerformanceTest {
 
@@ -66,7 +67,7 @@ public class YieldingScanExecutorPT implements PerformanceTest {
       + "are working correctly then the short scans should have very short response times.  This "
       + "happens because the filters should end up in a separate thread pool than the short scan.";
 
-  private static final String FILTER_PROBABILITY = "0.000001";
+  private static final String FILTER_PROBABILITIES = "0.01,0.001,0.0001,0.00001,0.000001";
   private static final String FILTER_YIELD_TIME = "1000";
 
   private static final String QUICK_SCAN_TIME = "500";
@@ -141,8 +142,9 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     builder.parameter("server_scan_threads", SCAN_EXECUTOR_THREADS,
         "Server side scan handler threads that each executor has.  There are 2 executors.");
 
-    builder.parameter("filter_probability", FILTER_PROBABILITY, "The chance that one of the long "
-        + "filter scans will return any key it sees.");
+    builder.parameter("filter_probabilities", FILTER_PROBABILITIES, "The chances that one of the long "
+        + "filter scans will return any key it sees. The probabilites are cycled through when "
+        + "starting long scans.");
     builder.parameter("filter_yield_time", FILTER_YIELD_TIME, "The time in ms after which one of "
         + "the long filter scans will yield.");
     builder.parameter("quick_scan_time", QUICK_SCAN_TIME, "The threshold time in ms for deciding "
@@ -152,12 +154,11 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     return builder.build();
   }
 
-  private static long scan(String tableName, AccumuloClient c, byte[] row, byte[] fam,
-      Map<String,String> hints) throws TableNotFoundException {
+  private static long scan(String tableName, AccumuloClient c, byte[] row, byte[] fam)
+      throws TableNotFoundException {
     long t1 = System.currentTimeMillis();
     int count = 0;
     try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
-      // scanner.setExecutionHints(hints);
       scanner.setRange(Range.exact(new Text(row), new Text(fam)));
       if (Iterables.size(scanner) != NUM_QUALS) {
         throw new RuntimeException("bad count " + count);
@@ -167,14 +168,14 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     return System.currentTimeMillis() - t1;
   }
 
-  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, Map<String,String> hints)
+  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, String filterProbability)
       throws TableNotFoundException {
     long count = 0;
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
 
         IteratorSetting is = new IteratorSetting(30, ProbabilityFilter.class);
-        is.addOption("probability", FILTER_PROBABILITY);
+        is.addOption("probability", filterProbability);
         is.addOption("yieldTimeMS", FILTER_YIELD_TIME);
 
         scanner.addScanIterator(is);
@@ -195,19 +196,13 @@ public class YieldingScanExecutorPT implements PerformanceTest {
   private LongSummaryStatistics runShortScans(Environment env, String tableName, int numScans)
       throws InterruptedException, ExecutionException {
 
-    Map<String,String> execHints = ImmutableMap.of("executor", "se2");
-    Map<String,String> prioHints = ImmutableMap.of("priority", "1");
-
     try (TestExecutor<Long> executor = new TestExecutor<>(NUM_SHORT_SCANS_THREADS)) {
       Random rand = new Random();
 
       for (int i = 0; i < numScans; i++) {
         byte[] row = TestData.row(rand.nextInt(NUM_ROWS));
         byte[] fam = TestData.fam(rand.nextInt(NUM_FAMS));
-        // scans have a 20% chance of getting dedicated thread pool and 80% chance of getting high
-        // priority
-        Map<String,String> hints = rand.nextInt(10) <= 1 ? execHints : prioHints;
-        executor.submit(() -> scan(tableName, env.getClient(), row, fam, hints));
+        executor.submit(() -> scan(tableName, env.getClient(), row, fam));
       }
 
       return executor.stream().mapToLong(l -> l).summaryStatistics();
@@ -215,12 +210,12 @@ public class YieldingScanExecutorPT implements PerformanceTest {
   }
 
   private TestExecutor<Long> startLongScans(Environment env, String tableName, AtomicBoolean stop) {
-    Map<String,String> hints = ImmutableMap.of("priority", "2");
 
+    Iterator<String> fpi = Iterators.cycle(FILTER_PROBABILITIES.split(","));
     TestExecutor<Long> longScans = new TestExecutor<>(NUM_LONG_SCANS);
 
     for (int i = 0; i < NUM_LONG_SCANS; i++) {
-      longScans.submit(() -> scan(tableName, env.getClient(), stop, hints));
+      longScans.submit(() -> scan(tableName, env.getClient(), stop, fpi.next()));
     }
     return longScans;
   }
