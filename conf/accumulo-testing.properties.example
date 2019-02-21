@@ -41,9 +41,10 @@ test.ci.common.accumulo.num.tablets=20
 test.ci.common.auths=
 # Accumulo table properties to set when creating table
 test.ci.common.accumulo.table.props=table.file.compress.type=snappy \
-table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.TwoTierCompactionStrategy \
-table.majc.compaction.strategy.opts.file.large.compress.threshold=100M \
-table.majc.compaction.strategy.opts.file.large.compress.type=gz
+table.majc.compaction.strategy=org.apache.accumulo.tserver.compaction.strategies.BasicCompactionStrategy \
+table.majc.compaction.strategy.opts.filter.size=250M \
+table.majc.compaction.strategy.opts.large.compress.threshold=100M \
+table.majc.compaction.strategy.opts.large.compress.type=gz
 
 # Ingest
 # ------
