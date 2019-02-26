@@ -35,8 +35,10 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.clientImpl.TabletServerBatchWriter;
+import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.crypto.CryptoServiceFactory;
+import org.apache.accumulo.core.conf.Property;
+import org.apache.accumulo.core.spi.crypto.CryptoService;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -44,7 +46,6 @@ import org.apache.accumulo.core.data.TabletId;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVWriter;
-import org.apache.accumulo.core.file.rfile.RFile;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.trace.DistributedTrace;
@@ -226,11 +227,8 @@ public class TestIngest {
     FileSKVWriter writer = null;
 
     if (opts.outputFile != null) {
-      writer = FileOperations
-          .getInstance()
-          .newWriterBuilder()
-          .forFile(opts.outputFile + "." + RFile.EXTENSION, fs, conf,
-              CryptoServiceFactory.newDefaultInstance())
+      writer = FileOperations.getInstance().newWriterBuilder()
+          .forFile(opts.outputFile + ".rf", fs, conf, CryptoServiceInstance())
           .withTableConfiguration(DefaultConfiguration.getInstance()).build();
       writer.startDefaultLocalityGroup();
     } else {
@@ -359,5 +357,22 @@ public class TestIngest {
       Configuration conf) throws MutationsRejectedException, IOException, AccumuloException,
       AccumuloSecurityException, TableNotFoundException, TableExistsException {
     ingest(c, FileSystem.get(conf), opts, batchWriterOpts, conf);
+  }
+
+  public static CryptoService CryptoServiceInstance() {
+
+    CryptoService newCryptoService;
+    AccumuloConfiguration conf = DefaultConfiguration.getInstance();
+    String clazzName = conf.get(Property.INSTANCE_CRYPTO_SERVICE);
+
+    try {
+      newCryptoService = TestIngest.class.getClassLoader().loadClass(clazzName)
+          .asSubclass(CryptoService.class).newInstance();
+    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+
+    newCryptoService.init(conf.getAllPropertiesWithPrefix(Property.INSTANCE_CRYPTO_PREFIX));
+    return newCryptoService;
   }
 }
