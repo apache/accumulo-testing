@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.continuous;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -31,16 +30,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 import com.beust.jcommander.Parameter;
-import org.apache.accumulo.core.cli.BatchScannerOpts;
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -235,14 +232,12 @@ public class UndefinedAnalyzer {
     }
   }
 
-  static class Opts extends ClientOnDefaultTable {
+  static class Opts extends ClientOpts {
     @Parameter(names = "--logdir", description = "directory containing the log files",
         required = true)
     String logDir;
-
-    Opts() {
-      super("ci");
-    }
+    @Parameter(names = {"-t", "--table"}, description = "table to use")
+    String tableName = "ci";
   }
 
   /**
@@ -251,8 +246,7 @@ public class UndefinedAnalyzer {
    */
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    BatchScannerOpts bsOpts = new BatchScannerOpts();
-    opts.parseArgs(UndefinedAnalyzer.class.getName(), args, bsOpts);
+    opts.parseArgs(UndefinedAnalyzer.class.getName(), args);
 
     List<UndefinedNode> undefs = new ArrayList<>();
 
@@ -268,9 +262,7 @@ public class UndefinedAnalyzer {
     }
 
     try (AccumuloClient client = opts.createClient();
-         BatchScanner bscanner = client.createBatchScanner(opts.getTableName(), opts.auths,
-             bsOpts.scanThreads)) {
-      bscanner.setTimeout(bsOpts.scanTimeout, TimeUnit.MILLISECONDS);
+         BatchScanner bscanner = client.createBatchScanner(opts.tableName, opts.auths)) {
       List<Range> refs = new ArrayList<>();
 
       for (UndefinedNode undefinedNode : undefs)
@@ -287,7 +279,7 @@ public class UndefinedAnalyzer {
       }
 
       IngestInfo ingestInfo = new IngestInfo(opts.logDir);
-      String tableId = client.tableOperations().tableIdMap().get(opts.getTableName());
+      String tableId = client.tableOperations().tableIdMap().get(opts.tableName);
       TabletHistory tabletHistory = new TabletHistory(tableId, opts.logDir);
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

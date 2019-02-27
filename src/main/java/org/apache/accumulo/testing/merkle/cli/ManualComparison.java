@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.merkle.cli;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.ClientOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -27,6 +26,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 
 import com.beust.jcommander.Parameter;
+import org.apache.accumulo.testing.cli.ClientOpts;
 
 /**
  * Accepts two table names and enumerates all key-values pairs in both checking for correctness. All

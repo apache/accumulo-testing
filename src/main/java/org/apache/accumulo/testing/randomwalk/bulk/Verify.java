@@ -25,13 +25,14 @@ import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
+import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -106,11 +107,16 @@ public class Verify extends Test {
     env.getAccumuloClient().tableOperations().delete(Setup.getTableName());
   }
 
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
+  }
+
   public static void main(String args[]) throws Exception {
-    ClientOnRequiredTable opts = new ClientOnRequiredTable();
+    Opts opts = new Opts();
     opts.parseArgs(Verify.class.getName(), args);
     try (AccumuloClient client = opts.createClient()) {
-      Scanner scanner = client.createScanner(opts.getTableName(), opts.auths);
+      Scanner scanner = client.createScanner(opts.tableName, opts.auths);
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       Text startBadRow = null;
       Text lastBadRow = null;

@@ -24,14 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,8 +134,7 @@ public class CompareTables {
 
   public static void main(String[] args) throws Exception {
     CompareTablesOpts opts = new CompareTablesOpts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs("CompareTables", args, bwOpts);
+    opts.parseArgs("CompareTables", args);
 
     if (opts.isIteratorPushdown() && null != opts.getSplitsFile()) {
       throw new IllegalArgumentException(

@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.accumulo.core.cli.ClientOpts.TimeConverter;
-import org.apache.accumulo.core.cli.Help;
+import org.apache.accumulo.testing.cli.ClientOpts.TimeConverter;
+import org.apache.accumulo.testing.cli.Help;
 
 import com.beust.jcommander.Parameter;
 

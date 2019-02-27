@@ -24,8 +24,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -44,8 +42,8 @@ import org.apache.accumulo.core.data.TabletId;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.trace.DistributedTrace;
 import org.apache.accumulo.core.util.FastFormat;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
@@ -57,7 +55,10 @@ import com.beust.jcommander.Parameter;
 public class TestIngest {
   public static final Authorizations AUTHS = new Authorizations("L1", "L2", "G1", "GROUP2");
 
-  public static class Opts extends ClientOnDefaultTable {
+  public static class Opts extends ClientOpts {
+
+    @Parameter(names = {"-t", "--table"}, description = "table to use")
+    String tableName = "test_ingest";
 
     @Parameter(names = "--createTable")
     public boolean createTable = false;
@@ -105,10 +106,6 @@ public class TestIngest {
 
     public Configuration conf = null;
     public FileSystem fs = null;
-
-    public Opts() {
-      super("test_ingest");
-    }
   }
 
   public static void createTable(AccumuloClient client, Opts args) throws AccumuloException,
@@ -117,10 +114,10 @@ public class TestIngest {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
           args.numsplits);
 
-      if (!client.tableOperations().exists(args.getTableName()))
-        client.tableOperations().create(args.getTableName());
+      if (!client.tableOperations().exists(args.tableName))
+        client.tableOperations().create(args.tableName);
       try {
-        client.tableOperations().addSplits(args.getTableName(), splits);
+        client.tableOperations().addSplits(args.tableName, splits);
       } catch (TableNotFoundException ex) {
         // unlikely
         throw new RuntimeException(ex);
@@ -181,33 +178,24 @@ public class TestIngest {
   public static void main(String[] args) throws Exception {
 
     Opts opts = new Opts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(TestIngest.class.getName(), args, bwOpts);
-
-    String name = TestIngest.class.getSimpleName();
-    DistributedTrace.enable(name);
+    opts.parseArgs(TestIngest.class.getName(), args);
 
     try (AccumuloClient client = opts.createClient()) {
-      opts.startTracing(name);
 
       if (opts.debug)
         Logger.getLogger(TabletServerBatchWriter.class.getName()).setLevel(Level.TRACE);
 
       // test batch update
 
-      ingest(client, opts, bwOpts, new Configuration());
+      ingest(client, opts, new Configuration());
     } catch (Exception e) {
       throw new RuntimeException(e);
-    } finally {
-      opts.stopTracing();
-      DistributedTrace.disable();
     }
   }
 
-  public static void ingest(AccumuloClient client, FileSystem fs, Opts opts,
-      BatchWriterOpts bwOpts, Configuration conf) throws IOException, AccumuloException,
-      AccumuloSecurityException, TableNotFoundException, MutationsRejectedException,
-      TableExistsException {
+  public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, Configuration conf)
+      throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException,
+      MutationsRejectedException, TableExistsException {
     long stopTime;
 
     byte[][] bytevals = generateValues(opts.dataSize);
@@ -227,7 +215,7 @@ public class TestIngest {
       writer.startDefaultLocalityGroup();
 
     } else {
-      bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
+      bw = client.createBatchWriter(opts.tableName);
       client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), AUTHS);
     }
     Text labBA = new Text(opts.columnVisibility.getExpression());
@@ -302,15 +290,12 @@ public class TestIngest {
               m.put(colf, colq, opts.columnVisibility, opts.timestamp, new Value(value, true));
             } else {
               m.put(colf, colq, opts.columnVisibility, new Value(value, true));
-
             }
           }
         }
-
       }
       if (bw != null)
         bw.addMutation(m);
-
     }
 
     if (writer != null) {
@@ -331,7 +316,6 @@ public class TestIngest {
             System.err.println("ERROR : Constraint violates : " + cvs);
           }
         }
-
         throw e;
       }
     }
@@ -348,9 +332,9 @@ public class TestIngest {
             (int) (bytesWritten / elapsed), elapsed);
   }
 
-  public static void ingest(AccumuloClient c, Opts opts, BatchWriterOpts batchWriterOpts,
-      Configuration conf) throws MutationsRejectedException, IOException, AccumuloException,
-      AccumuloSecurityException, TableNotFoundException, TableExistsException {
-    ingest(c, FileSystem.get(conf), opts, batchWriterOpts, conf);
+  public static void ingest(AccumuloClient c, Opts opts, Configuration conf)
+      throws MutationsRejectedException, IOException, AccumuloException, AccumuloSecurityException,
+      TableNotFoundException, TableExistsException {
+    ingest(c, FileSystem.get(conf), opts, conf);
   }
 }

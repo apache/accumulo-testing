@@ -16,13 +16,15 @@
  */
 package org.apache.accumulo.testing.stress;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-
 import com.beust.jcommander.Parameter;
+import org.apache.accumulo.testing.cli.ClientOpts;
 
-class WriteOptions extends ClientOnDefaultTable {
+class WriteOptions extends ClientOpts {
   static final String DEFAULT_TABLE = "stress_test";
   static final int DEFAULT_MIN = 1, DEFAULT_MAX = 128, DEFAULT_SPREAD = DEFAULT_MAX - DEFAULT_MIN;
+
+  @Parameter(names = {"-t", "--table"}, description = "table to use")
+  String tableName = DEFAULT_TABLE;
 
   @Parameter(validateValueWith = IntArgValidator.class, names = "--min-row-size",
       description = "minimum row size")
@@ -89,14 +91,6 @@ class WriteOptions extends ClientOnDefaultTable {
 
   @Parameter(names = "--write-delay", description = "milliseconds to wait between writes")
   long write_delay = 0L;
-
-  public WriteOptions(String table) {
-    super(table);
-  }
-
-  public WriteOptions() {
-    this(DEFAULT_TABLE);
-  }
 
   private static int minOrDefault(Integer ref) {
     return ref == null ? DEFAULT_MIN : ref;
