@@ -34,17 +34,14 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
+import org.apache.accumulo.core.client.rfile.RFile;
+import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.clientImpl.TabletServerBatchWriter;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
-import org.apache.accumulo.core.crypto.CryptoServiceFactory;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.TabletId;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.file.FileOperations;
-import org.apache.accumulo.core.file.FileSKVWriter;
-import org.apache.accumulo.core.file.rfile.RFile;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.trace.DistributedTrace;
@@ -223,16 +220,12 @@ public class TestIngest {
     createTable(client, opts);
 
     BatchWriter bw = null;
-    FileSKVWriter writer = null;
+    RFileWriter writer = null;
 
     if (opts.outputFile != null) {
-      writer = FileOperations
-          .getInstance()
-          .newWriterBuilder()
-          .forFile(opts.outputFile + "." + RFile.EXTENSION, fs, conf,
-              CryptoServiceFactory.newDefaultInstance())
-          .withTableConfiguration(DefaultConfiguration.getInstance()).build();
+      writer = RFile.newWriter().to(opts.outputFile + ".rf").withFileSystem(fs).build();
       writer.startDefaultLocalityGroup();
+
     } else {
       bw = client.createBatchWriter(opts.getTableName(), bwOpts.getBatchWriterConfig());
       client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), AUTHS);
