@@ -44,8 +44,6 @@
     <allow class="org.apache.accumulo.core.spi.scan.HintScanPrioritizer"/>
     <allow class="org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable"/>
     <allow class="org.apache.accumulo.core.clientImpl.TabletServerBatchWriter"/>
-    <allow class="org.apache.accumulo.core.file.FileOperations"/>
-    <allow class="org.apache.accumulo.core.file.FileSKVWriter"/>
     <allow class="org.apache.accumulo.core.util.SimpleThreadPool"/>
     <allow class="org.apache.accumulo.core.util.FastFormat"/>
     <allow class="org.apache.accumulo.core.cli.ClientOnRequiredTable"/>
