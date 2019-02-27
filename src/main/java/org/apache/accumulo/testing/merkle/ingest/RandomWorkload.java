@@ -18,13 +18,11 @@ package org.apache.accumulo.testing.merkle.ingest;
 
 import java.util.Random;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
 import com.beust.jcommander.Parameter;
@@ -33,9 +31,12 @@ import com.beust.jcommander.Parameter;
  * Generates some random data with a given percent of updates to be deletes.
  */
 public class RandomWorkload {
-  public static final String DEFAULT_TABLE_NAME = "randomWorkload";
 
-  public static class RandomWorkloadOpts extends ClientOnDefaultTable {
+  public static class RandomWorkloadOpts extends ClientOpts {
+
+    @Parameter(names = {"-t", "--table"}, description = "table to use")
+    String tableName = "randomWorkload";
+
     @Parameter(names = {"-n", "--num"}, required = true, description = "Num records to write")
     public long numRecords;
 
@@ -54,25 +55,17 @@ public class RandomWorkload {
     @Parameter(names = {"-d", "--deletes"}, required = false,
         description = "Percentage of updates that should be deletes")
     public int deletePercent = 5;
-
-    public RandomWorkloadOpts() {
-      super(DEFAULT_TABLE_NAME);
-    }
-
-    public RandomWorkloadOpts(String tableName) {
-      super(tableName);
-    }
   }
 
-  public void run(RandomWorkloadOpts opts, BatchWriterConfig cfg) throws Exception {
+  public void run(RandomWorkloadOpts opts) throws Exception {
     try (AccumuloClient client = opts.createClient()) {
-      run(client, opts.getTableName(), cfg, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax,
+      run(client, opts.tableName, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax,
           opts.deletePercent);
     }
   }
 
-  public void run(final AccumuloClient client, final String tableName, final BatchWriterConfig cfg,
-      final long numRecords, int rowMax, int cfMax, int cqMax, int deletePercent) throws Exception {
+  public void run(final AccumuloClient client, final String tableName, final long numRecords,
+      int rowMax, int cfMax, int cqMax, int deletePercent) throws Exception {
 
     final Random rowRand = new Random(12345);
     final Random cfRand = new Random(12346);
@@ -84,7 +77,7 @@ public class RandomWorkload {
       client.tableOperations().create(tableName);
     }
 
-    try (BatchWriter bw = client.createBatchWriter(tableName, cfg)) {
+    try (BatchWriter bw = client.createBatchWriter(tableName)) {
       final Text row = new Text(), cf = new Text(), cq = new Text();
       final Value value = new Value();
       for (long i = 0; i < numRecords; i++) {
@@ -115,11 +108,10 @@ public class RandomWorkload {
 
   public static void main(String[] args) throws Exception {
     RandomWorkloadOpts opts = new RandomWorkloadOpts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(RandomWorkload.class.getSimpleName(), args, bwOpts);
+    opts.parseArgs(RandomWorkload.class.getSimpleName(), args);
 
     RandomWorkload rw = new RandomWorkload();
 
-    rw.run(opts, bwOpts.getBatchWriterConfig());
+    rw.run(opts);
   }
 }

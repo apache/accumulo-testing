@@ -32,13 +32,10 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
@@ -48,6 +45,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.accumulo.testing.merkle.RangeSerialization;
 import org.apache.accumulo.testing.merkle.skvi.DigestIterator;
 import org.apache.commons.codec.binary.Hex;
@@ -65,7 +63,11 @@ import com.google.common.collect.Iterables;
 public class GenerateHashes {
   private static final Logger log = LoggerFactory.getLogger(GenerateHashes.class);
 
-  public static class GenerateHashesOpts extends ClientOnRequiredTable {
+  public static class GenerateHashesOpts extends ClientOpts {
+
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
+
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
     private String hashName;
 
@@ -136,8 +138,8 @@ public class GenerateHashes {
   public void run(GenerateHashesOpts opts) throws TableNotFoundException,
       AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException, FileNotFoundException {
     try (AccumuloClient client = opts.createClient()) {
-      Collection<Range> ranges = getRanges(client, opts.getTableName(), opts.getSplitsFile());
-      run(client, opts.getTableName(), opts.getOutputTableName(), opts.getHashName(),
+      Collection<Range> ranges = getRanges(client, opts.tableName, opts.getSplitsFile());
+      run(client, opts.tableName, opts.getOutputTableName(), opts.getHashName(),
           opts.getNumThreads(), opts.isIteratorPushdown(), ranges);
     }
   }
@@ -253,8 +255,7 @@ public class GenerateHashes {
 
   public static void main(String[] args) throws Exception {
     GenerateHashesOpts opts = new GenerateHashesOpts();
-    BatchWriterOpts bwOpts = new BatchWriterOpts();
-    opts.parseArgs(GenerateHashes.class.getName(), args, bwOpts);
+    opts.parseArgs(GenerateHashes.class.getName(), args);
 
     if (opts.isIteratorPushdown() && null != opts.getSplitsFile()) {
       throw new IllegalArgumentException(

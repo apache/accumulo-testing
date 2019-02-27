@@ -18,10 +18,10 @@ package org.apache.accumulo.testing.ingest;
 
 import java.io.IOException;
 
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,7 +29,9 @@ import org.apache.hadoop.fs.Path;
 import com.beust.jcommander.Parameter;
 
 public class BulkImportDirectory {
-  static class Opts extends ClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = {"-s", "--source"}, description = "directory to import from")
     String source = null;
     @Parameter(names = {"-f", "--failures"},
@@ -47,6 +49,6 @@ public class BulkImportDirectory {
     fs.delete(new Path(opts.failures), true);
     fs.mkdirs(new Path(opts.failures));
     opts.createClient().tableOperations()
-        .importDirectory(opts.getTableName(), opts.source, opts.failures, false);
+        .importDirectory(opts.tableName, opts.source, opts.failures, false);
   }
 }

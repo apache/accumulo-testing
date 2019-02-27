@@ -20,7 +20,7 @@ import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.util.Properties;
 
-import org.apache.accumulo.core.cli.Help;
+import org.apache.accumulo.testing.cli.Help;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;

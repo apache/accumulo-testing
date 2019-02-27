@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.testing.stress;
 
-import org.apache.accumulo.core.cli.BatchWriterOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -25,24 +24,23 @@ public class Write {
 
   public static void main(String[] args) throws Exception {
     WriteOptions opts = new WriteOptions();
-    BatchWriterOpts batch_writer_opts = new BatchWriterOpts();
-    opts.parseArgs(Write.class.getName(), args, batch_writer_opts);
+    opts.parseArgs(Write.class.getName(), args);
 
     opts.check();
 
     try (AccumuloClient c = opts.createClient()) {
 
-      if (opts.clear_table && c.tableOperations().exists(opts.getTableName())) {
+      if (opts.clear_table && c.tableOperations().exists(opts.tableName)) {
         try {
-          c.tableOperations().delete(opts.getTableName());
+          c.tableOperations().delete(opts.tableName);
         } catch (TableNotFoundException e) {
           System.err.println("Couldn't delete the table because it doesn't exist any more.");
         }
       }
 
-      if (!c.tableOperations().exists(opts.getTableName())) {
+      if (!c.tableOperations().exists(opts.tableName)) {
         try {
-          c.tableOperations().create(opts.getTableName());
+          c.tableOperations().create(opts.tableName);
         } catch (TableExistsException e) {
           System.err.println("Couldn't create table ourselves, but that's ok. Continuing.");
         }
@@ -53,8 +51,7 @@ public class Write {
         writeDelay = 0;
       }
 
-      DataWriter dw = new DataWriter(c.createBatchWriter(opts.getTableName(),
-          batch_writer_opts.getBatchWriterConfig()), new RandomMutations(
+      DataWriter dw = new DataWriter(c.createBatchWriter(opts.tableName), new RandomMutations(
       // rows
           new RandomByteArrays(new RandomWithinRange(opts.row_seed, opts.rowMin(), opts.rowMax())),
           // cfs

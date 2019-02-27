@@ -16,11 +16,13 @@
  */
 package org.apache.accumulo.testing.stress;
 
-import org.apache.accumulo.core.cli.ClientOnDefaultTable;
-
 import com.beust.jcommander.Parameter;
+import org.apache.accumulo.testing.cli.ClientOpts;
 
-class ScanOpts extends ClientOnDefaultTable {
+class ScanOpts extends ClientOpts {
+  @Parameter(names = {"-t", "--table"}, description = "table to use")
+  String tableName = WriteOptions.DEFAULT_TABLE;
+
   @Parameter(names = "--isolate",
       description = "true to turn on scan isolation, false to turn off. default is false.")
   boolean isolate = false;
@@ -37,12 +39,4 @@ class ScanOpts extends ClientOnDefaultTable {
 
   @Parameter(names = "--scan-batch-size", description = "scanner batch size")
   int batch_size = -1;
-
-  public ScanOpts() {
-    this(WriteOptions.DEFAULT_TABLE);
-  }
-
-  public ScanOpts(String table) {
-    super(table);
-  }
 }

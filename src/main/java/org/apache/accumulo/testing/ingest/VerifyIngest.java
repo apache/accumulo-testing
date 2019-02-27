@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
 
-import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -59,8 +58,7 @@ public class VerifyIngest {
 
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
-    ScannerOpts scanOpts = new ScannerOpts();
-    opts.parseArgs(VerifyIngest.class.getName(), args, scanOpts);
+    opts.parseArgs(VerifyIngest.class.getName(), args);
     try (AccumuloClient client = opts.createClient()) {
       if (opts.trace) {
         String name = VerifyIngest.class.getSimpleName();
@@ -69,7 +67,7 @@ public class VerifyIngest {
         Trace.data("cmdLine", Arrays.asList(args).toString());
       }
 
-      verifyIngest(client, opts, scanOpts);
+      verifyIngest(client, opts);
 
     } finally {
       Trace.off();
@@ -77,8 +75,8 @@ public class VerifyIngest {
     }
   }
 
-  private static void verifyIngest(AccumuloClient client, Opts opts, ScannerOpts scanOpts)
-      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+  private static void verifyIngest(AccumuloClient client, Opts opts) throws AccumuloException,
+      AccumuloSecurityException, TableNotFoundException {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 
     Authorizations labelAuths = new Authorizations("L1", "L2", "G1", "GROUP2");
@@ -151,8 +149,7 @@ public class VerifyIngest {
 
         Key startKey = new Key(new Text("row_" + String.format("%010d", expectedRow)));
 
-        Scanner scanner = client.createScanner(opts.getTableName(), labelAuths);
-        scanner.setBatchSize(scanOpts.scanBatchSize);
+        Scanner scanner = client.createScanner(opts.tableName, labelAuths);
         scanner.setRange(new Range(startKey, endKey));
         for (int j = 0; j < opts.cols; j++) {
           scanner.fetchColumn(new Text(opts.columnFamily),

@@ -22,16 +22,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.cli.ClientOnRequiredTable;
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.accumulo.testing.merkle.MerkleTree;
 import org.apache.accumulo.testing.merkle.MerkleTreeNode;
 import org.apache.accumulo.testing.merkle.RangeSerialization;
@@ -46,21 +44,17 @@ import com.beust.jcommander.Parameter;
  */
 public class ComputeRootHash {
 
-  public static class ComputeRootHashOpts extends ClientOnRequiredTable {
+  public static class ComputeRootHashOpts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = {"-hash", "--hash"}, required = true, description = "type of hash to use")
-    private String hashName;
-
-    String getHashName() {
-      return hashName;
-    }
-
+    String hashName;
   }
 
   private byte[] getHash(ComputeRootHashOpts opts) throws TableNotFoundException,
       NoSuchAlgorithmException {
     try (AccumuloClient client = opts.createClient()) {
-      String table = opts.getTableName();
-      return getHash(client, table, opts.getHashName());
+      return getHash(client, opts.tableName, opts.hashName);
     }
   }
 
