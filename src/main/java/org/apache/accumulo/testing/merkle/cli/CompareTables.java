@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -98,7 +99,7 @@ public class CompareTables {
   private Map<String,String> computeAllHashes() throws AccumuloException,
       AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
       TableNotFoundException, FileNotFoundException {
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       final Map<String,String> hashesByTable = new HashMap<>();
 
       for (String table : opts.getTables()) {

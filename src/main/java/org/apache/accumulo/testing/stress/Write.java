@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.testing.stress;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -28,7 +29,7 @@ public class Write {
 
     opts.check();
 
-    try (AccumuloClient c = opts.createClient()) {
+    try (AccumuloClient c = Accumulo.newClient().from(opts.getClientProps()).build()) {
 
       if (opts.clear_table && c.tableOperations().exists(opts.tableName)) {
         try {

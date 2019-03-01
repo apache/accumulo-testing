@@ -19,6 +19,7 @@ package org.apache.accumulo.testing.merkle.cli;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -46,9 +47,9 @@ public class ManualComparison {
     ManualComparisonOpts opts = new ManualComparisonOpts();
     opts.parseArgs("ManualComparison", args);
 
-    try (AccumuloClient client = opts.createClient();
-        Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY);
-        Scanner s2 = client.createScanner(opts.table2, Authorizations.EMPTY)) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build();
+         Scanner s1 = client.createScanner(opts.table1, Authorizations.EMPTY);
+         Scanner s2 = client.createScanner(opts.table2, Authorizations.EMPTY)) {
       Iterator<Entry<Key,Value>> iter1 = s1.iterator(), iter2 = s2.iterator();
       boolean incrementFirst = true, incrementSecond = true;
 

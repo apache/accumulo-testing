@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -53,7 +54,7 @@ public class ComputeRootHash {
 
   private byte[] getHash(ComputeRootHashOpts opts) throws TableNotFoundException,
       NoSuchAlgorithmException {
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       return getHash(client, opts.tableName, opts.hashName);
     }
   }

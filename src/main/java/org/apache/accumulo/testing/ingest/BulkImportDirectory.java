@@ -18,6 +18,8 @@ package org.apache.accumulo.testing.ingest;
 
 import java.io.IOException;
 
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -48,7 +50,8 @@ public class BulkImportDirectory {
     opts.parseArgs(BulkImportDirectory.class.getName(), args);
     fs.delete(new Path(opts.failures), true);
     fs.mkdirs(new Path(opts.failures));
-    opts.createClient().tableOperations()
-        .importDirectory(opts.tableName, opts.source, opts.failures, false);
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
+      client.tableOperations().importDirectory(opts.tableName, opts.source, opts.failures, false);
+    }
   }
 }
