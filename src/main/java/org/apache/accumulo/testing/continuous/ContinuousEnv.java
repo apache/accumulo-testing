@@ -9,11 +9,11 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestEnv;
 import org.apache.accumulo.testing.TestProps;
 
-class ContinuousEnv extends TestEnv {
+public class ContinuousEnv extends TestEnv {
 
   private List<Authorizations> authList;
 
-  ContinuousEnv(String[] args) {
+  public ContinuousEnv(String[] args) {
     super(args);
   }
 
@@ -43,23 +43,23 @@ class ContinuousEnv extends TestEnv {
     return getAuthList().get(r.nextInt(getAuthList().size()));
   }
 
-  long getRowMin() {
+  public long getRowMin() {
     return Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_ROW_MIN));
   }
 
-  long getRowMax() {
+  public long getRowMax() {
     return Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_ROW_MAX));
   }
 
-  int getMaxColF() {
+  public int getMaxColF() {
     return Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_MAX_CF));
   }
 
-  int getMaxColQ() {
+  public int getMaxColQ() {
     return Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_MAX_CQ));
   }
 
-  String getAccumuloTableName() {
+  public String getAccumuloTableName() {
     return testProps.getProperty(TestProps.CI_COMMON_ACCUMULO_TABLE);
   }
 }
