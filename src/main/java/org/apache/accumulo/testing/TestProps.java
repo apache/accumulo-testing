@@ -32,6 +32,7 @@ public class TestProps {
   private static final String CI_BW = CI + "batch.walker.";
   private static final String CI_SCANNER = CI + "scanner.";
   private static final String CI_VERIFY = CI + "verify.";
+  private static final String CI_BULK = CI + "bulk.";
 
   /** Common properties **/
   // HDFS root path. Should match 'fs.defaultFS' property in Hadoop's core-site.xml
@@ -115,6 +116,10 @@ public class TestProps {
   public static final String CI_VERIFY_AUTHS = CI_VERIFY + "auths";
   // Location in HDFS to store output
   public static final String CI_VERIFY_OUTPUT_DIR = CI_VERIFY + "output.dir";
+
+  /** Bulk **/
+  // Bulk ingest Job instance uuid
+  public static final String CI_BULK_UUID = CI_BULK + "uuid";
 
   public static Properties loadFromFile(String propsFilePath) {
     try {

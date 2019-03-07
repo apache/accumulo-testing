@@ -33,6 +33,7 @@ Available applications:
     verify        Verifies continous ingest test. Stop ingest before running.
     moru          Streses Accumulo by reading and writing to the ingest table.
                   Stop ingest before running.
+    bulk          Create RFiles in a Map Reduce job and calls importDirectory if successful
 EOF
 }
 
@@ -70,6 +71,9 @@ case "$1" in
     ;;
   moru)
     ci_main="${ci_package}.ContinuousMoru"
+    ;;
+  bulk)
+    ci_main="${ci_package}.BulkIngest"
     ;;
   *)
     echo "Unknown application: $1"

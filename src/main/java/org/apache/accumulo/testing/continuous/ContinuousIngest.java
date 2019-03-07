@@ -249,8 +249,8 @@ public class ContinuousIngest {
 
     byte[] rowString = genRow(rowLong);
 
-    byte[] cfString = FastFormat.toZeroPaddedString(cfInt, 4, 16, EMPTY_BYTES);
-    byte[] cqString = FastFormat.toZeroPaddedString(cqInt, 4, 16, EMPTY_BYTES);
+    byte[] cfString = genCol(cfInt);
+    byte[] cqString = genCol(cqInt);
 
     if (checksum) {
       cksum = new CRC32();
@@ -267,6 +267,10 @@ public class ContinuousIngest {
     return m;
   }
 
+  public static byte[] genCol(int cfInt) {
+    return FastFormat.toZeroPaddedString(cfInt, 4, 16, EMPTY_BYTES);
+  }
+
   public static long genLong(long min, long max, Random r) {
     return ((r.nextLong() & 0x7fffffffffffffffL) % (max - min)) + min;
   }
@@ -275,11 +279,11 @@ public class ContinuousIngest {
     return genRow(genLong(min, max, r));
   }
 
-  static byte[] genRow(long rowLong) {
+  public static byte[] genRow(long rowLong) {
     return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
   }
 
-  private static Value createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
+  public static Value createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
       Checksum cksum) {
     int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
     if (cksum != null)
