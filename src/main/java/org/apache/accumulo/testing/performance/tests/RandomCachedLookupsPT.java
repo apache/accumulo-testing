@@ -90,8 +90,8 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     long d128 = doLookups(env.getClient(), 128, NUM_LOOKUPS_PER_THREAD);
 
     reportBuilder.id("smalls");
-    reportBuilder
-        .description("Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
+    reportBuilder.description(
+        "Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
     reportBuilder.info("warmup", 32 * NUM_LOOKUPS_PER_THREAD, warmup,
         "Random lookup per sec for 32 threads");
     reportBuilder.info("lookups_1", NUM_LOOKUPS_PER_THREAD, d1,
@@ -127,9 +127,11 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     return reportBuilder.build();
   }
 
-  public static void writeData(Report.Builder reportBuilder, AccumuloClient client, int numRows) throws Exception {
+  public static void writeData(Report.Builder reportBuilder, AccumuloClient client, int numRows)
+      throws Exception {
 
-    reportBuilder.parameter("rows", numRows, "Number of random rows written.  Each row has 4 columns.");
+    reportBuilder.parameter("rows", numRows,
+        "Number of random rows written.  Each row has 4 columns.");
 
     NewTableConfiguration ntc = new NewTableConfiguration();
     Map<String,String> props = new HashMap<>();
@@ -150,7 +152,8 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     long t2 = System.currentTimeMillis();
 
     SortedSet<Text> partitionKeys = new TreeSet<>(
-        Stream.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f").map(Text::new).collect(toList()));
+        Stream.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f")
+            .map(Text::new).collect(toList()));
     client.tableOperations().addSplits("scanpt", partitionKeys);
 
     long t3 = System.currentTimeMillis();
@@ -197,10 +200,12 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     reportBuilder.info("split", t3 - t2, "Time to split table in ms");
     reportBuilder.info("write", 4 * numRows, t4 - t3, "Rate to write data in entries/sec");
     reportBuilder.info("compact", 4 * numRows, t5 - t4, "Rate to compact table in entries/sec");
-    reportBuilder.info("fullScan", 4 * numRows, t6 - t5, "Rate to do full table scan in entries/sec");
+    reportBuilder.info("fullScan", 4 * numRows, t6 - t5,
+        "Rate to do full table scan in entries/sec");
   }
 
-  private static long doLookups(AccumuloClient client, int numThreads, int numScansPerThread) throws Exception {
+  private static long doLookups(AccumuloClient client, int numThreads, int numScansPerThread)
+      throws Exception {
 
     ExecutorService es = Executors.newFixedThreadPool(numThreads);
 
@@ -220,7 +225,7 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     es.shutdown();
 
-    return t2 -t1;
+    return t2 - t1;
   }
 
   private static void doLookups(AccumuloClient client, int numScans) {

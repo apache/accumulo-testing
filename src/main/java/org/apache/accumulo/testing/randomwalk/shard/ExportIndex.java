@@ -55,8 +55,8 @@ public class ExportIndex extends Test {
 
     // disable spits, so that splits can be compared later w/o worrying one
     // table splitting and the other not
-    env.getAccumuloClient().tableOperations()
-        .setProperty(indexTableName, Property.TABLE_SPLIT_THRESHOLD.getKey(), "20G");
+    env.getAccumuloClient().tableOperations().setProperty(indexTableName,
+        Property.TABLE_SPLIT_THRESHOLD.getKey(), "20G");
 
     long t1 = System.currentTimeMillis();
 
@@ -70,8 +70,8 @@ public class ExportIndex extends Test {
     long t3 = System.currentTimeMillis();
 
     // copy files
-    BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(new Path(exportDir,
-        "distcp.txt")), UTF_8));
+    BufferedReader reader = new BufferedReader(
+        new InputStreamReader(fs.open(new Path(exportDir, "distcp.txt")), UTF_8));
     String file = null;
     while ((file = reader.readLine()) != null) {
       Path src = new Path(file);
@@ -91,10 +91,10 @@ public class ExportIndex extends Test {
     fs.delete(new Path(exportDir), true);
     fs.delete(new Path(copyDir), true);
 
-    HashSet<Text> splits1 = new HashSet<>(env.getAccumuloClient().tableOperations()
-        .listSplits(indexTableName));
-    HashSet<Text> splits2 = new HashSet<>(env.getAccumuloClient().tableOperations()
-        .listSplits(tmpIndexTableName));
+    HashSet<Text> splits1 = new HashSet<>(
+        env.getAccumuloClient().tableOperations().listSplits(indexTableName));
+    HashSet<Text> splits2 = new HashSet<>(
+        env.getAccumuloClient().tableOperations().listSplits(tmpIndexTableName));
 
     if (!splits1.equals(splits2))
       throw new Exception("Splits not equals " + indexTableName + " " + tmpIndexTableName);
@@ -113,10 +113,10 @@ public class ExportIndex extends Test {
       throw new Exception("Props not equals " + indexTableName + " " + tmpIndexTableName);
 
     // unset the split threshold
-    env.getAccumuloClient().tableOperations()
-        .removeProperty(indexTableName, Property.TABLE_SPLIT_THRESHOLD.getKey());
-    env.getAccumuloClient().tableOperations()
-        .removeProperty(tmpIndexTableName, Property.TABLE_SPLIT_THRESHOLD.getKey());
+    env.getAccumuloClient().tableOperations().removeProperty(indexTableName,
+        Property.TABLE_SPLIT_THRESHOLD.getKey());
+    env.getAccumuloClient().tableOperations().removeProperty(tmpIndexTableName,
+        Property.TABLE_SPLIT_THRESHOLD.getKey());
 
     log.debug("Imported " + tmpIndexTableName + " from " + indexTableName + " flush: " + (t2 - t1)
         + "ms export: " + (t3 - t2) + "ms copy:" + (t4 - t3) + "ms import:" + (t5 - t4) + "ms");

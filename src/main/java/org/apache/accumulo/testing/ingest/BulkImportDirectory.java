@@ -39,16 +39,16 @@ public class BulkImportDirectory {
     String failures = null;
   }
 
-  public static void main(String[] args) throws IOException, AccumuloException,
-      AccumuloSecurityException, TableNotFoundException {
+  public static void main(String[] args)
+      throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
     final FileSystem fs = FileSystem.get(new Configuration());
     Opts opts = new Opts();
-    System.err
-        .println("Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");
+    System.err.println(
+        "Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");
     opts.parseArgs(BulkImportDirectory.class.getName(), args);
     fs.delete(new Path(opts.failures), true);
     fs.mkdirs(new Path(opts.failures));
-    opts.createClient().tableOperations()
-        .importDirectory(opts.tableName, opts.source, opts.failures, false);
+    opts.createClient().tableOperations().importDirectory(opts.tableName, opts.source,
+        opts.failures, false);
   }
 }

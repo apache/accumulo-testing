@@ -79,24 +79,27 @@ public class Csv {
   }
 
   public static void main(String[] args) throws Exception {
-    Map<RowId, Map<String, Double>> rows = new TreeMap<>();
+    Map<RowId,Map<String,Double>> rows = new TreeMap<>();
 
     for (String file : args) {
       Collection<ContextualReport> reports = Compare.readReports(file);
 
-      Instant minStart = reports.stream().map(cr -> cr.startTime).map(Instant::parse).min(Instant::compareTo).get();
+      Instant minStart = reports.stream().map(cr -> cr.startTime).map(Instant::parse)
+          .min(Instant::compareTo).get();
 
-      String version = Iterables.getOnlyElement(reports.stream().map(cr -> cr.accumuloVersion).collect(toSet()));
+      String version = Iterables
+          .getOnlyElement(reports.stream().map(cr -> cr.accumuloVersion).collect(toSet()));
 
-      Map<String, Double> row = new HashMap<>();
+      Map<String,Double> row = new HashMap<>();
 
       for (ContextualReport report : reports) {
 
-        String id = report.id != null ? report.id :  report.testClass.substring(report.testClass.lastIndexOf('.')+1);
+        String id = report.id != null ? report.id
+            : report.testClass.substring(report.testClass.lastIndexOf('.') + 1);
 
         for (Result result : report.results) {
-          if(result.purpose == Result.Purpose.COMPARISON) {
-            row.put(id+"."+result.id, result.data.doubleValue());
+          if (result.purpose == Result.Purpose.COMPARISON) {
+            row.put(id + "." + result.id, result.data.doubleValue());
           }
         }
       }
@@ -104,12 +107,14 @@ public class Csv {
       rows.put(new RowId(minStart, version), row);
     }
 
-    List<String> allCols = rows.values().stream().flatMap(row -> row.keySet().stream()).distinct().sorted().collect(toList());
+    List<String> allCols = rows.values().stream().flatMap(row -> row.keySet().stream()).distinct()
+        .sorted().collect(toList());
 
     // print header
-    print(Stream.concat(Stream.of("Start Time","Version"), allCols.stream()).collect(joining(",")));
+    print(
+        Stream.concat(Stream.of("Start Time", "Version"), allCols.stream()).collect(joining(",")));
 
-    rows.forEach((id, row)->{
+    rows.forEach((id, row) -> {
       StringJoiner joiner = new StringJoiner(",");
       joiner.add(id.startTime.toString());
       joiner.add(id.accumuloVersion);

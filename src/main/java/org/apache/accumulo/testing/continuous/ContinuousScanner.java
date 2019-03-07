@@ -88,7 +88,7 @@ public class ContinuousScanner {
           }
 
           // System.out.println("P2 "+delta
-          // +" "+numToScan+" "+distance+"  "+((double)numToScan/count ));
+          // +" "+numToScan+" "+distance+" "+((double)numToScan/count ));
         }
 
         System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);

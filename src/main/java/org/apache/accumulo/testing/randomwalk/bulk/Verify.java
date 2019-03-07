@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.Scanner;
@@ -37,6 +36,8 @@ import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
 import org.apache.hadoop.io.Text;
+
+import com.beust.jcommander.Parameter;
 
 public class Verify extends Test {
 
@@ -88,8 +89,8 @@ public class Verify extends Test {
         long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
 
         if (curr - 1 != prev)
-          throw new Exception("Bad marker count " + entry.getKey() + " " + entry.getValue() + " "
-              + prev);
+          throw new Exception(
+              "Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
 
         if (!entry.getValue().toString().equals("1"))
           throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());

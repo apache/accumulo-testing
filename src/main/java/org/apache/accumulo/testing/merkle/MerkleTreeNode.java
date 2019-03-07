@@ -71,12 +71,12 @@ public class MerkleTreeNode {
       if (null == childrenRange) {
         childrenRange = child.getRange();
       } else {
-        List<Range> overlappingRanges = Range.mergeOverlapping(Arrays.asList(childrenRange,
-            child.getRange()));
+        List<Range> overlappingRanges = Range
+            .mergeOverlapping(Arrays.asList(childrenRange, child.getRange()));
         if (1 != overlappingRanges.size()) {
           log.error("Tried to merge non-contiguous ranges: {} {}", childrenRange, child.getRange());
-          throw new IllegalArgumentException("Ranges must be contiguous: " + childrenRange + ", "
-              + child.getRange());
+          throw new IllegalArgumentException(
+              "Ranges must be contiguous: " + childrenRange + ", " + child.getRange());
         }
 
         childrenRange = overlappingRanges.get(0);

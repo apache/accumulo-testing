@@ -41,8 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Bulk import a million random key value pairs. Same format as ContinuousIngest and can be
- * verified by running ContinuousVerify.
+ * Bulk import a million random key value pairs. Same format as ContinuousIngest and can be verified
+ * by running ContinuousVerify.
  */
 public class BulkIngest extends Configured implements Tool {
   public static final int NUM_KEYS = 1_000_000;
@@ -88,8 +88,8 @@ public class BulkIngest extends Configured implements Tool {
       try (AccumuloClient client = env.getAccumuloClient()) {
 
         // make sure splits file is closed before continuing
-        try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(
-            splitsFile))))) {
+        try (PrintStream out = new PrintStream(
+            new BufferedOutputStream(fs.create(new Path(splitsFile))))) {
           Collection<Text> splits = client.tableOperations().listSplits(tableName, 100);
           for (Text split : splits) {
             out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
@@ -151,8 +151,8 @@ public class BulkIngest extends Configured implements Tool {
     }
 
     @Override
-    protected void map(LongWritable key, LongWritable value, Context context) throws IOException,
-        InterruptedException {
+    protected void map(LongWritable key, LongWritable value, Context context)
+        throws IOException, InterruptedException {
       currentRow.set(ContinuousIngest.genRow(key.get()));
 
       // hack since we can't pass null - don't set first val (prevRow), we want it to be null
@@ -162,16 +162,16 @@ public class BulkIngest extends Configured implements Tool {
       }
 
       Key outputKey = new Key(currentRow, emptyCfCq, emptyCfCq);
-      Value outputValue = ContinuousIngest.createValue(uuid.getBytes(), 0,
-          currentValue.copyBytes(), null);
+      Value outputValue = ContinuousIngest.createValue(uuid.getBytes(), 0, currentValue.copyBytes(),
+          null);
 
       context.write(outputKey, outputValue);
     }
   }
 
   /**
-   * Generates a million LongWritable keys.  The LongWritable value points to the previous key.
-   * The first key value pair has a value of 1L.  This is translated to null in RandomMapper
+   * Generates a million LongWritable keys. The LongWritable value points to the previous key. The
+   * first key value pair has a value of 1L. This is translated to null in RandomMapper
    */
   public static class RandomInputFormat extends InputFormat {
 

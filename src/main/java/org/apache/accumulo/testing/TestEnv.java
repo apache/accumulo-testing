@@ -23,20 +23,20 @@ public class TestEnv implements AutoCloseable {
 
   public TestEnv(String[] args) {
 
-    Map<String, String> options = new HashMap<>();
+    Map<String,String> options = new HashMap<>();
     List<String> arguments = new ArrayList<>();
 
     for (int i = 0; i < args.length; i++) {
-      if(args[i].equals("-o")) {
+      if (args[i].equals("-o")) {
         i++;
-        String[] tokens = args[i].split("=",2);
+        String[] tokens = args[i].split("=", 2);
         options.put(tokens[0], tokens[1]);
       } else {
         arguments.add(args[i]);
       }
     }
 
-    if(arguments.size() != 2) {
+    if (arguments.size() != 2) {
       throw new IllegalArgumentException("Expected <testPropsPath> <clientPropsPath> arguments.");
     }
 
@@ -46,7 +46,7 @@ public class TestEnv implements AutoCloseable {
     this.testProps = TestProps.loadFromFile(testPropsPath);
     this.clientProps = Accumulo.newClientProperties().from(clientPropsPath).build();
 
-    options.forEach((k,v) -> testProps.setProperty(k, v));
+    options.forEach((k, v) -> testProps.setProperty(k, v));
   }
 
   public TestEnv(String testPropsPath, String clientPropsPath) {
@@ -118,8 +118,8 @@ public class TestEnv implements AutoCloseable {
       hadoopConfig.set("fs.defaultFS", getHdfsRoot());
       // Below is required due to bundled jar breaking default config.
       // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
-      hadoopConfig
-          .set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+      hadoopConfig.set("fs.hdfs.impl",
+          org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
       hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
       hadoopConfig.set("mapreduce.framework.name", "yarn");
       hadoopConfig.set("yarn.resourcemanager.hostname", getYarnResourceManager());

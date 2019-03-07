@@ -111,8 +111,8 @@ public class Transfer extends Test {
 
       int amt = rand.nextInt(50);
 
-      log.debug("transfer req " + bank + " " + amt + " " + acct1 + " " + a1 + " " + acct2 + " "
-          + a2);
+      log.debug(
+          "transfer req " + bank + " " + amt + " " + acct1 + " " + a1 + " " + acct2 + " " + a2);
 
       if (a1.bal >= amt) {
         ConditionalMutation cm = new ConditionalMutation(bank,

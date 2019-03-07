@@ -162,8 +162,8 @@ public class WalkingSecurity {
     setTabPerm(state, user, permission, table, false);
   }
 
-  public void cleanTablePermissions(String table) throws AccumuloSecurityException,
-      TableNotFoundException {
+  public void cleanTablePermissions(String table)
+      throws AccumuloSecurityException, TableNotFoundException {
     for (String user : new String[] {getSysUserName(), getTabUserName()}) {
       for (TablePermission tp : TablePermission.values()) {
         revokeTablePermission(user, table, tp);

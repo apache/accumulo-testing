@@ -9,9 +9,9 @@ import org.apache.accumulo.core.data.Value;
 
 public class ProbabilityFilter extends YieldingFilter {
   @Override
-  protected BiPredicate<Key, Value> createPredicate(Map<String,String> options) {
+  protected BiPredicate<Key,Value> createPredicate(Map<String,String> options) {
     double matchProbability = Double.parseDouble(options.get("probability"));
     Random rand = new Random();
-    return (k,v) -> rand.nextDouble() < matchProbability;
+    return (k, v) -> rand.nextDouble() < matchProbability;
   }
 }

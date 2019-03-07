@@ -16,6 +16,8 @@
  */
 package org.apache.accumulo.testing.continuous;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -31,7 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.data.Key;
@@ -40,7 +41,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.beust.jcommander.Parameter;
 
 /**
  * BUGS This code does not handle the fact that these files could include log events from previous
@@ -197,14 +198,16 @@ public class UndefinedAnalyzer {
 
               if (pos1 > 0 && pos2 > 0 && pos3 == -1) {
                 String tid = tablet.substring(0, pos1);
-                String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000" : tablet.substring(pos1 + 1, pos2);
+                String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000"
+                    : tablet.substring(pos1 + 1, pos2);
                 String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
                 if (tid.equals(tableId)) {
                   // System.out.println(" "+server+" "+tid+" "+endRow+" "+prevEndRow);
                   Date date = sdf.parse(day + " " + time);
                   // System.out.println(" "+date);
 
-                  assignments.add(new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
+                  assignments.add(
+                      new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
 
                 }
               } else if (!tablet.startsWith("!0")) {
@@ -262,7 +265,7 @@ public class UndefinedAnalyzer {
     }
 
     try (AccumuloClient client = opts.createClient();
-         BatchScanner bscanner = client.createBatchScanner(opts.tableName, opts.auths)) {
+        BatchScanner bscanner = client.createBatchScanner(opts.tableName, opts.auths)) {
       List<Range> refs = new ArrayList<>();
 
       for (UndefinedNode undefinedNode : undefs)
@@ -270,9 +273,9 @@ public class UndefinedAnalyzer {
 
       bscanner.setRanges(refs);
 
-      HashMap<String, List<String>> refInfo = new HashMap<>();
+      HashMap<String,List<String>> refInfo = new HashMap<>();
 
-      for (Entry<Key, Value> entry : bscanner) {
+      for (Entry<Key,Value> entry : bscanner) {
         String ref = entry.getKey().getRow().toString();
         List<String> vals = refInfo.computeIfAbsent(ref, k -> new ArrayList<>());
         vals.add(entry.getValue().toString());
@@ -313,9 +316,11 @@ public class UndefinedAnalyzer {
             }
 
             if (ta == null)
-              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + uuid + " " + t1 + " " + t2);
+              System.out.println(
+                  undefinedNode.undef + " " + undefinedNode.ref + " " + uuid + " " + t1 + " " + t2);
             else
-              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + ta.tablet + " " + ta.server + " " + uuid + " " + t1 + " " + t2);
+              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + ta.tablet
+                  + " " + ta.server + " " + uuid + " " + t1 + " " + t2);
 
           }
         } else {

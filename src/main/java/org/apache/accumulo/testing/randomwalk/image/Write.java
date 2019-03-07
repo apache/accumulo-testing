@@ -78,8 +78,8 @@ public class Write extends Test {
     state.set("totalWrites", totalWrites);
 
     // set count
-    m.put(META_COLUMN_FAMILY, COUNT_COLUMN_QUALIFIER, new Value(String.format("%d", totalWrites)
-        .getBytes(UTF_8)));
+    m.put(META_COLUMN_FAMILY, COUNT_COLUMN_QUALIFIER,
+        new Value(String.format("%d", totalWrites).getBytes(UTF_8)));
 
     // add mutation
     imagesBW.addMutation(m);

@@ -57,8 +57,7 @@ public class ChangePass extends Test {
       targetExists = WalkingSecurity.get(state, env).userExists(target);
 
       hasPerm = client.securityOperations().hasSystemPermission(principal,
-          SystemPermission.ALTER_USER)
-          || principal.equals(target);
+          SystemPermission.ALTER_USER) || principal.equals(target);
 
       Random r = new Random();
 
@@ -73,8 +72,9 @@ public class ChangePass extends Test {
         switch (ae.getSecurityErrorCode()) {
           case PERMISSION_DENIED:
             if (hasPerm)
-              throw new AccumuloException("Change failed when it should have succeeded to change "
-                  + target + "'s password", ae);
+              throw new AccumuloException(
+                  "Change failed when it should have succeeded to change " + target + "'s password",
+                  ae);
             return;
           case USER_DOESNT_EXIST:
             if (targetExists)

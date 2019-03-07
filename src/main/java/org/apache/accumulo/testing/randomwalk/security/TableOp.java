@@ -57,8 +57,8 @@ public class TableOp extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
-    try (AccumuloClient client = env.createClient(tablePrincipal, WalkingSecurity.get(state, env)
-        .getTabToken())) {
+    try (AccumuloClient client = env.createClient(tablePrincipal,
+        WalkingSecurity.get(state, env).getTabToken())) {
       TableOperations tableOps = client.tableOperations();
       SecurityOperations secOps = client.securityOperations();
 
@@ -88,8 +88,8 @@ public class TableOp extends Test {
           Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
           boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(client.whoami(),
               tp);
-          boolean ambiguousAuths = WalkingSecurity.get(state, env).ambiguousAuthorizations(
-              client.whoami());
+          boolean ambiguousAuths = WalkingSecurity.get(state, env)
+              .ambiguousAuthorizations(client.whoami());
 
           Scanner scan = null;
           try {
@@ -101,8 +101,8 @@ public class TableOp extends Test {
               Key k = entry.getKey();
               seen++;
               if (!auths.contains(k.getColumnVisibilityData()) && !ambiguousAuths)
-                throw new AccumuloException("Got data I should not be capable of seeing: " + k
-                    + " table " + tableName);
+                throw new AccumuloException(
+                    "Got data I should not be capable of seeing: " + k + " table " + tableName);
             }
             if (!canRead && !ambiguousZone)
               throw new AccumuloException(
@@ -117,8 +117,8 @@ public class TableOp extends Test {
               throw new AccumuloException("Got mismatched amounts of data");
           } catch (TableNotFoundException tnfe) {
             if (tableExists)
-              throw new AccumuloException(
-                  "Accumulo and test suite out of sync: table " + tableName, tnfe);
+              throw new AccumuloException("Accumulo and test suite out of sync: table " + tableName,
+                  tnfe);
             return;
           } catch (AccumuloSecurityException ae) {
             if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
@@ -137,8 +137,8 @@ public class TableOp extends Test {
             throw new AccumuloException("Unexpected exception!", ae);
           } catch (RuntimeException re) {
             if (re.getCause() instanceof AccumuloSecurityException
-                && ((AccumuloSecurityException) re.getCause()).getSecurityErrorCode().equals(
-                    SecurityErrorCode.PERMISSION_DENIED)) {
+                && ((AccumuloSecurityException) re.getCause()).getSecurityErrorCode()
+                    .equals(SecurityErrorCode.PERMISSION_DENIED)) {
               if (canRead && !ambiguousZone)
                 throw new AccumuloException(
                     "Table read permission out of sync with Accumulo: table " + tableName,
@@ -147,8 +147,8 @@ public class TableOp extends Test {
                 return;
             }
             if (re.getCause() instanceof AccumuloSecurityException
-                && ((AccumuloSecurityException) re.getCause()).getSecurityErrorCode().equals(
-                    SecurityErrorCode.BAD_AUTHORIZATIONS)) {
+                && ((AccumuloSecurityException) re.getCause()).getSecurityErrorCode()
+                    .equals(SecurityErrorCode.BAD_AUTHORIZATIONS)) {
               if (ambiguousAuths)
                 return;
               else
@@ -248,8 +248,8 @@ public class TableOp extends Test {
           } catch (AccumuloSecurityException ae) {
             if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
               if (secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
-                throw new AccumuloException("Bulk Import failed when it should have worked: "
-                    + tableName);
+                throw new AccumuloException(
+                    "Bulk Import failed when it should have worked: " + tableName);
               return;
             } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
               if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
@@ -263,8 +263,8 @@ public class TableOp extends Test {
           fs.delete(fail, true);
 
           if (!secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
-            throw new AccumuloException("Bulk Import succeeded when it should have failed: " + dir
-                + " table " + tableName);
+            throw new AccumuloException(
+                "Bulk Import succeeded when it should have failed: " + dir + " table " + tableName);
           break;
         case ALTER_TABLE:
           boolean tablePerm;

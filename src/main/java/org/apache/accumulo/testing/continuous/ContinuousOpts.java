@@ -38,8 +38,8 @@ public class ContinuousOpts {
       logger.setLevel(Level.TRACE);
       logger.setAdditivity(false);
       try {
-        logger.addAppender(new FileAppender(new PatternLayout(
-            "%d{dd HH:mm:ss,SSS} [%-8c{2}] %-5p: %m%n"), debugLog, true));
+        logger.addAppender(new FileAppender(
+            new PatternLayout("%d{dd HH:mm:ss,SSS} [%-8c{2}] %-5p: %m%n"), debugLog, true));
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }

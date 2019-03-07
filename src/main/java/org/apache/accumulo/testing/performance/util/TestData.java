@@ -42,8 +42,8 @@ public class TestData {
     return FastFormat.toZeroPaddedString(v, 9, 16, EMPTY);
   }
 
-  public static void generate(AccumuloClient client, String tableName, int rows, int fams, int quals)
-      throws Exception {
+  public static void generate(AccumuloClient client, String tableName, int rows, int fams,
+      int quals) throws Exception {
     try (BatchWriter writer = client.createBatchWriter(tableName)) {
       int v = 0;
       for (int r = 0; r < rows; r++) {

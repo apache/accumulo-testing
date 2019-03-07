@@ -78,8 +78,9 @@ public class Run {
       log.error("Error loading config file.", e);
     }
 
-    ScaleTest test = (ScaleTest) Class.forName(
-        String.format("org.apache.accumulo.test.scalability.%s", opts.testId)).newInstance();
+    ScaleTest test = (ScaleTest) Class
+        .forName(String.format("org.apache.accumulo.test.scalability.%s", opts.testId))
+        .newInstance();
 
     test.init(scaleProps, testProps, opts.numTabletServers);
 

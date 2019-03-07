@@ -24,10 +24,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.accumulo.core.client.IteratorSetting.Column;
+import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.hadoop.fs.FileStatus;
@@ -96,8 +96,8 @@ public class BulkPlusOne extends BulkImportTest {
       }
       writer.close();
     }
-    env.getAccumuloClient().tableOperations()
-        .importDirectory(Setup.getTableName(), dir.toString(), fail.toString(), true);
+    env.getAccumuloClient().tableOperations().importDirectory(Setup.getTableName(), dir.toString(),
+        fail.toString(), true);
     fs.delete(dir, true);
     FileStatus[] failures = fs.listStatus(fail);
     if (failures != null && failures.length > 0) {

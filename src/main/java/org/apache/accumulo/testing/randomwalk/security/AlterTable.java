@@ -36,8 +36,8 @@ public class AlterTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String systemUser = WalkingSecurity.get(state, env).getSysUserName();
-    try (AccumuloClient client = env.createClient(systemUser, WalkingSecurity.get(state, env)
-        .getSysToken())) {
+    try (AccumuloClient client = env.createClient(systemUser,
+        WalkingSecurity.get(state, env).getSysToken())) {
 
       String tableName = WalkingSecurity.get(state, env).getTableName();
 
@@ -59,8 +59,9 @@ public class AlterTable extends Test {
           throw new AccumuloException("Got unexpected ae error code", ae);
         }
       }
-      String newTableName = String.format("security_%s_%s_%d", InetAddress.getLocalHost()
-          .getHostName().replaceAll("[-.]", "_"), env.getPid(), System.currentTimeMillis());
+      String newTableName = String.format("security_%s_%s_%d",
+          InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_"), env.getPid(),
+          System.currentTimeMillis());
 
       renameTable(client, state, env, tableName, newTableName, hasPermission, exists);
     }
@@ -74,8 +75,8 @@ public class AlterTable extends Test {
     } catch (AccumuloSecurityException ae) {
       if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
         if (hasPermission)
-          throw new AccumuloException(
-              "Got a security exception when I should have had permission.", ae);
+          throw new AccumuloException("Got a security exception when I should have had permission.",
+              ae);
         else
           return;
       } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {

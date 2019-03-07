@@ -145,14 +145,14 @@ public class ContinuousVerify extends Configured implements Tool {
 
     String tableName = env.getAccumuloTableName();
 
-    Job job = Job.getInstance(getConf(), this.getClass().getSimpleName() + "_" + tableName + "_"
-        + System.currentTimeMillis());
+    Job job = Job.getInstance(getConf(),
+        this.getClass().getSimpleName() + "_" + tableName + "_" + System.currentTimeMillis());
     job.setJarByClass(this.getClass());
 
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    boolean scanOffline = Boolean.parseBoolean(env
-        .getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
+    boolean scanOffline = Boolean
+        .parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
     int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
     int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
     String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);

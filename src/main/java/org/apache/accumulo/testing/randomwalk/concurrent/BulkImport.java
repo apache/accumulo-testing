@@ -29,12 +29,12 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
+import org.apache.accumulo.core.client.rfile.RFile;
+import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.data.ColumnUpdate;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.client.rfile.RFile;
-import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -109,8 +109,8 @@ public class BulkImport extends Test {
     fs.mkdirs(new Path(bulkDir + "_f"));
 
     try {
-      BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs, bulkDir
-          + "/file01.rf");
+      BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs,
+          bulkDir + "/file01.rf");
       try {
         TreeSet<Long> rows = new TreeSet<>();
         int numRows = rand.nextInt(100000);

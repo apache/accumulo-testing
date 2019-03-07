@@ -48,8 +48,8 @@ public class RandWalkEnv extends TestEnv {
    * @throws NumberFormatException
    *           if any configuration property cannot be parsed
    */
-  public MultiTableBatchWriter getMultiTableBatchWriter() throws AccumuloException,
-      AccumuloSecurityException {
+  public MultiTableBatchWriter getMultiTableBatchWriter()
+      throws AccumuloException, AccumuloSecurityException {
     if (mtbw == null) {
       mtbw = getAccumuloClient().createMultiTableBatchWriter();
     }

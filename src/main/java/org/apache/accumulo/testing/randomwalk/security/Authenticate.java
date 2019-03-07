@@ -33,8 +33,8 @@ public class Authenticate extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    authenticate(WalkingSecurity.get(state, env).getSysUserName(), WalkingSecurity.get(state, env)
-        .getSysToken(), state, env, props);
+    authenticate(WalkingSecurity.get(state, env).getSysUserName(),
+        WalkingSecurity.get(state, env).getSysToken(), state, env, props);
   }
 
   public static void authenticate(String principal, AuthenticationToken token, State state,
@@ -56,8 +56,7 @@ public class Authenticate extends Test {
       byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target),
           WalkingSecurity.get(state, env).getUserPassword(target).length);
       boolean hasPermission = client.securityOperations().hasSystemPermission(principal,
-          SystemPermission.SYSTEM)
-          || principal.equals(target);
+          SystemPermission.SYSTEM) || principal.equals(target);
 
       if (!success)
         for (int i = 0; i < password.length; i++)

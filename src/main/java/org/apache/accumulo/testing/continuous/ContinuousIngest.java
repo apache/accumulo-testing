@@ -136,8 +136,8 @@ public class ContinuousIngest {
 
       byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
 
-      log.info(String.format("UUID %d %s", System.currentTimeMillis(), new String(ingestInstanceId,
-          UTF_8)));
+      log.info(String.format("UUID %d %s", System.currentTimeMillis(),
+          new String(ingestInstanceId, UTF_8)));
 
       long count = 0;
       final int flushInterval = getFlushEntries(env.getTestProperties());

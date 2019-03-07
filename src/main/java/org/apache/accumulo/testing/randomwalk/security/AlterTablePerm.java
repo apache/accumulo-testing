@@ -62,8 +62,8 @@ public class AlterTablePerm extends Test {
     } else
       tabPerm = TablePermission.valueOf(perm);
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    boolean hasPerm = WalkingSecurity.get(state, env)
-        .hasTablePermission(target, tableName, tabPerm);
+    boolean hasPerm = WalkingSecurity.get(state, env).hasTablePermission(target, tableName,
+        tabPerm);
     boolean canGive;
     String sourceUser;
     AuthenticationToken sourceToken;
@@ -195,8 +195,8 @@ public class AlterTablePerm extends Test {
       if (!tableExists)
         throw new AccumuloException("Table shouldn't have existed, but apparently does");
       if (!canGive)
-        throw new AccumuloException(client.whoami()
-            + " shouldn't have been able to grant privilege");
+        throw new AccumuloException(
+            client.whoami() + " shouldn't have been able to grant privilege");
     }
   }
 }

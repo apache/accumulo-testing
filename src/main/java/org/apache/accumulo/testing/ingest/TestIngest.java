@@ -31,9 +31,9 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
+import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.clientImpl.TabletServerBatchWriter;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
@@ -76,8 +76,7 @@ public class TestIngest {
     @Parameter(names = "--cols", description = "the number of columns to ingest per row")
     public int cols = 1;
 
-    @Parameter(
-        names = "--random",
+    @Parameter(names = "--random",
         description = "insert random rows and use the given number to seed the psuedo-random number generator")
     public Integer random = null;
 
@@ -108,8 +107,8 @@ public class TestIngest {
     public FileSystem fs = null;
   }
 
-  public static void createTable(AccumuloClient client, Opts args) throws AccumuloException,
-      AccumuloSecurityException, TableExistsException {
+  public static void createTable(AccumuloClient client, Opts args)
+      throws AccumuloException, AccumuloSecurityException, TableExistsException {
     if (args.createTable) {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
           args.numsplits);
@@ -256,8 +255,8 @@ public class TestIngest {
           } else {
             byte value[];
             if (opts.random != null) {
-              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid
-                  + opts.startRow, j);
+              value = genRandomValue(random, randomValue, opts.random.intValue(),
+                  rowid + opts.startRow, j);
             } else {
               value = bytevals[j % bytevals.length];
             }
@@ -279,8 +278,8 @@ public class TestIngest {
           } else {
             byte value[];
             if (opts.random != null) {
-              value = genRandomValue(random, randomValue, opts.random.intValue(), rowid
-                  + opts.startRow, j);
+              value = genRandomValue(random, randomValue, opts.random.intValue(),
+                  rowid + opts.startRow, j);
             } else {
               value = bytevals[j % bytevals.length];
             }
@@ -305,9 +304,10 @@ public class TestIngest {
         bw.close();
       } catch (MutationsRejectedException e) {
         if (e.getSecurityErrorCodes().size() > 0) {
-          for (Entry<TabletId,Set<SecurityErrorCode>> entry : e.getSecurityErrorCodes().entrySet()) {
-            System.err.println("ERROR : Not authorized to write to : " + entry.getKey()
-                + " due to " + entry.getValue());
+          for (Entry<TabletId,Set<SecurityErrorCode>> entry : e.getSecurityErrorCodes()
+              .entrySet()) {
+            System.err.println("ERROR : Not authorized to write to : " + entry.getKey() + " due to "
+                + entry.getValue());
           }
         }
 
@@ -325,11 +325,10 @@ public class TestIngest {
     int totalValues = opts.rows * opts.cols;
     double elapsed = (stopTime - startTime) / 1000.0;
 
-    System.out
-        .printf(
-            "%,12d records written | %,8d records/sec | %,12d bytes written | %,8d bytes/sec | %6.3f secs   %n",
-            totalValues, (int) (totalValues / elapsed), bytesWritten,
-            (int) (bytesWritten / elapsed), elapsed);
+    System.out.printf(
+        "%,12d records written | %,8d records/sec | %,12d bytes written | %,8d bytes/sec | %6.3f secs   %n",
+        totalValues, (int) (totalValues / elapsed), bytesWritten, (int) (bytesWritten / elapsed),
+        elapsed);
   }
 
   public static void ingest(AccumuloClient c, Opts opts, Configuration conf)

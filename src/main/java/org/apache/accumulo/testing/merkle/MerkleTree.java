@@ -46,8 +46,9 @@ public class MerkleTree {
       Pair<Integer,Integer> pairToJoin = findNextPair(buffer);
 
       // Make a parent node from them
-      MerkleTreeNode parent = new MerkleTreeNode(Arrays.asList(buffer.get(pairToJoin.getFirst()),
-          buffer.get(pairToJoin.getSecond())), digestAlgorithm);
+      MerkleTreeNode parent = new MerkleTreeNode(
+          Arrays.asList(buffer.get(pairToJoin.getFirst()), buffer.get(pairToJoin.getSecond())),
+          digestAlgorithm);
 
       // Insert it back into the "tree" at the position of the first child
       buffer.set(pairToJoin.getFirst(), parent);

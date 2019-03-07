@@ -45,11 +45,13 @@ public class TestExecutor<T> implements Iterable<T>, AutoCloseable {
   }
 
   public Stream<T> stream() {
-    return futures.stream().map(f -> {try {
-      return f.get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException(e);
-    }});
+    return futures.stream().map(f -> {
+      try {
+        return f.get();
+      } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Override

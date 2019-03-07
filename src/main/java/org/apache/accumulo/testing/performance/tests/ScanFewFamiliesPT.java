@@ -69,10 +69,10 @@ public class ScanFewFamiliesPT implements PerformanceTest {
     for (int numFams : new int[] {1, 2, 4, 8, 16}) {
       LongSummaryStatistics stats = runScans(env, tableName, numFams);
       String fams = Strings.padStart(numFams + "", 2, '0');
-      builder.info("f" + fams + "_stats", stats, "Times in ms to fetch " + numFams
-          + " families from all rows");
-      builder.result("f" + fams, stats.getAverage(), "Average time in ms to fetch " + numFams
-          + " families from all rows");
+      builder.info("f" + fams + "_stats", stats,
+          "Times in ms to fetch " + numFams + " families from all rows");
+      builder.result("f" + fams, stats.getAverage(),
+          "Average time in ms to fetch " + numFams + " families from all rows");
     }
 
     builder.id("sfewfam");
@@ -96,10 +96,11 @@ public class ScanFewFamiliesPT implements PerformanceTest {
     return stats;
   }
 
-  private static long scan(String tableName, AccumuloClient c, Random rand, int numFamilies) throws TableNotFoundException {
+  private static long scan(String tableName, AccumuloClient c, Random rand, int numFamilies)
+      throws TableNotFoundException {
 
     Set<Text> families = new HashSet<>(numFamilies);
-    while(families.size() < numFamilies) {
+    while (families.size() < numFamilies) {
       families.add(new Text(TestData.fam(rand.nextInt(NUM_FAMS))));
     }
 

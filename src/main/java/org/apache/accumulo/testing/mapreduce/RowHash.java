@@ -20,17 +20,14 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.Pair;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.MD5Hash;
@@ -50,8 +47,8 @@ public class RowHash extends Configured implements Tool {
     @Override
     public void map(Key row, Value data, Context context) throws IOException, InterruptedException {
       Mutation m = new Mutation(row.getRow());
-      m.put(new Text("cf-HASHTYPE"), new Text("cq-MD5BASE64"), new Value(Base64.getEncoder()
-          .encode(MD5Hash.digest(data.toString()).getDigest())));
+      m.put(new Text("cf-HASHTYPE"), new Text("cq-MD5BASE64"),
+          new Value(Base64.getEncoder().encode(MD5Hash.digest(data.toString()).getDigest())));
       context.write(null, m);
       context.progress();
     }

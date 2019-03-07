@@ -16,8 +16,9 @@
  */
 package org.apache.accumulo.testing.stress;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.testing.cli.ClientOpts;
+
+import com.beust.jcommander.Parameter;
 
 class ScanOpts extends ClientOpts {
   @Parameter(names = {"-t", "--table"}, description = "table to use")

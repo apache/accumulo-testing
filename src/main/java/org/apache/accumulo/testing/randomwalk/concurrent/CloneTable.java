@@ -59,7 +59,8 @@ public class CloneTable extends Test {
     } catch (AccumuloException e) {
       Throwable cause = e.getCause();
       if (cause != null && cause instanceof NamespaceNotFoundException)
-        log.debug("Clone: " + srcTableName + " to " + newTableName + " failed, namespace not found");
+        log.debug(
+            "Clone: " + srcTableName + " to " + newTableName + " failed, namespace not found");
       else
         throw e;
     }

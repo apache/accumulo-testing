@@ -56,8 +56,8 @@ public class Report {
     }
 
     public Builder result(String id, LongSummaryStatistics stats, String description) {
-      results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(), stats
-          .getAverage(), stats.getCount()), description, Purpose.COMPARISON));
+      results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(),
+          stats.getAverage(), stats.getCount()), description, Purpose.COMPARISON));
       return this;
     }
 
@@ -72,8 +72,8 @@ public class Report {
     }
 
     public Builder info(String id, LongSummaryStatistics stats, String description) {
-      results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(), stats
-          .getAverage(), stats.getCount()), description, Purpose.INFORMATIONAL));
+      results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(),
+          stats.getAverage(), stats.getCount()), description, Purpose.INFORMATIONAL));
       return this;
     }
 

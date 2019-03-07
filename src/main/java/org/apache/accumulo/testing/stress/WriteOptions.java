@@ -16,8 +16,9 @@
  */
 package org.apache.accumulo.testing.stress;
 
-import com.beust.jcommander.Parameter;
 import org.apache.accumulo.testing.cli.ClientOpts;
+
+import com.beust.jcommander.Parameter;
 
 class WriteOptions extends ClientOpts {
   static final String DEFAULT_TABLE = "stress_test";
@@ -123,17 +124,15 @@ class WriteOptions extends ClientOpts {
 
     if (min_ref == null && max_ref != null) {
       // we don't support just specifying a max yet
-      throw new IllegalArgumentException(
-          String
-              .format(
-                  "[%s] Maximum value supplied, but no minimum. Must supply a minimum with a maximum value.",
-                  label));
+      throw new IllegalArgumentException(String.format(
+          "[%s] Maximum value supplied, but no minimum. Must supply a minimum with a maximum value.",
+          label));
     } else if (min_ref != null && max_ref != null) {
       // if a user supplied lower and upper bounds, we need to verify
       // that min <= max
       if (min_ref.compareTo(max_ref) > 0) {
-        throw new IllegalArgumentException(String.format(
-            "[%s] Min value (%d) is greater than max value (%d)", label, min_ref, max_ref));
+        throw new IllegalArgumentException(String
+            .format("[%s] Min value (%d) is greater than max value (%d)", label, min_ref, max_ref));
       }
     }
   }

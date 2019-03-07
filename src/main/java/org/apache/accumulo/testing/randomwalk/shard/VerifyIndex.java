@@ -63,8 +63,8 @@ public class VerifyIndex extends Test {
     }
 
     if (iter.hasNext())
-      throw new Exception("index rebuild mismatch " + iter.next().getKey() + " "
-          + tmpIndexTableName);
+      throw new Exception(
+          "index rebuild mismatch " + iter.next().getKey() + " " + tmpIndexTableName);
 
     log.debug("Verified " + count + " index entries ");
 

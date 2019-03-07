@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
@@ -95,9 +95,9 @@ public class CompareTables {
     this.opts = opts;
   }
 
-  private Map<String,String> computeAllHashes() throws AccumuloException,
-      AccumuloSecurityException, TableExistsException, NoSuchAlgorithmException,
-      TableNotFoundException, FileNotFoundException {
+  private Map<String,String> computeAllHashes()
+      throws AccumuloException, AccumuloSecurityException, TableExistsException,
+      NoSuchAlgorithmException, TableNotFoundException, FileNotFoundException {
     try (AccumuloClient client = opts.createClient()) {
       final Map<String,String> hashesByTable = new HashMap<>();
 
@@ -105,8 +105,8 @@ public class CompareTables {
         final String outputTableName = table + "_merkle";
 
         if (client.tableOperations().exists(outputTableName)) {
-          throw new IllegalArgumentException("Expected output table name to not yet exist: "
-              + outputTableName);
+          throw new IllegalArgumentException(
+              "Expected output table name to not yet exist: " + outputTableName);
         }
 
         client.tableOperations().create(outputTableName);
@@ -123,8 +123,8 @@ public class CompareTables {
         }
 
         ComputeRootHash computeRootHash = new ComputeRootHash();
-        String hash = Hex.encodeHexString(computeRootHash.getHash(client, outputTableName,
-            opts.getHashName()));
+        String hash = Hex
+            .encodeHexString(computeRootHash.getHash(client, outputTableName, opts.getHashName()));
 
         hashesByTable.put(table, hash);
       }

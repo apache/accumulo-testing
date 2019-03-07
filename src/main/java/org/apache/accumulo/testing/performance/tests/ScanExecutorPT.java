@@ -72,12 +72,12 @@ public class ScanExecutorPT implements PerformanceTest {
     siteCfg.put(Property.TSERV_MINTHREADS.getKey(), "200");
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.threads",
         SCAN_EXECUTOR_THREADS);
-    siteCfg
-        .put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer", SCAN_PRIORITIZER);
+    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer",
+        SCAN_PRIORITIZER);
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.threads",
         SCAN_EXECUTOR_THREADS);
-    siteCfg
-        .put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer", SCAN_PRIORITIZER);
+    siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer",
+        SCAN_PRIORITIZER);
 
     return new SystemConfiguration().setAccumuloConfig(siteCfg);
   }
@@ -155,8 +155,8 @@ public class ScanExecutorPT implements PerformanceTest {
     return System.currentTimeMillis() - t1;
   }
 
-  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, Map<String,String> hints)
-      throws TableNotFoundException {
+  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop,
+      Map<String,String> hints) throws TableNotFoundException {
     long count = 0;
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {

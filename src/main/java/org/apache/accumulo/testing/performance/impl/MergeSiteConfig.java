@@ -31,17 +31,18 @@ public class MergeSiteConfig {
     String className = args[0];
     Path confFile = Paths.get(args[1], "accumulo.properties");
 
-    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).newInstance();
+    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class)
+        .newInstance();
 
     Properties props = new Properties();
 
-    try(Reader in = Files.newBufferedReader(confFile)){
+    try (Reader in = Files.newBufferedReader(confFile)) {
       props.load(in);
     }
 
-    perfTest.getSystemConfig().getAccumuloConfig().forEach((k,v) -> props.setProperty(k, v));
+    perfTest.getSystemConfig().getAccumuloConfig().forEach((k, v) -> props.setProperty(k, v));
 
-    try(Writer out = Files.newBufferedWriter(confFile)){
+    try (Writer out = Files.newBufferedWriter(confFile)) {
       props.store(out, "Modified by performance test");
     }
   }

@@ -131,10 +131,10 @@ public class BulkInsert extends Test {
     dataWriter.close();
     indexWriter.close();
 
-    sort(state, env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk", rootDir
-        + "/data_work", maxSplits);
-    sort(state, env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk", rootDir
-        + "/index_work", maxSplits);
+    sort(state, env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk",
+        rootDir + "/data_work", maxSplits);
+    sort(state, env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk",
+        rootDir + "/index_work", maxSplits);
 
     bulkImport(fs, state, env, dataTableName, rootDir, "data");
     bulkImport(fs, state, env, indexTableName, rootDir, "index");
@@ -171,8 +171,9 @@ public class BulkInsert extends Test {
   private void sort(State state, RandWalkEnv env, FileSystem fs, String tableName, String seqFile,
       String outputDir, String workDir, int maxSplits) throws Exception {
 
-    PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(new Path(workDir
-        + "/splits.txt"))), false, UTF_8.name());
+    PrintStream out = new PrintStream(
+        new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))), false,
+        UTF_8.name());
 
     AccumuloClient client = env.getAccumuloClient();
 

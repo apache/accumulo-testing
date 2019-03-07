@@ -135,8 +135,8 @@ public class GenerateHashes {
     }
   }
 
-  public void run(GenerateHashesOpts opts) throws TableNotFoundException,
-      AccumuloSecurityException, AccumuloException, NoSuchAlgorithmException, FileNotFoundException {
+  public void run(GenerateHashesOpts opts) throws TableNotFoundException, AccumuloSecurityException,
+      AccumuloException, NoSuchAlgorithmException, FileNotFoundException {
     try (AccumuloClient client = opts.createClient()) {
       Collection<Range> ranges = getRanges(client, opts.tableName, opts.getSplitsFile());
       run(client, opts.tableName, opts.getOutputTableName(), opts.getHashName(),
@@ -144,9 +144,10 @@ public class GenerateHashes {
     }
   }
 
-  public void run(final AccumuloClient client, final String inputTableName, final String outputTableName, final String digestName, int numThreads,
-      final boolean iteratorPushdown, final Collection<Range> ranges) throws TableNotFoundException, AccumuloException,
-      NoSuchAlgorithmException {
+  public void run(final AccumuloClient client, final String inputTableName,
+      final String outputTableName, final String digestName, int numThreads,
+      final boolean iteratorPushdown, final Collection<Range> ranges)
+      throws TableNotFoundException, AccumuloException, NoSuchAlgorithmException {
     if (!client.tableOperations().exists(outputTableName)) {
       throw new IllegalArgumentException(outputTableName + " does not exist, please create it");
     }
@@ -203,7 +204,8 @@ public class GenerateHashes {
           }
 
           // Log some progress
-          log.info("{} computed digest for {} of {}", Thread.currentThread().getName(), range, Hex.encodeHexString(v.get()));
+          log.info("{} computed digest for {} of {}", Thread.currentThread().getName(), range,
+              Hex.encodeHexString(v.get()));
 
           try {
             bw.addMutation(m);
@@ -221,7 +223,8 @@ public class GenerateHashes {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
-          log.error("Interrupted while waiting for executor service to gracefully complete. Exiting now");
+          log.error(
+              "Interrupted while waiting for executor service to gracefully complete. Exiting now");
           svc.shutdownNow();
           return;
         }

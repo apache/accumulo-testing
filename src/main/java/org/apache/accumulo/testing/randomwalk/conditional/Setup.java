@@ -49,8 +49,8 @@ public class Setup extends Test {
       env.getAccumuloClient().tableOperations().create(tableName);
       log.debug("created table " + tableName);
       boolean blockCache = rand.nextBoolean();
-      env.getAccumuloClient().tableOperations()
-          .setProperty(tableName, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
+      env.getAccumuloClient().tableOperations().setProperty(tableName,
+          Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
       log.debug("set " + Property.TABLE_BLOCKCACHE_ENABLED.getKey() + " " + blockCache);
     } catch (TableExistsException tee) {}
 

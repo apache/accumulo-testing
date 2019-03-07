@@ -27,9 +27,9 @@ import java.util.Random;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
@@ -141,8 +141,8 @@ public class TeraSortIngest extends Configured implements Tool {
       }
 
       @Override
-      public void initialize(InputSplit split, TaskAttemptContext context) throws IOException,
-          InterruptedException {}
+      public void initialize(InputSplit split, TaskAttemptContext context)
+          throws IOException, InterruptedException {}
 
       @Override
       public boolean nextKeyValue() throws IOException, InterruptedException {
@@ -169,8 +169,8 @@ public class TeraSortIngest extends Configured implements Tool {
       long totalRows = job.getConfiguration().getLong(NUMROWS, 0);
       int numSplits = job.getConfiguration().getInt(NUMSPLITS, 1);
       long rowsPerSplit = totalRows / numSplits;
-      System.out.println("Generating " + totalRows + " using " + numSplits + " maps with step of "
-          + rowsPerSplit);
+      System.out.println(
+          "Generating " + totalRows + " using " + numSplits + " maps with step of " + rowsPerSplit);
       ArrayList<InputSplit> splits = new ArrayList<>(numSplits);
       long currentRow = 0;
       for (int split = 0; split < numSplits - 1; ++split) {
@@ -318,8 +318,8 @@ public class TeraSortIngest extends Configured implements Tool {
     }
 
     @Override
-    public void map(LongWritable row, NullWritable ignored, Context context) throws IOException,
-        InterruptedException {
+    public void map(LongWritable row, NullWritable ignored, Context context)
+        throws IOException, InterruptedException {
       context.setStatus("Entering");
       long rowId = row.get();
       if (rand == null) {

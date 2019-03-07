@@ -21,11 +21,11 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -71,8 +71,8 @@ public class MapRedVerifyTool extends Configured implements Tool {
       writeMutation(output, start, index);
     }
 
-    private void writeMutation(Context output, int start, int end) throws IOException,
-        InterruptedException {
+    private void writeMutation(Context output, int start, int end)
+        throws IOException, InterruptedException {
       Mutation m = new Mutation(new Text(String.format("%010d", start)));
       m.put(new Text(String.format("%010d", end)), new Text(""), new Value(new byte[0]));
       output.write(null, m);

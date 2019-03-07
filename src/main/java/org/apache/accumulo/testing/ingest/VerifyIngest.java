@@ -75,8 +75,8 @@ public class VerifyIngest {
     }
   }
 
-  private static void verifyIngest(AccumuloClient client, Opts opts) throws AccumuloException,
-      AccumuloSecurityException, TableNotFoundException {
+  private static void verifyIngest(AccumuloClient client, Opts opts)
+      throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 
     Authorizations labelAuths = new Authorizations("L1", "L2", "G1", "GROUP2");
@@ -119,8 +119,8 @@ public class VerifyIngest {
 
         byte ev[];
         if (opts.random != null) {
-          ev = TestIngest
-              .genRandomValue(random, randomValue, opts.random, expectedRow, expectedCol);
+          ev = TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow,
+              expectedCol);
         } else {
           ev = bytevals[expectedCol % bytevals.length];
         }
@@ -175,23 +175,23 @@ public class VerifyIngest {
           }
 
           if (colNum != expectedCol) {
-            log.error("colNum != expectedCol  " + colNum + " != " + expectedCol + "  rowNum : "
-                + rowNum);
+            log.error(
+                "colNum != expectedCol  " + colNum + " != " + expectedCol + "  rowNum : " + rowNum);
             errors++;
           }
 
           if (expectedRow >= (opts.rows + opts.startRow)) {
-            log.error("expectedRow (" + expectedRow
-                + ") >= (ingestArgs.rows + ingestArgs.startRow)  (" + (opts.rows + opts.startRow)
-                + "), get batch returned data passed end key");
+            log.error(
+                "expectedRow (" + expectedRow + ") >= (ingestArgs.rows + ingestArgs.startRow)  ("
+                    + (opts.rows + opts.startRow) + "), get batch returned data passed end key");
             errors++;
             break;
           }
 
           byte value[];
           if (opts.random != null) {
-            value = TestIngest
-                .genRandomValue(random, randomValue, opts.random, expectedRow, colNum);
+            value = TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow,
+                colNum);
           } else {
             value = bytevals[colNum % bytevals.length];
           }
@@ -235,11 +235,10 @@ public class VerifyIngest {
       throw new AccumuloException("Did not read expected number of rows. Saw "
           + (expectedRow - opts.startRow) + " expected " + opts.rows);
     } else {
-      System.out
-          .printf(
-              "%,12d records read | %,8d records/sec | %,12d bytes read | %,8d bytes/sec | %6.3f secs   %n",
-              recsRead, (int) ((recsRead) / ((t2 - t1) / 1000.0)), bytesRead,
-              (int) (bytesRead / ((t2 - t1) / 1000.0)), (t2 - t1) / 1000.0);
+      System.out.printf(
+          "%,12d records read | %,8d records/sec | %,12d bytes read | %,8d bytes/sec | %6.3f secs   %n",
+          recsRead, (int) ((recsRead) / ((t2 - t1) / 1000.0)), bytesRead,
+          (int) (bytesRead / ((t2 - t1) / 1000.0)), (t2 - t1) / 1000.0);
     }
   }
 

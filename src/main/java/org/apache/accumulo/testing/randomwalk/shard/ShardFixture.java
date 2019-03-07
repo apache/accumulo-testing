@@ -25,8 +25,8 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.conf.Property;
-import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.Fixture;
+import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
@@ -66,10 +66,10 @@ public class ShardFixture extends Fixture {
     log.info("Added " + splits.size() + " splits to " + name);
 
     if (enableCache) {
-      client.tableOperations()
-          .setProperty(name, Property.TABLE_INDEXCACHE_ENABLED.getKey(), "true");
-      client.tableOperations()
-          .setProperty(name, Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
+      client.tableOperations().setProperty(name, Property.TABLE_INDEXCACHE_ENABLED.getKey(),
+          "true");
+      client.tableOperations().setProperty(name, Property.TABLE_BLOCKCACHE_ENABLED.getKey(),
+          "true");
 
       log.info("Enabled caching for table " + name);
     }

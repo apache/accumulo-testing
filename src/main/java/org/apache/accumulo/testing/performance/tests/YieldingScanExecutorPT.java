@@ -135,18 +135,19 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,
         "Threads running long fileter scans.  Each thread repeatedly scans entire table for "
-        + "duration of test randomly returning a few of the keys.");
+            + "duration of test randomly returning a few of the keys.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
     builder.parameter("familes", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
     builder.parameter("server_scan_threads", SCAN_EXECUTOR_THREADS,
         "Server side scan handler threads that each executor has.  There are 2 executors.");
 
-    builder.parameter("filter_probabilities", FILTER_PROBABILITIES, "The chances that one of the long "
-        + "filter scans will return any key it sees. The probabilites are cycled through when "
-        + "starting long scans.");
-    builder.parameter("filter_yield_time", FILTER_YIELD_TIME, "The time in ms after which one of "
-        + "the long filter scans will yield.");
+    builder.parameter("filter_probabilities", FILTER_PROBABILITIES,
+        "The chances that one of the long "
+            + "filter scans will return any key it sees. The probabilites are cycled through when "
+            + "starting long scans.");
+    builder.parameter("filter_yield_time", FILTER_YIELD_TIME,
+        "The time in ms after which one of " + "the long filter scans will yield.");
     builder.parameter("quick_scan_time", QUICK_SCAN_TIME, "The threshold time in ms for deciding "
         + "what is a quick vs long scan.  Times less than this are sent to one executor and longer "
         + "times are sent to another.");
@@ -168,8 +169,8 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     return System.currentTimeMillis() - t1;
   }
 
-  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop, String filterProbability)
-      throws TableNotFoundException {
+  private long scan(String tableName, AccumuloClient c, AtomicBoolean stop,
+      String filterProbability) throws TableNotFoundException {
     long count = 0;
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {

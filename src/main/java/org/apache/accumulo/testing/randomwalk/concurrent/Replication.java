@@ -178,8 +178,8 @@ public class Replication extends Test {
   // junit isn't a dependency
   private void assertEquals(int expected, int actual) {
     if (expected != actual)
-      throw new RuntimeException(String.format("%d fails to match expected value %d", actual,
-          expected));
+      throw new RuntimeException(
+          String.format("%d fails to match expected value %d", actual, expected));
   }
 
   // junit isn't a dependency

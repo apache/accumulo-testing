@@ -51,8 +51,8 @@ public class ComputeRootHash {
     String hashName;
   }
 
-  private byte[] getHash(ComputeRootHashOpts opts) throws TableNotFoundException,
-      NoSuchAlgorithmException {
+  private byte[] getHash(ComputeRootHashOpts opts)
+      throws TableNotFoundException, NoSuchAlgorithmException {
     try (AccumuloClient client = opts.createClient()) {
       return getHash(client, opts.tableName, opts.hashName);
     }

@@ -32,8 +32,8 @@ public class CreateUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String sysPrincipal = WalkingSecurity.get(state, env).getSysUserName();
-    try (AccumuloClient client = env.createClient(sysPrincipal, WalkingSecurity.get(state, env)
-        .getSysToken())) {
+    try (AccumuloClient client = env.createClient(sysPrincipal,
+        WalkingSecurity.get(state, env).getSysToken())) {
 
       String tableUserName = WalkingSecurity.get(state, env).getTabUserName();
 
@@ -52,8 +52,8 @@ public class CreateUser extends Test {
             else {
               // create user anyway for sake of state
               if (!exists) {
-                env.getAccumuloClient().securityOperations()
-                    .createLocalUser(tableUserName, tabUserPass);
+                env.getAccumuloClient().securityOperations().createLocalUser(tableUserName,
+                    tabUserPass);
                 WalkingSecurity.get(state, env).createUser(tableUserName, tabUserPass);
                 Thread.sleep(1000);
               }

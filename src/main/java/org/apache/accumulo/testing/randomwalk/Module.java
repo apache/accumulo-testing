@@ -272,8 +272,8 @@ public class Module extends Node {
         numHops++;
 
         if (!adjMap.containsKey(curNodeId) && !curNodeId.startsWith("alias.")) {
-          throw new Exception("Reached node(" + curNodeId + ") without outgoing edges in module("
-              + this + ")");
+          throw new Exception(
+              "Reached node(" + curNodeId + ") without outgoing edges in module(" + this + ")");
         }
         AdjList adj = adjMap.get(curNodeId);
         String nextNodeId = adj.randomNeighbor();
@@ -519,8 +519,8 @@ public class Module extends Node {
 
     // set the schema
     SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-    Schema moduleSchema = sf.newSchema(this.getClass().getClassLoader()
-        .getResource("randomwalk/module.xsd"));
+    Schema moduleSchema = sf
+        .newSchema(this.getClass().getClassLoader().getResource("randomwalk/module.xsd"));
     dbf.setSchema(moduleSchema);
 
     // parse the document
