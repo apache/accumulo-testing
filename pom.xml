@@ -17,31 +17,26 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>18</version>
+    <version>21</version>
   </parent>
-
   <groupId>org.apache.accumulo</groupId>
   <artifactId>accumulo-testing</artifactId>
   <version>2.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
-
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
-
   <properties>
     <accumulo.version>2.0.0-alpha-2</accumulo.version>
-    <hadoop.version>3.0.3</hadoop.version>
-    <zookeeper.version>3.4.9</zookeeper.version>
-    <slf4j.version>1.7.21</slf4j.version>
+    <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
+    <hadoop.version>3.1.1</hadoop.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <formatter.config>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</formatter.config>
+    <slf4j.version>1.7.25</slf4j.version>
+    <spotbugs.version>3.1.7</spotbugs.version>
+    <zookeeper.version>3.4.13</zookeeper.version>
   </properties>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -51,7 +46,82 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
+  <dependencies>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <version>${spotbugs.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>26.0-jre</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.11</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.accumulo</groupId>
+      <artifactId>accumulo-core</artifactId>
+      <version>${accumulo.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.accumulo</groupId>
+      <artifactId>accumulo-hadoop-mapreduce</artifactId>
+      <version>${accumulo.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client-api</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client-runtime</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.accumulo</groupId>
+      <artifactId>accumulo-minicluster</artifactId>
+      <version>${accumulo.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.accumulo</groupId>
+      <artifactId>accumulo-test</artifactId>
+      <version>${accumulo.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
   <build>
     <pluginManagement>
       <plugins>
@@ -61,17 +131,73 @@
           <artifactId>maven-bundle-plugin</artifactId>
           <version>3.0.1</version>
         </plugin>
+        <plugin>
+          <groupId>com.github.ekryd.sortpom</groupId>
+          <artifactId>sortpom-maven-plugin</artifactId>
+          <version>2.8.0</version>
+          <configuration>
+            <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+            <createBackupFile>false</createBackupFile>
+            <lineSeparator>\n</lineSeparator>
+            <expandEmptyElements>false</expandEmptyElements>
+            <nrOfIndentSpace>2</nrOfIndentSpace>
+            <sortDependencies>scope,groupId,artifactId</sortDependencies>
+            <sortProperties>true</sortProperties>
+            <verifyFail>Stop</verifyFail>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>net.revelc.code.formatter</groupId>
+          <artifactId>formatter-maven-plugin</artifactId>
+          <version>2.8.1</version>
+          <configuration>
+            <configFile>${eclipseFormatterStyle}</configFile>
+            <compilerCompliance>${maven.compiler.source}</compilerCompliance>
+            <compilerSource>${maven.compiler.source}</compilerSource>
+            <compilerTargetPlatform>${maven.compiler.target}</compilerTargetPlatform>
+            <excludes>
+              <exclude>**/thrift/*.java</exclude>
+              <exclude>**/proto/*.java</exclude>
+            </excludes>
+            <lineEnding>LF</lineEnding>
+            <overrideConfigCompilerVersion>true</overrideConfigCompilerVersion>
+            <skipJsFormatting>true</skipJsFormatting>
+            <skipHtmlFormatting>true</skipHtmlFormatting>
+            <skipXmlFormatting>true</skipXmlFormatting>
+            <skipJsonFormatting>true</skipJsonFormatting>
+            <skipCssFormatting>true</skipCssFormatting>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>net.revelc.code</groupId>
+          <artifactId>impsort-maven-plugin</artifactId>
+          <version>1.2.0</version>
+          <configuration>
+            <removeUnused>true</removeUnused>
+            <groups>java.,javax.,org.,com.</groups>
+            <excludes>
+              <exclude>**/thrift/*.java</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
         <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
           <optimize>true</optimize>
-          <encoding>UTF-8</encoding>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <compilerArgs>
+            <arg>-Xlint:all</arg>
+            <arg>-Xlint:-processing</arg>
+            <!-- suppress try to ignore unused variable in try-with-resources -->
+            <arg>-Xlint:-try</arg>
+            <arg>-Xmaxwarns</arg>
+            <arg>5</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
@@ -103,21 +229,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>net.revelc.code</groupId>
-        <artifactId>formatter-maven-plugin</artifactId>
-        <version>0.5.2</version>
-        <configuration>
-          <configFile>${formatter.config}</configFile>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <!-- This was added to ensure project only uses public API -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -125,14 +236,14 @@
         <configuration>
           <configLocation>contrib/checkstyle.xml</configLocation>
         </configuration>
-	<dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>8.17</version>
-            </dependency>
-	</dependencies>
-	<executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>8.17</version>
+          </dependency>
+        </dependencies>
+        <executions>
           <execution>
             <id>check-style</id>
             <goals>
@@ -143,79 +254,57 @@
       </plugin>
     </plugins>
   </build>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>26.0-jre</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.10</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.11</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math3</artifactId>
-      <version>3.6.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-core</artifactId>
-      <version>${accumulo.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-hadoop-mapreduce</artifactId>
-      <version>${accumulo.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-minicluster</artifactId>
-      <version>${accumulo.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.accumulo</groupId>
-      <artifactId>accumulo-test</artifactId>
-      <version>${accumulo.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client-api</artifactId>
-      <version>${hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client-runtime</artifactId>
-      <version>${hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
   <profiles>
+    <profile>
+      <!-- on by default, but disable with '-P !autoformat' or '-DskipFormat' -->
+      <id>autoformat</id>
+      <activation>
+        <property>
+          <name>!skipFormat</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.ekryd.sortpom</groupId>
+            <artifactId>sortpom-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sort-pom</id>
+                <goals>
+                  <goal>sort</goal>
+                </goals>
+                <phase>process-sources</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>net.revelc.code.formatter</groupId>
+            <artifactId>formatter-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>format-java-source</id>
+                <goals>
+                  <goal>format</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>net.revelc.code</groupId>
+            <artifactId>impsort-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sort-imports</id>
+                <goals>
+                  <goal>sort</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>create-shade-jar</id>
       <build>
@@ -252,7 +341,7 @@
                   </filters>
                   <transformers>
                     <!-- Hadoop uses service loader to find filesystem impls, without this may not find them -->
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                   </transformers>
                 </configuration>
               </execution>
@@ -262,5 +351,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>
