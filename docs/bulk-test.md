@@ -5,6 +5,9 @@ job that generates rfiles using the tables splits can be run.  This can be run
 in a loop like the following to continually bulk import data.
 
 ```bash
+# create the ci table if necessary
+./bin/cingest createtable
+
 for i in $(seq 1 10); do
    # run map reduce job to generate data for bulk import
    ./bin/cingest bulk /tmp/bt/$i
