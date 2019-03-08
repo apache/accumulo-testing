@@ -21,10 +21,12 @@ for i in $(seq 1 10); do
   ./bin/cingest bulk /tmp/bt/$i
 done
 
-for i in $(seq 1 10); do
+(
   echo "table ci"
-  echo "importdirectory /tmp/bt/$i/files true"
-done | accumulo shell -u root -p secret
+  for i in $(seq 1 10); do
+    echo "importdirectory /tmp/bt/$i/files true"
+  done
+) | accumulo shell -u root -p secret
 ./bin/cingest verify
 ```
 
