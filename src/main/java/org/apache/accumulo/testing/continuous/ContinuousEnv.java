@@ -59,6 +59,18 @@ public class ContinuousEnv extends TestEnv {
     return Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_MAX_CQ));
   }
 
+  public int getBulkMapTask() {
+    return Integer.parseInt(testProps.getProperty(TestProps.CI_BULK_MAP_TASK));
+  }
+
+  public long getBulkMapNodes() {
+    return Long.parseLong(testProps.getProperty(TestProps.CI_BULK_MAP_NODES));
+  }
+
+  public int getBulkReducers() {
+    return Integer.parseInt(testProps.getProperty(TestProps.CI_BULK_REDUCERS));
+  }
+
   public String getAccumuloTableName() {
     return testProps.getProperty(TestProps.CI_COMMON_ACCUMULO_TABLE);
   }

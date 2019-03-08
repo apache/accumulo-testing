@@ -73,6 +73,10 @@ case "$1" in
     ci_main="${ci_package}.ContinuousMoru"
     ;;
   bulk)
+    if [ "$#" -ne 2 ]; then
+      echo "Usage : $0 $1 <bulk dir>"
+      exit 1
+    fi
     ci_main="${ci_package}.BulkIngest"
     ;;
   *)
@@ -84,7 +88,7 @@ esac
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
 case "$1" in
-  verify|moru)
+  verify|moru|bulk)
     if [ ! -z $HADOOP_HOME ]; then
       export HADOOP_USE_CLIENT_CLASSLOADER=true
       "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"

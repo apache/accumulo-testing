@@ -33,13 +33,11 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.core.trace.TraceSamplers;
 import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.TestProps;
-import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -260,10 +258,9 @@ public class ContinuousIngest {
       cksum.update(cv.getExpression());
     }
 
-    Mutation m = new Mutation(new Text(rowString));
+    Mutation m = new Mutation(rowString);
 
-    m.put(new Text(cfString), new Text(cqString), cv,
-        createValue(ingestInstanceId, count, prevRow, cksum));
+    m.put(cfString, cqString, cv, createValue(ingestInstanceId, count, prevRow, cksum));
     return m;
   }
 
@@ -283,7 +280,7 @@ public class ContinuousIngest {
     return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
   }
 
-  public static Value createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
+  public static byte[] createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
       Checksum cksum) {
     int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
     if (cksum != null)
@@ -312,6 +309,6 @@ public class ContinuousIngest {
 
     // System.out.println("val "+new String(val));
 
-    return new Value(val);
+    return val;
   }
 }
