@@ -108,3 +108,14 @@ test.ci.verify.scan.offline=false
 test.ci.verify.auths=
 # Location in HDFS to store output. Must not exist.
 test.ci.verify.output.dir=/tmp/ci-verify
+
+# Bulk Ingest
+# -----------
+# The number of map task to run.
+test.ci.bulk.map.task=10
+# The number of nodes to generate per map task.
+test.ci.bulk.map.nodes=1000000
+# The number of reducers will be the minimum of this prop and table splits+1.  Each reducer will
+# produce a bulk import file.
+test.ci.bulk.reducers.max=1024
+

@@ -131,6 +131,7 @@ the referenced but undefined node.  The MapReduce job produces two other counts:
 UNREFERENCED. It is expected that these two counts are non zero. REFERENCED counts nodes that are
 defined and referenced. UNREFERENCED counts nodes that defined and unreferenced, these are the
 latest nodes inserted.
+* `bulk` - Runs a MapReduce job that generates data for bulk import.  See [bulk-test.md](docs/bulk-test.md).
 * `moru` - Runs a MapReduce job that stresses Accumulo by reading and writing the continuous ingest
 table. This MapReduce job will write out an entry for every entry in the table (except for ones
 created by the MapReduce job itself). Stop ingest before running this MapReduce job. Do not run more
