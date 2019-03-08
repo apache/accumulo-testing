@@ -121,7 +121,6 @@ public class TestProps {
   public static final String CI_BULK_MAP_TASK = CI_BULK + "map.task";
   public static final String CI_BULK_MAP_NODES = CI_BULK + "map.nodes";
   public static final String CI_BULK_REDUCERS = CI_BULK + "reducers.max";
-  public static final String CI_BULK_DIR = CI_BULK + "dir";
 
   public static Properties loadFromFile(String propsFilePath) {
     try {

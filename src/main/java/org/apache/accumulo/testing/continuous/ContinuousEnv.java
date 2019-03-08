@@ -74,11 +74,4 @@ public class ContinuousEnv extends TestEnv {
   public String getAccumuloTableName() {
     return testProps.getProperty(TestProps.CI_COMMON_ACCUMULO_TABLE);
   }
-
-  public String getBulkDir() {
-    if (!testProps.contains(TestProps.CI_BULK_DIR))
-      throw new IllegalStateException(
-          "Must set property " + TestProps.CI_BULK_DIR + ".  Can set on command line with -o");
-    return testProps.getProperty(TestProps.CI_BULK_DIR);
-  }
 }
