@@ -177,7 +177,7 @@ public class ClientOpts extends Help {
       if (securePassword != null) {
         ClientProperty.setPassword(cachedProps, securePassword.toString());
       }
-      getOverrides().forEach((k, v) -> cachedProps.put(k, v));
+      getOverrides().forEach(cachedProps::put);
       ClientProperty.validate(cachedProps);
     }
     return cachedProps;
