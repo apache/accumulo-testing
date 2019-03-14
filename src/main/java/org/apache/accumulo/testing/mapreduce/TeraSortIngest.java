@@ -25,11 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
@@ -356,7 +355,9 @@ public class TeraSortIngest extends Configured implements Tool {
     ToolRunner.run(new Configuration(), new TeraSortIngest(), args);
   }
 
-  static class Opts extends MapReduceClientOnRequiredTable {
+  static class Opts extends ClientOpts {
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
     @Parameter(names = "--count", description = "number of rows to ingest", required = true)
     long numRows;
     @Parameter(names = {"-nk", "--minKeySize"}, description = "miniumum key size", required = true)
@@ -387,9 +388,9 @@ public class TeraSortIngest extends Configured implements Tool {
     job.setNumReduceTasks(0);
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    opts.setAccumuloConfigs(job);
-    BatchWriterConfig bwConfig = new BatchWriterConfig().setMaxMemory(10L * 1000 * 1000);
-    AccumuloOutputFormat.setBatchWriterOptions(job, bwConfig);
+
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProps()).createTables(true)
+        .defaultTable(opts.tableName);
 
     Configuration conf = job.getConfiguration();
     conf.setLong(NUMROWS, opts.numRows);
@@ -397,7 +398,7 @@ public class TeraSortIngest extends Configured implements Tool {
     conf.setInt("cloudgen.maxkeylength", opts.maxKeyLength);
     conf.setInt("cloudgen.minvaluelength", opts.minValueLength);
     conf.setInt("cloudgen.maxvaluelength", opts.maxValueLength);
-    conf.set("cloudgen.tablename", opts.getTableName());
+    conf.set("cloudgen.tablename", opts.tableName);
 
     if (args.length > 10)
       conf.setInt(NUMSPLITS, opts.splits);

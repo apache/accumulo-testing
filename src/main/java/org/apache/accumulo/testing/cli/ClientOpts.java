@@ -24,10 +24,13 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-import org.apache.accumulo.core.client.Accumulo;
-import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.conf.ConfigurationTypeHelper;
@@ -38,6 +41,7 @@ import org.apache.log4j.Logger;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.converters.IParameterSplitter;
 
 public class ClientOpts extends Help {
 
@@ -82,26 +86,23 @@ public class ClientOpts extends Help {
     }
   }
 
-  @Parameter(names = {"-u", "--user"}, description = "Connection user")
-  private String principal = null;
+  public static class NullSplitter implements IParameterSplitter {
+    @Override
+    public List<String> split(String value) {
+      return Collections.singletonList(value);
+    }
+  }
 
-  @Parameter(names = "-p", converter = PasswordConverter.class, description = "Connection password")
-  private Password password = null;
+  @Parameter(names = {"-u", "--user"}, description = "Connection user")
+  public String principal = null;
 
   @Parameter(names = "--password", converter = PasswordConverter.class,
       description = "Enter the connection password", password = true)
   private Password securePassword = null;
 
   public AuthenticationToken getToken() {
-    return ClientProperty.getAuthenticationToken(getClientProperties());
+    return ClientProperty.getAuthenticationToken(getClientProps());
   }
-
-  @Parameter(names = {"-z", "--keepers"},
-      description = "Comma separated list of zookeeper hosts (host:port,host:port)")
-  protected String zookeepers = null;
-
-  @Parameter(names = {"-i", "--instance"}, description = "The name of the accumulo instance")
-  protected String instance = null;
 
   @Parameter(names = {"-auths", "--auths"}, converter = AuthConverter.class,
       description = "the authorizations to use when reading or writing")
@@ -110,15 +111,13 @@ public class ClientOpts extends Help {
   @Parameter(names = "--debug", description = "turn on TRACE-level log messages")
   public boolean debug = false;
 
-  @Parameter(names = "--ssl", description = "Connect to accumulo over SSL")
-  private boolean sslEnabled = false;
-
-  @Parameter(names = "--sasl", description = "Connecto to Accumulo using SASL (supports Kerberos)")
-  private boolean saslEnabled = false;
-
-  @Parameter(names = "--config-file", description = "Read the given client config file. "
+  @Parameter(names = {"-c", "--config-file"}, description = "Read the given client config file. "
       + "If omitted, the classpath will be searched for file named accumulo-client.properties")
   private String clientConfigFile = null;
+
+  @Parameter(names = "-o", splitter = NullSplitter.class, description = "Overrides property in "
+      + "accumulo-client.properties. Expected format: -o <key>=<value>")
+  private List<String> overrides = new ArrayList<>();
 
   public void startDebugLogging() {
     if (debug)
@@ -128,8 +127,24 @@ public class ClientOpts extends Help {
   @Parameter(names = "--trace", description = "turn on distributed tracing")
   public boolean trace = false;
 
-  @Parameter(names = "--keytab", description = "Kerberos keytab on the local filesystem")
-  private String keytabPath = null;
+  public Map<String,String> getOverrides() {
+    Map<String,String> config = new HashMap<>();
+    for (String prop : overrides) {
+      String[] propArgs = prop.split("=", 2);
+      if (propArgs.length == 2) {
+        String key = propArgs[0].trim();
+        String value = propArgs[1].trim();
+        if (key.isEmpty() || value.isEmpty()) {
+          throw new IllegalArgumentException("Invalid command line -o option: " + prop);
+        } else {
+          config.put(key, value);
+        }
+      } else {
+        throw new IllegalArgumentException("Invalid command line -o option: " + prop);
+      }
+    }
+    return config;
+  }
 
   @Override
   public void parseArgs(String programName, String[] args, Object... others) {
@@ -138,25 +153,6 @@ public class ClientOpts extends Help {
   }
 
   private Properties cachedProps = null;
-
-  public String getPrincipal() {
-    return ClientProperty.AUTH_PRINCIPAL.getValue(getClientProperties());
-  }
-
-  public void setPrincipal(String principal) {
-    this.principal = principal;
-  }
-
-  public void setClientProperties(Properties clientProps) {
-    this.cachedProps = clientProps;
-  }
-
-  /**
-   * @return {@link AccumuloClient} that must be closed by user
-   */
-  public AccumuloClient createClient() {
-    return Accumulo.newClient().from(getClientProperties()).build();
-  }
 
   public String getClientConfigFile() {
     if (clientConfigFile == null) {
@@ -169,34 +165,20 @@ public class ClientOpts extends Help {
     return clientConfigFile;
   }
 
-  public Properties getClientProperties() {
+  public Properties getClientProps() {
     if (cachedProps == null) {
       cachedProps = new Properties();
       if (getClientConfigFile() != null) {
         cachedProps = toProperties(Paths.get(getClientConfigFile()));
       }
-      if (saslEnabled) {
-        cachedProps.setProperty(ClientProperty.SASL_ENABLED.getKey(), "true");
-      }
-      if (sslEnabled) {
-        cachedProps.setProperty(ClientProperty.SSL_ENABLED.getKey(), "true");
-      }
       if (principal != null) {
         cachedProps.setProperty(ClientProperty.AUTH_PRINCIPAL.getKey(), principal);
       }
-      if (zookeepers != null) {
-        cachedProps.setProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey(), zookeepers);
-      }
-      if (instance != null) {
-        cachedProps.setProperty(ClientProperty.INSTANCE_NAME.getKey(), instance);
-      }
       if (securePassword != null) {
         ClientProperty.setPassword(cachedProps, securePassword.toString());
-      } else if (password != null) {
-        ClientProperty.setPassword(cachedProps, password.toString());
-      } else if (keytabPath != null) {
-        ClientProperty.setKerberosKeytab(cachedProps, keytabPath);
       }
+      getOverrides().forEach(cachedProps::put);
+      ClientProperty.validate(cachedProps);
     }
     return cachedProps;
   }

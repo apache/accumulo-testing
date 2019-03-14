@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.data.Key;
@@ -264,7 +265,7 @@ public class UndefinedAnalyzer {
       }
     }
 
-    try (AccumuloClient client = opts.createClient();
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build();
         BatchScanner bscanner = client.createBatchScanner(opts.tableName, opts.auths)) {
       List<Range> refs = new ArrayList<>();
 
