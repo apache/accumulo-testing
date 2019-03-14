@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.Scanner;
@@ -116,7 +117,7 @@ public class Verify extends Test {
   public static void main(String args[]) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(Verify.class.getName(), args);
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       Scanner scanner = client.createScanner(opts.tableName, opts.auths);
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       Text startBadRow = null;

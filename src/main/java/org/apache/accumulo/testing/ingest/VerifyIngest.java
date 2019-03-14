@@ -21,11 +21,13 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.PartialKey;
 import org.apache.accumulo.core.data.Range;
@@ -59,7 +61,7 @@ public class VerifyIngest {
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(VerifyIngest.class.getName(), args);
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       if (opts.trace) {
         String name = VerifyIngest.class.getSimpleName();
         DistributedTrace.enable();
@@ -80,7 +82,8 @@ public class VerifyIngest {
     byte[][] bytevals = TestIngest.generateValues(opts.dataSize);
 
     Authorizations labelAuths = new Authorizations("L1", "L2", "G1", "GROUP2");
-    client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), labelAuths);
+    String principal = ClientProperty.AUTH_PRINCIPAL.getValue(opts.getClientProps());
+    client.securityOperations().changeUserAuthorizations(principal, labelAuths);
 
     int expectedRow = opts.startRow;
     int expectedCol = 0;

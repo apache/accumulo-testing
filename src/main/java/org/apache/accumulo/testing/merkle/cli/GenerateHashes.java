@@ -32,6 +32,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -137,7 +138,7 @@ public class GenerateHashes {
 
   public void run(GenerateHashesOpts opts) throws TableNotFoundException, AccumuloSecurityException,
       AccumuloException, NoSuchAlgorithmException, FileNotFoundException {
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       Collection<Range> ranges = getRanges(client, opts.tableName, opts.getSplitsFile());
       run(client, opts.tableName, opts.getOutputTableName(), opts.getHashName(),
           opts.getNumThreads(), opts.isIteratorPushdown(), ranges);

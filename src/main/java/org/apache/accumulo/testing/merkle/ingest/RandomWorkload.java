@@ -18,6 +18,7 @@ package org.apache.accumulo.testing.merkle.ingest;
 
 import java.util.Random;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.data.Mutation;
@@ -58,7 +59,7 @@ public class RandomWorkload {
   }
 
   public void run(RandomWorkloadOpts opts) throws Exception {
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       run(client, opts.tableName, opts.numRecords, opts.rowMax, opts.cfMax, opts.cqMax,
           opts.deletePercent);
     }

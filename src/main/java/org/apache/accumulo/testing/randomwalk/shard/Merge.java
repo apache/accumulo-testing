@@ -21,7 +21,6 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -38,8 +37,7 @@ public class Merge extends Test {
     log.debug("merging " + indexTableName);
     env.getAccumuloClient().tableOperations().merge(indexTableName, null, null);
     org.apache.accumulo.core.util.Merge merge = new org.apache.accumulo.core.util.Merge();
-    merge.mergomatic((AccumuloClient) env.getAccumuloClient(), indexTableName, null, null,
-        256 * 1024 * 1024, true);
+    merge.mergomatic(env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true);
     splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
       // throw an excpetion so that test will die an no further changes to

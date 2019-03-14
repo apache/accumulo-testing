@@ -27,7 +27,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.MapReduceClientOnRequiredTable;
+import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.MD5Hash;
@@ -57,9 +57,11 @@ public class RowHash extends Configured implements Tool {
     public void setup(Context job) {}
   }
 
-  private static class Opts extends MapReduceClientOnRequiredTable {
+  private static class Opts extends ClientOpts {
     @Parameter(names = "--column", required = true)
     String column;
+    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
+    String tableName;
   }
 
   @Override
@@ -79,11 +81,11 @@ public class RowHash extends Configured implements Tool {
     if (cf.getLength() > 0)
       cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
 
-    AccumuloInputFormat.configure().clientProperties(opts.getClientProperties())
-        .table(opts.getTableName()).auths(opts.auths).fetchColumns(cols).store(job);
+    AccumuloInputFormat.configure().clientProperties(opts.getClientProps()).table(opts.tableName)
+        .auths(opts.auths).fetchColumns(cols).store(job);
 
-    AccumuloOutputFormat.configure().clientProperties(opts.getClientProperties())
-        .defaultTable(opts.getTableName()).createTables(true).store(job);
+    AccumuloOutputFormat.configure().clientProperties(opts.getClientProps())
+        .defaultTable(opts.tableName).createTables(true).store(job);
 
     job.setMapperClass(HashDataMapper.class);
     job.setMapOutputKeyClass(Text.class);

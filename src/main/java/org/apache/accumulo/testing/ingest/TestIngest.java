@@ -24,6 +24,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -35,6 +36,7 @@ import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
 import org.apache.accumulo.core.clientImpl.TabletServerBatchWriter;
+import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -174,12 +176,12 @@ public class TestIngest {
     }
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
 
     Opts opts = new Opts();
     opts.parseArgs(TestIngest.class.getName(), args);
 
-    try (AccumuloClient client = opts.createClient()) {
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
 
       if (opts.debug)
         Logger.getLogger(TabletServerBatchWriter.class.getName()).setLevel(Level.TRACE);
@@ -215,7 +217,8 @@ public class TestIngest {
 
     } else {
       bw = client.createBatchWriter(opts.tableName);
-      client.securityOperations().changeUserAuthorizations(opts.getPrincipal(), AUTHS);
+      String principal = ClientProperty.AUTH_PRINCIPAL.getValue(opts.getClientProps());
+      client.securityOperations().changeUserAuthorizations(principal, AUTHS);
     }
     Text labBA = new Text(opts.columnVisibility.getExpression());
 
