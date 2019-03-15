@@ -50,5 +50,4 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
     r.visit(null, env, null);
   }
-
 }

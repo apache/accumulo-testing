@@ -119,3 +119,32 @@ test.ci.bulk.map.nodes=1000000
 # produce a bulk import file.
 test.ci.bulk.reducers.max=1024
 
+#################
+# MapReduce Tests
+#################
+
+# RowHash test
+# ------------
+# Table containing input data
+test.rowhash.input.table = terasort
+# Table where data will be output to
+test.rowhash.output.table = rowhash
+# Column that is fetched in input table
+test.rowhash.column = c
+
+# TeraSort ingest
+# ---------------
+# Table to ingest into
+test.terasort.table = terasort
+# Number of rows to ingest
+test.terasort.num.rows = 10000
+# Minimum key size
+test.terasort.min.keysize = 10
+# Maximum key size
+test.terasort.max.keysize = 10
+# Minimum value size
+test.terasort.min.valuesize = 78
+# Maximum value size
+test.terasort.max.valuesize = 78
+# Number of table splits
+test.terasort.num.splits = 4
