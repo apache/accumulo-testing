@@ -34,8 +34,8 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.trace.Trace;
-import org.apache.accumulo.core.trace.TraceSamplers;
+// import org.apache.accumulo.core.trace.Trace;
+// import org.apache.accumulo.core.trace.TraceSamplers;
 import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.TestProps;
 import org.slf4j.Logger;
@@ -128,7 +128,7 @@ public class ContinuousIngest {
       }
 
       BatchWriter bw = client.createBatchWriter(tableName);
-      bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
+      // bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
 
       Random r = new Random();
 
