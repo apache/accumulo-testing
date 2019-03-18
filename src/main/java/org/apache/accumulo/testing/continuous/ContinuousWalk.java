@@ -28,8 +28,8 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.trace.Span;
-import org.apache.accumulo.core.trace.Trace;
+// import org.apache.accumulo.core.trace.Span;
+// import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 
@@ -66,7 +66,7 @@ public class ContinuousWalk {
           values.clear();
 
           long t1 = System.currentTimeMillis();
-          Span span = Trace.on("walk");
+          // Span span = Trace.on("walk");
           try {
             scanner.setRange(new Range(new Text(row)));
             for (Entry<Key,Value> entry : scanner) {
@@ -74,7 +74,7 @@ public class ContinuousWalk {
               values.add(entry.getValue());
             }
           } finally {
-            span.stop();
+            // span.stop();
           }
           long t2 = System.currentTimeMillis();
 
