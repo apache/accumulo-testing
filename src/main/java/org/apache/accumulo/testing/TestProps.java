@@ -33,6 +33,8 @@ public class TestProps {
   private static final String CI_SCANNER = CI + "scanner.";
   private static final String CI_VERIFY = CI + "verify.";
   private static final String CI_BULK = CI + "bulk.";
+  public static final String TERASORT = PREFIX + "terasort.";
+  public static final String ROWHASH = PREFIX + "rowhash.";
 
   /** Common properties **/
   // HDFS root path. Should match 'fs.defaultFS' property in Hadoop's core-site.xml
@@ -121,6 +123,20 @@ public class TestProps {
   public static final String CI_BULK_MAP_TASK = CI_BULK + "map.task";
   public static final String CI_BULK_MAP_NODES = CI_BULK + "map.nodes";
   public static final String CI_BULK_REDUCERS = CI_BULK + "reducers.max";
+
+  /** TeraSort **/
+  public static final String TERASORT_TABLE = TERASORT + "table";
+  public static final String TERASORT_NUM_ROWS = TERASORT + "num.rows";
+  public static final String TERASORT_MIN_KEYSIZE = TERASORT + "min.keysize";
+  public static final String TERASORT_MAX_KEYSIZE = TERASORT + "max.keysize";
+  public static final String TERASORT_MIN_VALUESIZE = TERASORT + "min.valuesize";
+  public static final String TERASORT_MAX_VALUESIZE = TERASORT + "max.valuesize";
+  public static final String TERASORT_NUM_SPLITS = TERASORT + "num.splits";
+
+  /** RowHash **/
+  public static final String ROWHASH_INPUT_TABLE = ROWHASH + "input.table";
+  public static final String ROWHASH_OUTPUT_TABLE = ROWHASH + "output.table";
+  public static final String ROWHASH_COLUMN = ROWHASH + "column";
 
   public static Properties loadFromFile(String propsFilePath) {
     try {

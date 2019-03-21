@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Properties;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.Key;
@@ -27,8 +28,8 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.testing.cli.ClientOpts;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.accumulo.testing.TestEnv;
+import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.MD5Hash;
 import org.apache.hadoop.io.Text;
@@ -36,8 +37,6 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
-import com.beust.jcommander.Parameter;
 
 public class RowHash extends Configured implements Tool {
   /**
@@ -57,23 +56,16 @@ public class RowHash extends Configured implements Tool {
     public void setup(Context job) {}
   }
 
-  private static class Opts extends ClientOpts {
-    @Parameter(names = "--column", required = true)
-    String column;
-    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
-    String tableName;
-  }
-
   @Override
   public int run(String[] args) throws Exception {
+    TestEnv env = new TestEnv(args);
     Job job = Job.getInstance(getConf());
     job.setJobName(this.getClass().getName());
     job.setJarByClass(this.getClass());
-    Opts opts = new Opts();
-    opts.parseArgs(RowHash.class.getName(), args);
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    String col = opts.column;
+    Properties props = env.getTestProperties();
+    String col = props.getProperty(TestProps.ROWHASH_COLUMN);
     int idx = col.indexOf(":");
     Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
     Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
@@ -81,12 +73,15 @@ public class RowHash extends Configured implements Tool {
     if (cf.getLength() > 0)
       cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
 
-    AccumuloInputFormat.configure().clientProperties(opts.getClientProps()).table(opts.tableName)
-        .auths(opts.auths).fetchColumns(cols).store(job);
+    String inputTable = props.getProperty(TestProps.ROWHASH_INPUT_TABLE);
+    String outputTable = props.getProperty(TestProps.ROWHASH_OUTPUT_TABLE);
 
-    AccumuloOutputFormat.configure().clientProperties(opts.getClientProps())
-        .defaultTable(opts.tableName).createTables(true).store(job);
+    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(inputTable)
+        .fetchColumns(cols).store(job);
+    AccumuloOutputFormat.configure().clientProperties(env.getClientProps())
+        .defaultTable(outputTable).createTables(true).store(job);
 
+    job.getConfiguration().set("mapreduce.job.classloader", "true");
     job.setMapperClass(HashDataMapper.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Mutation.class);
@@ -100,6 +95,7 @@ public class RowHash extends Configured implements Tool {
   }
 
   public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new RowHash(), args);
+    TestEnv env = new TestEnv(args);
+    ToolRunner.run(env.getHadoopConfiguration(), new RowHash(), args);
   }
 }

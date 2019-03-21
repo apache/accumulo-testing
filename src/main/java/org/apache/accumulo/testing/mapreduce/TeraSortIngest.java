@@ -23,12 +23,15 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.Random;
 
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.testing.cli.ClientOpts;
+import org.apache.accumulo.testing.TestEnv;
+import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.LongWritable;
@@ -45,8 +48,6 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
-import com.beust.jcommander.Parameter;
 
 /**
  * Generate the *almost* official terasort input data set. (See below) The user specifies the number
@@ -78,6 +79,8 @@ public class TeraSortIngest extends Configured implements Tool {
     static class RangeInputSplit extends InputSplit implements Writable {
       long firstRow;
       long rowCount;
+
+      RangeInputSplit() {}
 
       public RangeInputSplit(long offset, long length) {
         firstRow = offset;
@@ -165,8 +168,8 @@ public class TeraSortIngest extends Configured implements Tool {
      */
     @Override
     public List<InputSplit> getSplits(JobContext job) {
-      long totalRows = job.getConfiguration().getLong(NUMROWS, 0);
-      int numSplits = job.getConfiguration().getInt(NUMSPLITS, 1);
+      long totalRows = job.getConfiguration().getLong(TestProps.TERASORT_NUM_ROWS, 0);
+      int numSplits = job.getConfiguration().getInt(TestProps.TERASORT_NUM_SPLITS, 1);
       long rowsPerSplit = totalRows / numSplits;
       System.out.println(
           "Generating " + totalRows + " using " + numSplits + " maps with step of " + rowsPerSplit);
@@ -183,12 +186,9 @@ public class TeraSortIngest extends Configured implements Tool {
 
   }
 
-  private static String NUMSPLITS = "terasort.overridesplits";
-  private static String NUMROWS = "terasort.numrows";
-
   static class RandomGenerator {
     private long seed = 0;
-    private static final long mask32 = (1l << 32) - 1;
+    private static final long mask32 = (1L << 32) - 1;
     /**
      * The number of iterations separating the precomputed seeds.
      */
@@ -343,65 +343,49 @@ public class TeraSortIngest extends Configured implements Tool {
 
     @Override
     public void setup(Context job) {
-      minkeylength = job.getConfiguration().getInt("cloudgen.minkeylength", 0);
-      maxkeylength = job.getConfiguration().getInt("cloudgen.maxkeylength", 0);
-      minvaluelength = job.getConfiguration().getInt("cloudgen.minvaluelength", 0);
-      maxvaluelength = job.getConfiguration().getInt("cloudgen.maxvaluelength", 0);
-      tableName = new Text(job.getConfiguration().get("cloudgen.tablename"));
+      minkeylength = job.getConfiguration().getInt(TestProps.TERASORT_MIN_KEYSIZE, 0);
+      maxkeylength = job.getConfiguration().getInt(TestProps.TERASORT_MAX_KEYSIZE, 0);
+      minvaluelength = job.getConfiguration().getInt(TestProps.TERASORT_MIN_VALUESIZE, 0);
+      maxvaluelength = job.getConfiguration().getInt(TestProps.TERASORT_MAX_VALUESIZE, 0);
+      tableName = new Text(job.getConfiguration().get(TestProps.TERASORT_TABLE));
     }
   }
 
   public static void main(String[] args) throws Exception {
-    ToolRunner.run(new Configuration(), new TeraSortIngest(), args);
-  }
-
-  static class Opts extends ClientOpts {
-    @Parameter(names = {"-t", "--table"}, required = true, description = "table to use")
-    String tableName;
-    @Parameter(names = "--count", description = "number of rows to ingest", required = true)
-    long numRows;
-    @Parameter(names = {"-nk", "--minKeySize"}, description = "miniumum key size", required = true)
-    int minKeyLength;
-    @Parameter(names = {"-xk", "--maxKeySize"}, description = "maximum key size", required = true)
-    int maxKeyLength;
-    @Parameter(names = {"-nv", "--minValueSize"}, description = "minimum key size", required = true)
-    int minValueLength;
-    @Parameter(names = {"-xv", "--maxValueSize"}, description = "maximum key size", required = true)
-    int maxValueLength;
-    @Parameter(names = "--splits", description = "number of splits to create in the table")
-    int splits = 0;
+    TestEnv env = new TestEnv(args);
+    ToolRunner.run(env.getHadoopConfiguration(), new TeraSortIngest(), args);
   }
 
   @Override
   public int run(String[] args) throws Exception {
-    Job job = Job.getInstance(getConf());
-    job.setJobName("TeraSortCloud");
-    job.setJarByClass(this.getClass());
-    Opts opts = new Opts();
-    opts.parseArgs(TeraSortIngest.class.getName(), args);
 
+    TestEnv env = new TestEnv(args);
+
+    Job job = Job.getInstance(getConf());
+    job.setJobName("TeraSortIngest");
+    job.setJarByClass(this.getClass());
     job.setInputFormatClass(RangeInputFormat.class);
     job.setMapperClass(SortGenMapper.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(Mutation.class);
-
     job.setNumReduceTasks(0);
-
     job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-    AccumuloOutputFormat.configure().clientProperties(opts.getClientProps()).createTables(true)
-        .defaultTable(opts.tableName);
+    Properties testProps = env.getTestProperties();
+    String tableName = testProps.getProperty(TestProps.TERASORT_TABLE);
+    Objects.requireNonNull(tableName);
+
+    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+        .defaultTable(tableName).store(job);
 
     Configuration conf = job.getConfiguration();
-    conf.setLong(NUMROWS, opts.numRows);
-    conf.setInt("cloudgen.minkeylength", opts.minKeyLength);
-    conf.setInt("cloudgen.maxkeylength", opts.maxKeyLength);
-    conf.setInt("cloudgen.minvaluelength", opts.minValueLength);
-    conf.setInt("cloudgen.maxvaluelength", opts.maxValueLength);
-    conf.set("cloudgen.tablename", opts.tableName);
-
-    if (args.length > 10)
-      conf.setInt(NUMSPLITS, opts.splits);
+    conf.set("mapreduce.job.classloader", "true");
+    for (Object keyObj : testProps.keySet()) {
+      String key = (String) keyObj;
+      if (key.startsWith(TestProps.TERASORT)) {
+        conf.set(key, testProps.getProperty(key));
+      }
+    }
 
     job.waitForCompletion(true);
     return job.isSuccessful() ? 0 : 1;
