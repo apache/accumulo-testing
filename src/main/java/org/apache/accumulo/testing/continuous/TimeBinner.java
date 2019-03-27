@@ -94,7 +94,7 @@ public class TimeBinner {
     while ((line = in.readLine()) != null) {
 
       try {
-        String tokens[] = line.split("\\s+");
+        String[] tokens = line.split("\\s+");
 
         long time = (long) Double.parseDouble(tokens[opts.timeColumn]);
         double data = Double.parseDouble(tokens[opts.dataColumn]);

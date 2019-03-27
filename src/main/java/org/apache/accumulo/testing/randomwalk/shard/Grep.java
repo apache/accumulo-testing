@@ -47,7 +47,7 @@ public class Grep extends Test {
     String dataTableName = (String) state.get("docTableName");
     Random rand = (Random) state.get("rand");
 
-    Text words[] = new Text[rand.nextInt(4) + 2];
+    Text[] words = new Text[rand.nextInt(4) + 2];
 
     for (int i = 0; i < words.length; i++) {
       words[i] = new Text(Insert.generateRandomWord(rand));

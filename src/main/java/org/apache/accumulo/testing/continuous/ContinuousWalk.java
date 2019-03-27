@@ -124,7 +124,7 @@ public class ContinuousWalk {
     return pr;
   }
 
-  static int getPrevRowOffset(byte val[]) {
+  static int getPrevRowOffset(byte[] val) {
     if (val.length == 0)
       throw new IllegalArgumentException();
     if (val[53] != ':')
@@ -151,7 +151,7 @@ public class ContinuousWalk {
     return null;
   }
 
-  private static int getChecksumOffset(byte val[]) {
+  private static int getChecksumOffset(byte[] val) {
     if (val[val.length - 1] != ':') {
       if (val[val.length - 9] != ':')
         throw new IllegalArgumentException(new String(val, UTF_8));

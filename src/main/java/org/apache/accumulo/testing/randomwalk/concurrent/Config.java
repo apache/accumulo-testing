@@ -120,7 +120,7 @@ public class Config extends Test {
     }
     lastSetting = state.getOkIfAbsent(LAST_TABLE_SETTING);
     if (lastSetting != null) {
-      String parts[] = lastSetting.toString().split(",");
+      String[] parts = lastSetting.toString().split(",");
       String table = parts[0];
       int choice = Integer.parseInt(parts[1]);
       Property property = tableSettings[choice].property;
@@ -142,7 +142,7 @@ public class Config extends Test {
     }
     lastSetting = state.getOkIfAbsent(LAST_NAMESPACE_SETTING);
     if (lastSetting != null) {
-      String parts[] = lastSetting.toString().split(",");
+      String[] parts = lastSetting.toString().split(",");
       String namespace = parts[0];
       int choice = Integer.parseInt(parts[1]);
       Property property = tableSettings[choice].property;
