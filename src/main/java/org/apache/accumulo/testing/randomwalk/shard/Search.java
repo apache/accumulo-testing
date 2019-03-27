@@ -61,7 +61,7 @@ public class Search extends Test {
     while (searchTerms.size() < numSearchTerms)
       searchTerms.add(tokens[rand.nextInt(tokens.length)]);
 
-    Text columns[] = new Text[searchTerms.size()];
+    Text[] columns = new Text[searchTerms.size()];
     int index = 0;
     for (String term : searchTerms) {
       columns[index++] = new Text(term);

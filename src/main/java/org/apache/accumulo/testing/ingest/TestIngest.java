@@ -154,14 +154,14 @@ public class TestIngest {
     return bytevals;
   }
 
-  private static byte ROW_PREFIX[] = "row_".getBytes(UTF_8);
-  private static byte COL_PREFIX[] = "col_".getBytes(UTF_8);
+  private static byte[] ROW_PREFIX = "row_".getBytes(UTF_8);
+  private static byte[] COL_PREFIX = "col_".getBytes(UTF_8);
 
   public static Text generateRow(int rowid, int startRow) {
     return new Text(FastFormat.toZeroPaddedString(rowid + startRow, 10, 10, ROW_PREFIX));
   }
 
-  public static byte[] genRandomValue(Random random, byte dest[], int seed, int row, int col) {
+  public static byte[] genRandomValue(Random random, byte[] dest, int seed, int row, int col) {
     random.setSeed((row ^ seed) ^ col);
     random.nextBytes(dest);
     toPrintableChars(dest);
@@ -201,7 +201,7 @@ public class TestIngest {
 
     byte[][] bytevals = generateValues(opts.dataSize);
 
-    byte randomValue[] = new byte[opts.dataSize];
+    byte[] randomValue = new byte[opts.dataSize];
     Random random = new Random();
 
     long bytesWritten = 0;
@@ -256,7 +256,7 @@ public class TestIngest {
           if (opts.delete) {
             writer.append(key, new Value(new byte[0]));
           } else {
-            byte value[];
+            byte[] value;
             if (opts.random != null) {
               value = genRandomValue(random, randomValue, opts.random.intValue(),
                   rowid + opts.startRow, j);
@@ -279,7 +279,7 @@ public class TestIngest {
             else
               m.putDelete(colf, colq, opts.columnVisibility);
           } else {
-            byte value[];
+            byte[] value;
             if (opts.random != null) {
               value = genRandomValue(random, randomValue, opts.random.intValue(),
                   rowid + opts.startRow, j);

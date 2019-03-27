@@ -114,7 +114,7 @@ public class Verify extends Test {
     String tableName;
   }
 
-  public static void main(String args[]) throws Exception {
+  public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(Verify.class.getName(), args);
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {

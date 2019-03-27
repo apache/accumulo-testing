@@ -93,7 +93,7 @@ public class Replication extends Test {
     // Make a source and destination table
     final String sourceTable = ("repl-source-" + UUID.randomUUID()).replace('-', '_');
     final String destTable = ("repl-dest-" + UUID.randomUUID()).replace('-', '_');
-    final String tables[] = new String[] {sourceTable, destTable};
+    final String[] tables = new String[] {sourceTable, destTable};
 
     for (String tableName : tables) {
       log.debug("creating " + tableName);
