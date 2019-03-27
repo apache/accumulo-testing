@@ -29,10 +29,13 @@ import java.util.TreeMap;
 
 import org.apache.accumulo.testing.cli.ClientOpts.TimeConverter;
 import org.apache.accumulo.testing.cli.Help;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
 public class TimeBinner {
+  private static final Logger log = LoggerFactory.getLogger(TimeBinner.class);
 
   enum Operation {
     AVG,
@@ -149,7 +152,7 @@ public class TimeBinner {
         }
 
       } catch (Exception e) {
-        System.err.println("Failed to process line : " + line + "  " + e.getMessage());
+        log.error("Failed to process line: {} {}", line, e.getMessage());
       }
     }
 
@@ -183,7 +186,7 @@ public class TimeBinner {
           value = "" + entry.getValue().d;
       }
 
-      System.out.println(sdf.format(new Date(entry.getKey())) + " " + value);
+      log.info(sdf.format(new Date(entry.getKey())) + " " + value);
     }
 
   }

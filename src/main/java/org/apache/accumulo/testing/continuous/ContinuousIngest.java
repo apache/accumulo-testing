@@ -17,6 +17,10 @@
 package org.apache.accumulo.testing.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_DURATION_MAX;
+import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_DURATION_MIN;
+import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MAX;
+import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MIN;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,8 +38,6 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
-// import org.apache.accumulo.core.trace.Trace;
-// import org.apache.accumulo.core.trace.TraceSamplers;
 import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.TestProps;
 import org.slf4j.Logger;
@@ -62,24 +64,14 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
-  private static int getPauseWaitSec(Properties props, Random rand) {
-    int waitMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MIN));
-    int waitMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MAX));
-    Preconditions.checkState(waitMax >= waitMin && waitMin > 0);
-    if (waitMax == waitMin) {
-      return waitMin;
+  private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
+    int min = Integer.parseInt(props.getProperty(minProp));
+    int max = Integer.parseInt(props.getProperty(maxProp));
+    Preconditions.checkState(max >= min && min > 0);
+    if (max == min) {
+      return min;
     }
-    return (rand.nextInt(waitMax - waitMin) + waitMin);
-  }
-
-  private static int getPauseDurationSec(Properties props, Random rand) {
-    int durationMin = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MIN));
-    int durationMax = Integer.parseInt(props.getProperty(TestProps.CI_INGEST_PAUSE_DURATION_MAX));
-    Preconditions.checkState(durationMax >= durationMin && durationMin > 0);
-    if (durationMax == durationMin) {
-      return durationMin;
-    }
-    return (rand.nextInt(durationMax - durationMin) + durationMin);
+    return (rand.nextInt(max - min) + min);
   }
 
   private static int getFlushEntries(Properties props) {
@@ -90,11 +82,12 @@ public class ContinuousIngest {
     if (pauseEnabled(props)) {
       long elapsedNano = System.nanoTime() - lastPauseNs;
       if (elapsedNano > (TimeUnit.SECONDS.toNanos(pauseWaitSec))) {
-        long pauseDurationSec = getPauseDurationSec(props, rand);
+        long pauseDurationSec = getPause(props, rand, CI_INGEST_PAUSE_DURATION_MIN,
+            CI_INGEST_PAUSE_DURATION_MAX);
         log.info("PAUSING for " + pauseDurationSec + "s");
         Thread.sleep(TimeUnit.SECONDS.toMillis(pauseDurationSec));
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPauseWaitSec(props, rand);
+        pauseWaitSec = getPause(props, rand, CI_INGEST_PAUSE_WAIT_MIN, CI_INGEST_PAUSE_WAIT_MAX);
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
     }
@@ -128,7 +121,6 @@ public class ContinuousIngest {
       }
 
       BatchWriter bw = client.createBatchWriter(tableName);
-      // bw = Trace.wrapAll(bw, TraceSamplers.countSampler(1024));
 
       Random r = new Random();
 
@@ -141,12 +133,9 @@ public class ContinuousIngest {
       final int flushInterval = getFlushEntries(env.getTestProperties());
       final int maxDepth = 25;
 
-      // always want to point back to flushed data. This way the previous item
-      // should
-      // always exist in accumulo when verifying data. To do this make insert
-      // N point
-      // back to the row from insert (N - flushInterval). The array below is
-      // used to keep
+      // always want to point back to flushed data. This way the previous item should
+      // always exist in accumulo when verifying data. To do this make insert N point
+      // back to the row from insert (N - flushInterval). The array below is used to keep
       // track of this.
       long[] prevRows = new long[flushInterval];
       long[] firstRows = new long[flushInterval];
@@ -163,7 +152,7 @@ public class ContinuousIngest {
       Properties testProps = env.getTestProperties();
       if (pauseEnabled(testProps)) {
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPauseWaitSec(testProps, r);
+        pauseWaitSec = getPause(testProps, r, CI_INGEST_PAUSE_WAIT_MIN, CI_INGEST_PAUSE_WAIT_MAX);
         log.info("PAUSING enabled");
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
@@ -192,8 +181,7 @@ public class ContinuousIngest {
         if (count >= numEntries)
           break out;
 
-        // generate subsequent sets of nodes that link to previous set of
-        // nodes
+        // generate subsequent sets of nodes that link to previous set of nodes
         for (int depth = 1; depth < maxDepth; depth++) {
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
@@ -211,8 +199,7 @@ public class ContinuousIngest {
           pauseCheck(testProps, r);
         }
 
-        // create one big linked list, this makes all of the first inserts
-        // point to something
+        // create one big linked list, this makes all of the first inserts point to something
         for (int index = 0; index < flushInterval - 1; index++) {
           Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
               ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
@@ -306,9 +293,6 @@ public class ContinuousIngest {
       cksum.getValue();
       FastFormat.toZeroPaddedString(val, index, cksum.getValue(), 8, 16, EMPTY_BYTES);
     }
-
-    // System.out.println("val "+new String(val));
-
     return val;
   }
 }

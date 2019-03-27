@@ -28,12 +28,13 @@ import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-// import org.apache.accumulo.core.trace.Span;
-// import org.apache.accumulo.core.trace.Trace;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContinuousWalk {
+  private static final Logger log = LoggerFactory.getLogger(ContinuousWalk.class);
 
   static class BadChecksumException extends RuntimeException {
     private static final long serialVersionUID = 1L;
@@ -66,25 +67,22 @@ public class ContinuousWalk {
           values.clear();
 
           long t1 = System.currentTimeMillis();
-          // Span span = Trace.on("walk");
-          try {
-            scanner.setRange(new Range(new Text(row)));
-            for (Entry<Key,Value> entry : scanner) {
-              validate(entry.getKey(), entry.getValue());
-              values.add(entry.getValue());
-            }
-          } finally {
-            // span.stop();
+
+          scanner.setRange(new Range(new Text(row)));
+          for (Entry<Key,Value> entry : scanner) {
+            validate(entry.getKey(), entry.getValue());
+            values.add(entry.getValue());
           }
+
           long t2 = System.currentTimeMillis();
 
-          System.out.printf("SRQ %d %s %d %d%n", t1, row, (t2 - t1), values.size());
+          log.debug("SRQ {} {} {} {}", t1, row, (t2 - t1), values.size());
 
           if (values.size() > 0) {
             row = getPrevRow(values.get(r.nextInt(values.size())));
           } else {
-            System.out.printf("MIS %d %s%n", t1, row);
-            System.err.printf("MIS %d %s%n", t1, row);
+            log.debug("MIS {} {}", t1, row);
+            log.debug("MIS {} {}", t1, row);
             row = null;
           }
 

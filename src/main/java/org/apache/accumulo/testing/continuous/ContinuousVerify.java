@@ -50,7 +50,6 @@ import org.slf4j.LoggerFactory;
  * referenced nodes are defined.
  */
 public class ContinuousVerify extends Configured implements Tool {
-
   public static final VLongWritable DEF = new VLongWritable(-1);
 
   public static class CMapper extends Mapper<Key,Value,LongWritable,VLongWritable> {
@@ -75,7 +74,7 @@ public class ContinuousVerify extends Configured implements Tool {
         if (corrupt < 1000) {
           log.error("Bad checksum : " + key);
         } else if (corrupt == 1000) {
-          System.out.println("Too many bad checksums, not printing anymore!");
+          log.error("Too many bad checksums, not printing anymore!");
         }
         corrupt++;
         return;

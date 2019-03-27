@@ -32,8 +32,11 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContinuousScanner {
+  private static final Logger log = LoggerFactory.getLogger(ContinuousScanner.class);
 
   public static void main(String[] args) throws Exception {
 
@@ -72,9 +75,6 @@ public class ContinuousScanner {
 
         long t2 = System.currentTimeMillis();
 
-        // System.out.println("P1 " +count +" "+((1-delta) *
-        // numToScan)+" "+((1+delta) * numToScan)+" "+numToScan);
-
         if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
           if (count == 0) {
             distance = distance * 10;
@@ -86,12 +86,9 @@ public class ContinuousScanner {
             ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
             distance = (long) (ratio * distance);
           }
-
-          // System.out.println("P2 "+delta
-          // +" "+numToScan+" "+distance+" "+((double)numToScan/count ));
         }
 
-        System.out.printf("SCN %d %s %d %d%n", t1, new String(scanStart, UTF_8), (t2 - t1), count);
+        log.debug("SCN {} {} {} {}", t1, new String(scanStart, UTF_8), (t2 - t1), count);
 
         if (scannerSleepMs > 0) {
           sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
