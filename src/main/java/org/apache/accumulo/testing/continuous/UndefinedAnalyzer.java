@@ -41,6 +41,8 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.cli.ClientOpts;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
@@ -51,6 +53,7 @@ import com.beust.jcommander.Parameter;
  * have old dates in them.
  */
 public class UndefinedAnalyzer {
+  private static final Logger logger = LoggerFactory.getLogger(UndefinedAnalyzer.class);
 
   static class UndefinedNode {
 
@@ -90,7 +93,7 @@ public class UndefinedAnalyzer {
           String uuid = tokens[2];
 
           if (flushes.containsKey(uuid)) {
-            System.err.println("WARN Duplicate uuid " + log);
+            logger.error("WARN Duplicate uuid " + log);
             return;
           }
 
@@ -101,7 +104,7 @@ public class UndefinedAnalyzer {
 
         }
         if (tm == null) {
-          System.err.println("WARN Bad ingest log " + log);
+          logger.error("WARN Bad ingest log " + log);
           return;
         }
 
@@ -203,16 +206,13 @@ public class UndefinedAnalyzer {
                     : tablet.substring(pos1 + 1, pos2);
                 String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
                 if (tid.equals(tableId)) {
-                  // System.out.println(" "+server+" "+tid+" "+endRow+" "+prevEndRow);
                   Date date = sdf.parse(day + " " + time);
-                  // System.out.println(" "+date);
-
                   assignments.add(
                       new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
 
                 }
               } else if (!tablet.startsWith("!0")) {
-                System.err.println("Cannot parse tablet " + tablet);
+                logger.error("Cannot parse tablet {}", tablet);
               }
             }
           }
@@ -317,15 +317,14 @@ public class UndefinedAnalyzer {
             }
 
             if (ta == null)
-              System.out.println(
-                  undefinedNode.undef + " " + undefinedNode.ref + " " + uuid + " " + t1 + " " + t2);
+              logger.debug("{} {} {} {} {}", undefinedNode.undef, undefinedNode.ref, uuid, t1, t2);
             else
-              System.out.println(undefinedNode.undef + " " + undefinedNode.ref + " " + ta.tablet
-                  + " " + ta.server + " " + uuid + " " + t1 + " " + t2);
+              logger.debug("{} {} {} {} {}", undefinedNode.undef, undefinedNode.ref, ta.tablet,
+                  ta.server, uuid, t1, t2);
 
           }
         } else {
-          System.out.println(undefinedNode.undef + " " + undefinedNode.ref);
+          logger.debug("{} {}", undefinedNode.undef, undefinedNode.ref);
         }
       }
     }

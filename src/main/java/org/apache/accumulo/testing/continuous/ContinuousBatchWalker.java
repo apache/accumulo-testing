@@ -36,8 +36,11 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContinuousBatchWalker {
+  private static final Logger log = LoggerFactory.getLogger(ContinuousBatchWalker.class);
 
   public static void main(String[] args) throws Exception {
 
@@ -98,13 +101,13 @@ public class ContinuousBatchWalker {
       copy1.removeAll(batch);
       copy2.removeAll(rowsSeen);
 
-      System.out.printf("DIF %d %d %d%n", t1, copy1.size(), copy2.size());
-      System.err.printf("DIF %d %d %d%n", t1, copy1.size(), copy2.size());
-      System.err.println("Extra seen : " + copy1);
-      System.err.println("Not seen   : " + copy2);
+      log.info("DIF {} {} {}", t1, copy1.size(), copy2.size());
+      log.info("DIF {} {} {}", t1, copy1.size(), copy2.size());
+      log.info("Extra seen : {}", copy1);
+      log.info("Not seen   : {}", copy2);
     } else {
-      System.out.printf("BRQ %d %d %d %d %d%n", t1, (t2 - t1), rowsSeen.size(), count,
-          (int) (rowsSeen.size() / ((t2 - t1) / 1000.0)));
+      log.info("BRQ {} {} {} {} {}", t1, (t2 - t1), rowsSeen.size(), count,
+          (rowsSeen.size() / ((t2 - t1) / 1000.0)));
     }
   }
 
@@ -143,7 +146,7 @@ public class ContinuousBatchWalker {
 
       long t2 = System.currentTimeMillis();
 
-      System.out.println("FSB " + t1 + " " + (t2 - t1) + " " + count);
+      log.info("FSB {} {} {}", t1, (t2 - t1), count);
 
       sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
     }
