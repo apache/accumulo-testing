@@ -42,7 +42,8 @@ cd $UNO_DIR
 ./bin/uno fetch accumulo
 ./bin/uno setup accumulo
 (
-  # run in a subshell because the following sets ENV vars
+  # Run in a subshell because following sets ENV vars for older Accumulo.
+  # Without subshell, ENV vars would cause problems later for newer Accumulo.
   eval "$(./bin/uno env)"
 
   hadoop fs -ls /accumulo/version
