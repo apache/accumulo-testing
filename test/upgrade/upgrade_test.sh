@@ -16,62 +16,98 @@
 # limitations under the License.
 
 
+# This script test upgrading from Accumulo 1.9 to 2.0. This script is
+# not self verifying, its output must be inspected for correctness.
+
 if [[ $# != 1 ]] ; then
   BASENAME=$(basename "$0")
   echo "Usage: $BASENAME clean|dirty"
   exit -1
 fi
 
-#this script test upgrade.   This script is not self verifying, its output must be inspected for correctness.
-
-#set DIR  to point to configured accumulo dirs. 
-
-#TODO could support multinode configs, this script assumes single node config
-
-PREV=../../../accumulo-1.7.1
-CURR=../../
-DIR=/accumulo
+# Dir of local git repo containing Accumulo
+ACCUMULO_DIR=~/git/accumulo
+# Dir where Uno is located
+UNO_DIR=~/git/uno
+# HDFS dir were bulk import files are generated
 BULK=/tmp/upt
-INSTANCE=testUp
 
-pkill -f accumulo.start
-hadoop fs -rmr "$DIR"
-hadoop fs -rmr "$BULK"
-hadoop fs -mkdir -p "$BULK/fail"
+# This script assumes Uno is configured to build Accumulo from
+# $ACCUMULO_DIR when 'uno fetch accumulo' is run.
 
-"$PREV/bin/accumulo" init --clear-instance-name --instance-name $INSTANCE --password secret
-"$PREV/bin/start-all.sh"
+cd $ACCUMULO_DIR
+git checkout 1.9
+git clean -xfd
+cd $UNO_DIR
+./bin/uno fetch accumulo
+./bin/uno setup accumulo
+(
+  # Run in a subshell because following sets ENV vars for older Accumulo.
+  # Without subshell, ENV vars would cause problems later for newer Accumulo.
+  eval "$(./bin/uno env)"
 
-"$PREV/bin/accumulo" org.apache.accumulo.test.TestIngest -i $INSTANCE -u root -p secret --timestamp 1 --size 50 --random 56 --rows 200000 --start 0 --cols 1  --createTable --splits 10
-"$PREV/bin/accumulo" org.apache.accumulo.test.TestIngest -i $INSTANCE -u root -p secret --rfile $BULK/bulk/test --timestamp 1 --size 50 --random 56 --rows 200000 --start 200000 --cols 1
+  hadoop fs -ls /accumulo/version
 
-echo -e "table test_ingest\nimportdirectory $BULK/bulk $BULK/fail false" | $PREV/bin/accumulo shell -u root -p secret
+
+  hadoop fs -rmr "$BULK"
+  hadoop fs -mkdir -p "$BULK/fail"
+  accumulo org.apache.accumulo.test.TestIngest -i uno -u root -p secret --rfile $BULK/bulk/test --timestamp 1 --size 50 --random 56 --rows 200000 --start 200000 --cols 1
+
+  accumulo org.apache.accumulo.test.TestIngest -i uno -u root -p secret --timestamp 1 --size 50 --random 56 --rows 200000 --start 0 --cols 1  --createTable --splits 10
+
+  accumulo shell -u root -p secret <<EOF
+   table test_ingest
+   importdirectory $BULK/bulk $BULK/fail false
+   createtable foo
+   config -t foo -s table.compaction.major.ratio=2
+   insert r1 f1 q1 v1
+   flush -t foo -w
+   scan -t accumulo.metadata -c file
+   insert r1 f1 q2 v2
+   insert r2 f1 q1 v3
+EOF
+)
+
 if [[ $1 == dirty ]]; then
-	pkill -9 -f accumulo.start
-else 
-	"$PREV/bin/stop-all.sh"
+	pkill -9 -f accumulo\\.start
+else
+  (
+    eval "$(./bin/uno env)"
+    "$ACCUMULO_HOME/bin/stop-all.sh"
+  )
 fi
 
-echo "==== Starting Current ==="
+cd $ACCUMULO_DIR
+git checkout master
+git clean -xfd
+cd $UNO_DIR
+./bin/uno fetch accumulo
+./bin/uno install accumulo --no-deps
+./install/accumulo*/bin/accumulo-cluster start
+(
+  eval "$(./bin/uno env)"
+  hadoop fs -ls /accumulo/version
+  accumulo shell -u root -p secret <<EOF
+    config -t foo -f table.compaction.major.ratio
+    scan -t foo -np
+    scan -t accumulo.metadata -c file
+    compact -t foo -w
+    scan -t foo -np
+    scan -t accumulo.metadata -c file
+EOF
 
-"$CURR/bin/accumulo-cluster" start
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 1 --random 56 --rows 400000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
-echo "compact -t test_ingest -w" | $CURR/bin/accumulo shell -u root -p secret
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 1 --random 56 --rows 400000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
+  accumulo org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 1 --random 56 --rows 400000 --start 0 --cols 1
+  accumulo shell -u root -p secret -e "compact -t test_ingest -w"
+  accumulo org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 1 --random 56 --rows 400000 --start 0 --cols 1
+  accumulo org.apache.accumulo.test.TestIngest --timestamp 2 --size 50 --random 57 --rows 500000 --start 0 --cols 1
 
+  pkill -9 -f accumulo\\.start
+  accumulo-cluster start
 
-"$CURR/bin/accumulo" org.apache.accumulo.test.TestIngest --timestamp 2 --size 50 --random 57 --rows 500000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
-echo "compact -t test_ingest -w" | $CURR/bin/accumulo shell -u root -p secret
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
+  accumulo org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1
 
-"$CURR/bin/accumulo-cluster" stop
-"$CURR/bin/accumulo-cluster" start
+  accumulo-cluster stop
+  accumulo-cluster start
 
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
-
-pkill -9 -f accumulo.start
-"$CURR/bin/accumulo-cluster" start
-
-"$CURR/bin/accumulo" org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1 -i $INSTANCE -u root -p secret
-
+  accumulo org.apache.accumulo.test.VerifyIngest --size 50 --timestamp 2 --random 57 --rows 500000 --start 0 --cols 1
+)
