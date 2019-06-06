@@ -140,6 +140,10 @@ than one instance of this MapReduce job concurrently against a table.
 Checkout [ingest-test.md](docs/ingest-test.md) for pointers on running a long
 running ingest and verification test.
 
+## Garbage Collection Simulator
+
+See [gcs.md](docs/gcs.md).
+
 ## Agitator
 
 The agitator will periodically kill the Accumulo master, tablet server, and Hadoop data node
