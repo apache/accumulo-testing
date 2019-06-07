@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriterConfig;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Condition;
 import org.apache.accumulo.core.data.ConditionalMutation;
@@ -38,7 +40,11 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
   @Override
   public SystemConfiguration getSystemConfig() {
-    return new SystemConfiguration();
+    Map<String,String> siteCfg = new HashMap<>();
+
+    siteCfg.put(Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
+
+    return new SystemConfiguration().setAccumuloConfig(siteCfg);
   }
 
   @Override
@@ -47,8 +53,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     Report.Builder reportBuilder = Report.builder();
     reportBuilder.id("condmut");
-    reportBuilder.description("Runs conditional mutations tests with and without randomization," +
-            "setting of block size, and with and without randomization of batch writing/reading.");
+    reportBuilder.description("Runs conditional mutations tests with and without randomization,"
+        + "setting of block size, and with and without randomization of batch writing/reading.");
 
     runConditionalMutationsTest(env, tableName, reportBuilder);
     runRandomizeConditionalMutationsTest(env, tableName, reportBuilder);
@@ -66,8 +72,6 @@ public class ConditionalMutationsPT implements PerformanceTest {
     } catch (TableNotFoundException e) {}
 
     env.getClient().tableOperations().create(tableName);
-    env.getClient().tableOperations().setProperty(tableName,
-        Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
     ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig());
@@ -151,8 +155,6 @@ public class ConditionalMutationsPT implements PerformanceTest {
     } catch (TableNotFoundException e) {}
 
     env.getClient().tableOperations().create(tableName);
-    env.getClient().tableOperations().setProperty(tableName,
-        Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
     ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig());
@@ -257,8 +259,6 @@ public class ConditionalMutationsPT implements PerformanceTest {
     } catch (TableNotFoundException e) {}
 
     env.getClient().tableOperations().create(tableName);
-    env.getClient().tableOperations().setProperty(tableName,
-        Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
     BatchWriter bw = env.getClient().createBatchWriter(tableName, new BatchWriterConfig());
     BatchScanner bs = env.getClient().createBatchScanner(tableName, Authorizations.EMPTY, 1);
@@ -359,11 +359,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
       env.getClient().tableOperations().delete(tableName);
     } catch (TableNotFoundException e) {}
 
-    env.getClient().tableOperations().create(tableName);
-    env.getClient().tableOperations().setProperty(tableName,
-        Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
-    env.getClient().tableOperations().setProperty(tableName,
-        Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE.getKey(), "8K");
+    env.getClient().tableOperations().create(tableName, new NewTableConfiguration().setProperties(
+        Collections.singletonMap(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE.getKey(), "8K")));
+
     env.getClient().tableOperations().setLocalityGroups(tableName,
         ImmutableMap.of("lg1", ImmutableSet.of(new Text("ntfy"))));
 
