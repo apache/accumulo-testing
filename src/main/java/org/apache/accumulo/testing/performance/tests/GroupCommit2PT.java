@@ -17,8 +17,8 @@
 
 package org.apache.accumulo.testing.performance.tests;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -27,6 +27,8 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -37,7 +39,7 @@ import org.apache.accumulo.testing.performance.PerformanceTest;
 import org.apache.accumulo.testing.performance.Report;
 import org.apache.accumulo.testing.performance.SystemConfiguration;
 
-public class GroupCommitPT implements PerformanceTest {
+public class GroupCommitTesting implements PerformanceTest {
 
   static Mutation createRandomMutation(Random rand) {
     byte row[] = new byte[16];
@@ -121,9 +123,9 @@ public class GroupCommitPT implements PerformanceTest {
 
   @Override
   public Report runTest(Environment env) throws Exception {
+    boolean walog = true;
 
-    // int tests[] = new int[] {1, 2, 8, 16, 32, 128};
-    int numThreads = 128;
+    int tests[] = new int[] {1, 2, 8, 16, 32, 128};
 
     Report.Builder report = Report.builder();
 
@@ -131,54 +133,50 @@ public class GroupCommitPT implements PerformanceTest {
     report.description("Runs multiple threads to test performance of a group commit. "
         + " This tests threads with client side group commit, using a single batch writer");
 
-    ArrayList<Object> batchValues = new ArrayList<>();
-
+    int testRun = 0;
     for (int i = 0; i < 6; i++) {
       // This test threads w/ group commit on the client side, using a single batch writer.
+      // Each thread flushes after each mutation
+      for (int numThreads : tests) {
+        runBatch(env, report, numThreads, 1, true, walog, testRun);
+        testRun++;
+      }
+
+      // This test threads w/ group commit on the server side, using a batch writer per thread.
       // Each thread flushes after each mutation.
-      batchValues = runBatch(env, report, numThreads, 1);
+      for (int numThreads : tests) {
+        runBatch(env, report, numThreads, 1, false, walog, testRun);
+        testRun++;
+      }
 
-      report.info("threadsTime" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(0))),
-          "Time it took the task to run in milliseconds");
-      report.info("threads" + i, i, "Number of threads");
-      report.info("batch" + i, 1, "Number of batches");
-      report.info("threadsMutations" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(1))),
-          "Total number of mutations");
-      report.result("threadsRate" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(2))),
-          "Total mutations per millisecond");
-    }
+      // This test a single thread write a different batch sizes of mutations, flushing after each
+      // batch.
+      // Group commit should approach these times for the same number mutations.
+      for (int numToBatch : tests) {
+        runBatch(env, report, 1, numToBatch, false, walog, testRun);
+        testRun++;
+      }
 
-    for (int i = 0; i < 6; i++) {
-      // This tests a single thread writing a different batch sizes of mutations,
-      // flushing after each batch. Group commit should approach these times for the same number
-      // mutations.
-      batchValues.clear();
-      batchValues = runBatch(env, report, 1, numThreads);
-
-      report.info("batchTime" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(0))),
-          "Time it took the task to run in milliseconds");
-      report.info("threads" + i, i, "Number of threads");
-      report.info("batch" + i, 1, "Number of batches");
-      report.info("batchMutations" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(1))),
-          "Total number of mutations");
-      report.result("batchRate" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(2))),
-          "Total mutations per millisecond");
+      walog = !walog;
     }
 
     return report.build();
   }
 
-  private ArrayList<Object> runBatch(Environment env, Report.Builder report, int numThreads,
-      int numToBatch) throws Exception {
+  private void runBatch(Environment env, Report.Builder report, int numThreads, int numToBatch,
+      boolean useSharedBW, boolean walog, int testRun) throws Exception {
 
     String tableName = "mutslam";
-    env.getClient().tableOperations().create(tableName);
+
+    try {
+      if (!walog) {
+        env.getClient().tableOperations().create(tableName, new NewTableConfiguration()
+            .setProperties(Collections.singletonMap(Property.TABLE_DURABILITY.getKey(), "none")));
+      } else {
+        env.getClient().tableOperations().create(tableName, new NewTableConfiguration()
+            .setProperties(Collections.singletonMap(Property.TABLE_DURABILITY.getKey(), "log")));
+      }
+    } catch (TableExistsException tee) {}
 
     // scan just to wait for tablet be online
     Scanner scanner = env.getClient().createScanner(tableName, Authorizations.EMPTY);
@@ -192,9 +190,24 @@ public class GroupCommitPT implements PerformanceTest {
     ArrayList<WriteTask> wasks = new ArrayList<WriteTask>();
     ArrayList<Thread> threads = new ArrayList<Thread>();
 
+    BatchWriter bw = null;
+    SharedBatchWriter sbw = null;
+
+    if (useSharedBW) {
+      bw = env.getClient().createBatchWriter(tableName,
+          new BatchWriterConfig().setMaxWriteThreads(1));
+      sbw = new SharedBatchWriter(bw);
+    }
+
     for (int i = 0; i < numThreads; i++) {
-      WriteTask wask = new WriteTask(env.getClient().createBatchWriter(tableName,
-          new BatchWriterConfig().setMaxWriteThreads(1)), numToWrite, numToBatch);
+      WriteTask wask;
+
+      if (useSharedBW) {
+        wask = new WriteTask(sbw, numToWrite, numToBatch);
+      } else {
+        wask = new WriteTask(env.getClient().createBatchWriter(tableName,
+            new BatchWriterConfig().setMaxWriteThreads(1)), numToWrite, numToBatch);
+      }
 
       wasks.add(wask);
       Thread thread = new Thread(wask);
@@ -209,6 +222,9 @@ public class GroupCommitPT implements PerformanceTest {
       thread.join();
     }
 
+    if (useSharedBW)
+      bw.close();
+
     long sum = 0;
     for (WriteTask writeTask : wasks) {
       sum += writeTask.getTime();
@@ -216,19 +232,20 @@ public class GroupCommitPT implements PerformanceTest {
 
     int totalNumMutations = numToWrite * numThreads * numToBatch;
 
-    ArrayList<Object> returnValues = new ArrayList<>();
-    returnValues.add(sum / (double) wasks.size()); // time
-    returnValues.add(totalNumMutations);
-    returnValues.add(totalNumMutations / (sum / (double) wasks.size())); // rate
+    double rate = totalNumMutations / (sum / (double) wasks.size());
 
-    // System.out.printf(
-    // "\ttime: %8.2f #threads: %3d #batch: %2d #mutations: %4d rate: %6.2f mutations/ms\n",
-    // sum / (double) wasks.size(), numThreads, numToBatch, totalNumMutations,
-    // totalNumMutations / (sum / (double) wasks.size()));
+    report.info("time" + testRun, sum / (double) wasks.size(),
+        "Time it took the task to run in milliseconds");
+    report.info("threads" + testRun, numThreads, "Number of threads");
+    report.info("batch" + testRun, numToBatch, "Number of batches");
+    report.info("mutations" + testRun, totalNumMutations, "Total number of mutations");
+    report.result("rate" + testRun, rate, "Mutations per millisecond");
+
+    System.out.printf(
+        "\ttime: %8.2f #threads: %3d #batch: %2d #mutations: %4d rate: %6.2f mutations/ms\n",
+        sum / (double) wasks.size(), numThreads, numToBatch, totalNumMutations, rate);
 
     env.getClient().tableOperations().delete(tableName);
-
-    return returnValues;
   }
 
 }
