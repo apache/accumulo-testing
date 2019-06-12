@@ -138,9 +138,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rate = 10000 / ((t2 - t1) / 1000.0);
 
-    reportBuilder.info("time" + testRun, (t2 - t1), "ConditionalMutationsTest: time in seconds");
-    reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-        "ConditionalMutationsTest:  conditionalMutations/sec");
+    // reportBuilder.info("time" + testRun, (t2 - t1), "ConditionalMutationsTest: time in seconds");
+    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
+    // "ConditionalMutationsTest: conditionalMutations/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f conditionalMutations/sec \n", (t2 - t1), rate);
 
@@ -241,10 +241,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rate = 10000 / ((t2 - t1) / 1000.0);
 
-    reportBuilder.info("time" + testRun, (t2 - t1),
-        "RandomizeConditionalMutationsTest:  time in seconds");
-    reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-        "RandomizeConditionalMutationsTest:  conditionalMutations/sec");
+    // reportBuilder.info("time" + testRun, (t2 - t1),
+    // "RandomizeConditionalMutationsTest: time in seconds");
+    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
+    // "RandomizeConditionalMutationsTest: conditionalMutations/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f conditionalMutations/sec \n", (t2 - t1), rate);
 
@@ -339,12 +339,14 @@ public class ConditionalMutationsPT implements PerformanceTest {
     double rate1 = 10000 / ((t2 - t1) / 1000.0);
     double rate2 = 10000 / ((t3 - t2) / 1000.0);
 
-    reportBuilder.info("time" + testRun, (t2 - t1),
-        "RandomizeBatchScanAndWriteTest: time in milliseconds to write and flush mutations");
-    reportBuilder.info("writeRate" + testRun, new Double(new DecimalFormat("#0.00").format(rate1)),
-        "RandomizeBatchScanAndWriteTest:  writes/sec");
-    reportBuilder.info("readRate" + testRun, new Double(new DecimalFormat("#0.00").format(rate2)),
-        "RandomizeBatchScanAndWriteTest:  reads/sec");
+    // reportBuilder.info("time" + testRun, (t2 - t1),
+    // "RandomizeBatchScanAndWriteTest: time in milliseconds to write and flush mutations");
+    // reportBuilder.info("writeRate" + testRun, new Double(new
+    // DecimalFormat("#0.00").format(rate1)),
+    // "RandomizeBatchScanAndWriteTest: writes/sec");
+    // reportBuilder.info("readRate" + testRun, new Double(new
+    // DecimalFormat("#0.00").format(rate2)),
+    // "RandomizeBatchScanAndWriteTest: reads/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f writes/sec %6.2f reads/sec \n", (t2 - t1), rate1,
     // rate2);
@@ -433,10 +435,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rate = numRows * numCols / ((t2 - t1) / 1000.0);
 
-    reportBuilder.info("time", (t2 - t1),
-        "WriteData_SetBlockSizeTest:  time (in seconds) to write the entries");
-    reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
-        "WriteData_SetBlockSizeTest:  entries/sec");
+    // reportBuilder.info("time", (t2 - t1),
+    // "WriteData_SetBlockSizeTest: time (in seconds) to write the entries");
+    // reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
+    // "WriteData_SetBlockSizeTest: entries/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f entries/sec written\n", (t2 - t1), rate);
   }
@@ -479,10 +481,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rate = numRows / ((t2 - t1) / 1000.0);
 
-    reportBuilder.info("time", (t2 - t1),
-        "WriteLgData_SetBlockSizeTest:  time (in seconds) to write the entries");
-    reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
-        "WriteLgData_SetBlockSizeTest:  entries/sec");
+    // reportBuilder.info("time", (t2 - t1),
+    // "WriteLgData_SetBlockSizeTest: time (in seconds) to write the entries");
+    // reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
+    // "WriteLgData_SetBlockSizeTest: entries/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f entries/sec written\n", (t2 - t1), rate);
   }
@@ -542,10 +544,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rate = 30000 / ((t2 - t1) / 1000.0);
 
-    reportBuilder.info("time" + testRun, (t2 - t1),
-        "SetBlockSizeTest:  time (in seconds) to write conditions");
-    reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-        "SetBlockSizeTest:  conditions/sec");
+    // reportBuilder.info("time" + testRun, (t2 - t1),
+    // "SetBlockSizeTest: time (in seconds) to write conditions");
+    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
+    // "SetBlockSizeTest: conditions/sec");
 
     // System.out.printf("time: %d ms rate : %6.2f conditions/sec \n", (t2 - t1), rate);
 
