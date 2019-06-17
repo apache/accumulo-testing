@@ -121,61 +121,43 @@ public class GroupCommitPT implements PerformanceTest {
 
   @Override
   public Report runTest(Environment env) throws Exception {
-
-    // int tests[] = new int[] {1, 2, 8, 16, 32, 128};
     int numThreads = 128;
 
     Report.Builder report = Report.builder();
-
     report.id("mutslam");
     report.description("Runs multiple threads to test performance of a group commit. "
         + " This tests threads with client side group commit, using a single batch writer");
 
-    ArrayList<Object> batchValues = new ArrayList<>();
+    double batchValues;
 
     for (int i = 0; i < 6; i++) {
       // This test threads w/ group commit on the client side, using a single batch writer.
       // Each thread flushes after each mutation.
-      batchValues = runBatch(env, report, numThreads, 1);
+      batchValues = runBatch(env, numThreads, 1);
 
-      report.info("threadsTime" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(0))),
+      report.info("threadsTime" + i, new Double(new DecimalFormat("#0.00").format(batchValues)),
           "Time it took the task to run in milliseconds");
       report.info("threads" + i, i, "Number of threads");
       report.info("batch" + i, 1, "Number of batches");
-      report.info("threadsMutations" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(1))),
-          "Total number of mutations");
-      report.result("threadsRate" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(2))),
-          "Total mutations per millisecond");
     }
 
     for (int i = 0; i < 6; i++) {
       // This tests a single thread writing a different batch sizes of mutations,
       // flushing after each batch. Group commit should approach these times for the same number
       // mutations.
-      batchValues.clear();
-      batchValues = runBatch(env, report, 1, numThreads);
 
-      report.info("batchTime" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(0))),
+      batchValues = runBatch(env, 1, numThreads);
+
+      report.info("batchTime" + i, new Double(new DecimalFormat("#0.00").format(batchValues)),
           "Time it took the task to run in milliseconds");
       report.info("threads" + i, i, "Number of threads");
       report.info("batch" + i, 1, "Number of batches");
-      report.info("batchMutations" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(1))),
-          "Total number of mutations");
-      report.result("batchRate" + i,
-          new Double(new DecimalFormat("#0.00").format(batchValues.get(2))),
-          "Total mutations per millisecond");
     }
 
     return report.build();
   }
 
-  private ArrayList<Object> runBatch(Environment env, Report.Builder report, int numThreads,
-      int numToBatch) throws Exception {
+  private double runBatch(Environment env, int numThreads, int numToBatch) throws Exception {
 
     String tableName = "mutslam";
     env.getClient().tableOperations().create(tableName);
@@ -214,13 +196,6 @@ public class GroupCommitPT implements PerformanceTest {
       sum += writeTask.getTime();
     }
 
-    int totalNumMutations = numToWrite * numThreads * numToBatch;
-
-    ArrayList<Object> returnValues = new ArrayList<>();
-    returnValues.add(sum / (double) wasks.size()); // time
-    returnValues.add(totalNumMutations);
-    returnValues.add(totalNumMutations / (sum / (double) wasks.size())); // rate
-
     // System.out.printf(
     // "\ttime: %8.2f #threads: %3d #batch: %2d #mutations: %4d rate: %6.2f mutations/ms\n",
     // sum / (double) wasks.size(), numThreads, numToBatch, totalNumMutations,
@@ -228,7 +203,7 @@ public class GroupCommitPT implements PerformanceTest {
 
     env.getClient().tableOperations().delete(tableName);
 
-    return returnValues;
+    return sum / (double) wasks.size(); // time
   }
 
 }
