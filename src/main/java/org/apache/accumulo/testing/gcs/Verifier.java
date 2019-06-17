@@ -11,19 +11,20 @@ import java.util.TreeSet;
 public class Verifier {
 
   Persistence persistence;
+  private int batchSize;
 
   public Verifier(GcsEnv gcsEnv) {
     this.persistence = new Persistence(gcsEnv);
+    this.batchSize = gcsEnv.getBatchSize();
   }
 
   public static void main(String[] args) {
     new Verifier(new GcsEnv(args)).run();
-    ;
   }
 
   private void run() {
-    forEachBatch(persistence.items(ItemState.REFERENCED), 100000, batch -> checkItems(batch));
-    forEachBatch(persistence.itemRefs(), 100000, batch -> checkItemRefs(batch));
+    forEachBatch(persistence.items(ItemState.REFERENCED), batchSize, batch -> checkItems(batch));
+    forEachBatch(persistence.itemRefs(), batchSize, batch -> checkItemRefs(batch));
   }
 
   // Ensure there is an item for each item ref

@@ -23,9 +23,11 @@ import java.util.function.Consumer;
 public class Collector {
 
   Persistence persistence;
+  private int batchSize;
 
   public Collector(GcsEnv gcsEnv) {
     this.persistence = new Persistence(gcsEnv);
+    this.batchSize = gcsEnv.getBatchSize();
   }
 
   public static void main(String[] args) throws Exception {
@@ -53,7 +55,7 @@ public class Collector {
     Random rand = new Random();
 
     while (true) {
-      forEachBatch(persistence.candidates(), 100000, batch -> collect(batch));
+      forEachBatch(persistence.candidates(), batchSize, batch -> collect(batch));
       Thread.sleep(13000);
 
       if (rand.nextInt(10) == 0) {

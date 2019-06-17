@@ -133,6 +133,8 @@ test.gcs.tablets=10
 test.gcs.maxWork=100000000
 # Max number of work list a generator should be concurrently working on.
 test.gcs.maxActiveWork=10000
+# Number of entries collector and verifier will read into memory.
+test.gcs.batchSize=100000
 
 #################
 # MapReduce Tests

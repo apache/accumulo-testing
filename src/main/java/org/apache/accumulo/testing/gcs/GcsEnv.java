@@ -27,4 +27,8 @@ public class GcsEnv extends TestEnv {
   public int getMaxActiveWork() {
     return Integer.parseInt(testProps.getProperty("test.gcs.maxActiveWork", "10000"));
   }
+
+  public int getBatchSize() {
+    return Integer.parseInt(testProps.getProperty("test.gcs.batchSize", "100000"));
+  }
 }
