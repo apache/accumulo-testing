@@ -70,7 +70,8 @@ public class Generator {
 
       int numToRun = Math.max(1, rand.nextInt(queue.size()));
 
-      // By selecting a random queue of work do to do and taking a random number of steps off the queue we are randomly interleaving unrelated work over time.
+      // By selecting a random queue of work do to do and taking a random number of steps off the
+      // queue we are randomly interleaving unrelated work over time.
       for (int i = 0; i < numToRun; i++) {
         queue.remove().run(persistence);
       }
