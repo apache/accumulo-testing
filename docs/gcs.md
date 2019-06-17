@@ -1,10 +1,10 @@
 # Garbage Collection Simulation (GCS)
 
-GCS is a test suite that generates random data in that is similar to the
+GCS is a test suite that generates random data in a way that is similar to the
 Accumulo garbage collector.  This test has a few interesting properties.  First
 it generates data at a much higher rate than the garbage collector would on a
 small system, simulating a much larger system.  Second, it has a much more
-complex read and write pattern than continuous ingest that involves multiple
+complex read and write pattern than continuous ingest that involve multiple
 processes writing, reading, and deleting data.  Third, the random data is
 verifiable like continuous ingest.  At any point the test can be stopped and
 the data verified.  This test will not generate as much data as continuous
@@ -14,7 +14,7 @@ ingest.
 
 This test has the following types of data that are stored in a single accumulo table.
 
- * **Item** : An item is something that should be deleted unless it is referenced.
+ * **Item** : An item is something that should be deleted, unless it is referenced.
    Each item is part of a group.  Items correspond to files and groups
    correspond to bulk imports, in the Accumulo GC.
  * **Item reference** : A reference to an item that should prevent it from
@@ -37,11 +37,11 @@ The test has the following executable components.
 
  * **setup** : creates and configures table
  * **generator** : continually generates items, references, and candidates.
-   These are generated in randomly and spaced out over time, interleaving
+   These are generated randomly and spaced out over time, interleaving
    unrelated entries. The generator should never create data that violates the
-   test invariants.  Multiple generators can be run.
+   test invariants.  Multiple generators can be run concurrently.
  * **collector** : continually scans the data looking for unreferenced
-   candidates to delete.
+   candidates to delete.  Should only run one at a time.
  * **verifier** :  This processes checks the table to ensure the test
    invariants have not been violated.  Before running this, the generator and
    collector processes should be stopped.
