@@ -32,6 +32,7 @@ Tests are run using the following scripts in `bin/`:
   * `rwalk` - Runs random walk tests
   * `performance` - Runs performance test
   * `agitator` - Runs agitator
+  * `gcs` - Runs garbage collection simultation
 
 Run the scripts without arguments to view usage.
 
