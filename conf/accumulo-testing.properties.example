@@ -119,6 +119,23 @@ test.ci.bulk.map.nodes=1000000
 # produce a bulk import file.
 test.ci.bulk.reducers.max=1024
 
+###############################
+# Garbage Collection Simulation
+###############################
+
+# Name of Accumulo table to use for test
+test.gcs.table=gcs
+# Max number of buckets for references.  Buckets correspond to tablets in the Accumulo GC.
+test.gcs.maxBuckets=100000
+# Split each data section with this many tablets when creating table.
+test.gcs.tablets=10
+# Total number of work list the generator should create before it exits.
+test.gcs.maxWork=100000000
+# Max number of work list a generator should be concurrently working on.
+test.gcs.maxActiveWork=10000
+# Number of entries collector and verifier will read into memory.
+test.gcs.batchSize=100000
+
 #################
 # MapReduce Tests
 #################
