@@ -8,7 +8,10 @@ complex read and write pattern than continuous ingest that involve multiple
 processes writing, reading, and deleting data.  Third, the random data is
 verifiable like continuous ingest.  At any point the test can be stopped and
 the data verified.  This test will not generate as much data as continuous
-ingest.
+ingest.  The test will reach a steady state in terms of the number of entries
+stored in Accumulo.  The size of this steady state is determined by the number
+of generators running and the setting `test.gcs.maxActiveWork`, increasing
+either will increase the steady state size.
 
 ## Data Types
 
@@ -28,7 +31,9 @@ This test has the following types of data that are stored in a single accumulo t
 
 Hopefully the test data never violates the following rules
 
- * An Item should always be referenced by an Item reference, group reference or a deletion candidate.
+ * An Item should always be referenced by an Item reference, group reference or
+   a deletion candidate.  There is one exception to this, items with a value of
+  `NEW`.  Its ok for new items to be unreferenced.
  * An Item reference should always have a corresponding item.
 
 ## Executable components
