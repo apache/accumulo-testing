@@ -27,6 +27,7 @@ Usage: accumulo-testing <script> (<argument>)
 
   cingest     Runs continuous ingest script
   rwalk       Runs random walk script
+  gcs         Runs garbage collection simulation
 EOF
 }
 
@@ -42,7 +43,7 @@ if [ -z "$HADOOP_HOME" ]; then
 fi
 
 case "$1" in
-  cingest|rwalk)
+  cingest|rwalk|gcs)
     "${at_home}"/bin/"$1" "${@:2}"
     ;;
   -h|help)
