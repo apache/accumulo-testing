@@ -21,7 +21,7 @@ at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: rw-test <module> (<argument>)
+Usage: $0 <module> (<argument>)
 
    Runs random walk <module>
    Modules listed below located in <at_home>/src/main/resources/randomwalk/modules
