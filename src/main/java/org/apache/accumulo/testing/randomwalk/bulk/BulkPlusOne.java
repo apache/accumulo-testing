@@ -59,7 +59,7 @@ public class BulkPlusOne extends BulkImportTest {
     final Path dir = new Path(fs.getUri() + "/tmp", "bulk_" + UUID.randomUUID().toString());
     log.debug("Bulk loading from {}", dir);
     final Path fail = new Path(dir.toString() + "_fail");
-    final Random rand = (Random) state.get("rand");
+    final Random rand = state.getRandom();
     fs.mkdirs(fail);
     final int parts = rand.nextInt(10) + 1;
 

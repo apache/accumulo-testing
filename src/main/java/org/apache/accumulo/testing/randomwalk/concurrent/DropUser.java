@@ -16,9 +16,7 @@
  */
 package org.apache.accumulo.testing.randomwalk.concurrent;
 
-import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -30,13 +28,7 @@ public class DropUser extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> userNames = (List<String>) state.get("users");
-
-    String userName = userNames.get(rand.nextInt(userNames.size()));
+    String userName = state.getRandomUser();
 
     try {
       log.debug("Dropping user " + userName);

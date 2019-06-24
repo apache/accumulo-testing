@@ -29,7 +29,7 @@ public class Split extends SelectiveBulkTest {
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
     SortedSet<Text> splits = new TreeSet<>();
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     int count = rand.nextInt(20);
     for (int i = 0; i < count; i++)
       splits.add(new Text(String.format(BulkPlusOne.FMT,

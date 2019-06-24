@@ -16,10 +16,8 @@
  */
 package org.apache.accumulo.testing.randomwalk.concurrent;
 
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IsolatedScanner;
@@ -42,13 +40,7 @@ public class IsolatedScan extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-
-    String tableName = tableNames.get(rand.nextInt(tableNames.size()));
+    String tableName = state.getRandomTableName();
 
     try {
       RowIterator iter = new RowIterator(

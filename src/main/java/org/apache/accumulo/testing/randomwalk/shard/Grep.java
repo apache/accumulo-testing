@@ -45,7 +45,7 @@ public class Grep extends Test {
 
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     Text[] words = new Text[rand.nextInt(4) + 2];
 

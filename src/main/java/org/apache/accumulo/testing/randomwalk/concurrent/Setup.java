@@ -29,43 +29,40 @@ public class Setup extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Random rand = new Random();
-    state.set("rand", rand);
+    state.setRandom(new Random());
 
     int numTables = Integer.parseInt(props.getProperty("numTables", "9"));
     int numNamespaces = Integer.parseInt(props.getProperty("numNamespaces", "2"));
     log.debug("numTables = " + numTables);
     log.debug("numNamespaces = " + numNamespaces);
-    List<String> tables = new ArrayList<>();
     List<String> namespaces = new ArrayList<>();
 
     for (int i = 0; i < numNamespaces; i++) {
-      namespaces.add(String.format("nspc_%03d", i));
+      String ns = String.format("nspc_%03d", i);
+      namespaces.add(ns);
+      state.addNamespace(ns);
     }
 
     // Make tables in the default namespace
     double tableCeil = Math.ceil((double) numTables / (numNamespaces + 1));
     for (int i = 0; i < tableCeil; i++) {
-      tables.add(String.format("ctt_%03d", i));
+      state.addTable(String.format("ctt_%03d", i));
     }
 
     // Make tables in each namespace
     double tableFloor = Math.floor(numTables / (numNamespaces + 1));
     for (String n : namespaces) {
       for (int i = 0; i < tableFloor; i++) {
-        tables.add(String.format(n + ".ctt_%03d", i));
+        state.addTable(String.format(n + ".ctt_%03d", i));
       }
     }
 
-    state.set("tables", tables);
-    state.set("namespaces", namespaces);
-
     int numUsers = Integer.parseInt(props.getProperty("numUsers", "5"));
     log.debug("numUsers = " + numUsers);
-    List<String> users = new ArrayList<>();
     for (int i = 0; i < numUsers; i++)
-      users.add(String.format("user%03d", i));
-    state.set("users", users);
+      state.addUser(String.format("user%03d", i));
+
+    log.info("TABLES = " + state.getTableNames());
   }
 
 }

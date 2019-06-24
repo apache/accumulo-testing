@@ -43,7 +43,7 @@ public class Search extends Test {
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
 
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     Entry<Key,Value> entry = findRandomDocument(state, env, dataTableName, rand);
     if (entry == null)

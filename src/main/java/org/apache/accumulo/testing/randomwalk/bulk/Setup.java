@@ -39,7 +39,6 @@ public class Setup extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Random rand = new Random();
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
     String pid = env.getPid();
     tableName = String.format("bulk_%s_%s_%d", hostname, pid, System.currentTimeMillis());
@@ -57,7 +56,7 @@ public class Setup extends Test {
     } catch (TableExistsException ex) {
       // expected if there are multiple walkers
     }
-    state.set("rand", rand);
+    state.setRandom(new Random());
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set("bulkImportSuccess", "true");
     BulkPlusOne.counter.set(0l);

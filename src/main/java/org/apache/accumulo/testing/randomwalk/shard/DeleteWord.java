@@ -46,7 +46,7 @@ public class DeleteWord extends Test {
     String indexTableName = (String) state.get("indexTableName");
     String docTableName = (String) state.get("docTableName");
     int numPartitions = (Integer) state.get("numPartitions");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     String wordToDelete = Insert.generateRandomWord(rand);
 
