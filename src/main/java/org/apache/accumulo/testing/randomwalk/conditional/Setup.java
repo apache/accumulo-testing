@@ -32,7 +32,7 @@ public class Setup extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     Random rand = new Random();
-    state.set("rand", rand);
+    state.setRandom(rand);
 
     int numBanks = Integer.parseInt(props.getProperty("numBanks", "1000"));
     log.debug("numBanks = " + numBanks);

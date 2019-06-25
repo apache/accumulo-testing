@@ -92,13 +92,8 @@ public class BulkImport extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-
-    String tableName = tableNames.get(rand.nextInt(tableNames.size()));
+    String tableName = state.getRandomTableName();
+    Random rand = state.getRandom();
 
     FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
 

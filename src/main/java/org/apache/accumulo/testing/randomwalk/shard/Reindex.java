@@ -39,7 +39,7 @@ public class Reindex extends Test {
     String docTableName = (String) state.get("docTableName");
     int numPartitions = (Integer) state.get("numPartitions");
 
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     ShardFixture.createIndexTable(this.log, state, env, "_tmp", rand);
 

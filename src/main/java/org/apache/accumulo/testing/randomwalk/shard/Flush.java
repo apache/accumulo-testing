@@ -29,7 +29,7 @@ public class Flush extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     String table;
 

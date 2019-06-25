@@ -40,7 +40,7 @@ public class DeleteSomeDocs extends Test {
     // from doc and index table
     // using the batch deleter
 
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
 
