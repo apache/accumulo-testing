@@ -1,3 +1,4 @@
+#! /usr/bin/env bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -19,7 +20,7 @@ UNO_HOME=/home/ubuntu/git/uno
 UNO=$UNO_HOME/bin/uno
 
 function get_ah {
-  echo "$($UNO env | grep ACCUMULO_HOME | sed 's/export ACCUMULO_HOME=//' | sed 's/"//g')"
+  $UNO env | grep ACCUMULO_HOME | sed 's/export ACCUMULO_HOME=//' | sed 's/"//g'
 }
 
 # functions required for accumulo testing cluster control
@@ -34,34 +35,34 @@ function get_version {
     ACCUMULO)
       (
         # run following in sub shell so it does not pollute
-        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
-          . $UNO_HOME/conf/uno-local.conf
+        if [[ -f "$UNO_HOME"/conf/uno-local.conf ]]; then
+          . "$UNO_HOME"/conf/uno-local.conf
         else
-          . $UNO_HOME/conf/uno.conf
+          . "$UNO_HOME"/conf/uno.conf
         fi
-        echo $ACCUMULO_VERSION
+        echo "$ACCUMULO_VERSION"
       )
       ;;
     HADOOP)
       (
         # run following in sub shell so it does not pollute
-        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
-          . $UNO_HOME/conf/uno-local.conf
+        if [[ -f "$UNO_HOME"/conf/uno-local.conf ]]; then
+          . "$UNO_HOME"/conf/uno-local.conf
         else
-          . $UNO_HOME/conf/uno.conf
+          . "$UNO_HOME"/conf/uno.conf
         fi
-        echo $HADOOP_VERSION
+        echo "$HADOOP_VERSION"
       )
       ;;
     ZOOKEEPER)
       (
         # run following in sub shell so it does not pollute
-        if [ -f $UNO_HOME/conf/uno-local.conf ]; then
-          . $UNO_HOME/conf/uno-local.conf
+        if [[ -f "$UNO_HOME"/conf/uno-local.conf ]]; then
+          . "$UNO_HOME"/conf/uno-local.conf
         else
-          . $UNO_HOME/conf/uno.conf
+          . "$UNO_HOME"/conf/uno.conf
         fi
-        echo $ZOOKEEPER_VERSION
+        echo "$ZOOKEEPER_VERSION"
       )
       ;;
     *)
@@ -78,17 +79,17 @@ function setup_accumulo {
 }
 
 function get_config_file {
-  local ah=$(get_ah)
+  local ah; ah=$(get_ah)
   cp "$ah/conf/$1" "$2"
 }
 
 function put_config_file {
-  local ah=$(get_ah)
+  local ah; ah=$(get_ah)
   cp "$1" "$ah/conf"
 }
 
 function put_server_code {
-  local ah=$(get_ah)
+  local ah; ah=$(get_ah)
   cp "$1" "$ah/lib/ext"
 }
 
