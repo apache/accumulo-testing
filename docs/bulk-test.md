@@ -39,7 +39,7 @@ Bulk ingest could be run concurrently with live ingest into the same table.  It
 could also be run while the agitator is running.
 
 After bulk imports complete, could run the following commands in the Accumulo shell
-to see if there are any blips or load markers.  There should not be any.
+to see if there are any BLIPs or load markers.  There should not be any.
 
 ```
 scan -t accumulo.metadata -b ~blip -e ~blip~
