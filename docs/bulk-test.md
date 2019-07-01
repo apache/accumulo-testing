@@ -24,15 +24,26 @@ for i in $(seq 1 10); do
   ./bin/cingest bulk /tmp/bt/$i
 done
 
-(
-  echo "table ci"
-  for i in $(seq 1 10); do
+for i in $(seq 1 10); do
+  (
+    echo table ci
     echo "importdirectory /tmp/bt/$i/files true"
-  done
-) | accumulo shell -u root -p secret
+  ) | accumulo shell -u root -p secret
+  sleep 5
+done
+
 ./bin/cingest verify
 ```
 
 Bulk ingest could be run concurrently with live ingest into the same table.  It
 could also be run while the agitator is running.
+
+After bulk imports complete, could run the following commands in the Accumulo shell
+to see if there are any BLIP (bulk load in progress) or load markers.  There should
+not be any.
+
+```
+scan -t accumulo.metadata -b ~blip -e ~blip~
+scan -t accumulo.metadata -c loaded
+```
 
