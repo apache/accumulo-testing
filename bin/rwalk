@@ -17,6 +17,7 @@
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+source "${bin_dir}/build"
 
 function print_usage() {
   cat <<EOF
@@ -29,12 +30,6 @@ Usage: $0 <module> (<argument>)
 EOF
   find "$at_home/src/main/resources/randomwalk/modules/." -name "*.xml" -printf "%f\n"
 }
-
-if [ -f "$at_home/conf/env.sh" ]; then
-  . "$at_home"/conf/env.sh
-else
-  . "$at_home"/conf/env.sh.example
-fi
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
