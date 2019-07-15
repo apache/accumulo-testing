@@ -37,21 +37,24 @@ while true; do
 		rm -rf ~/accumulotmp
 	fi
 
+	LAUNCHED=false
+
 	# sets up the cluster
 	cd $MUCHOS_REPO || (echo "Incorrect fluo-muchos path: $MUCHOS_REPO" && break)
 	./bin/muchos launch -c "$USER-cluster" && echo "Setting up cluster.."
-	
-	CLUSTERUSER=`./bin/muchos config -p cluster_user`
-        PROXYIP=`./bin/muchos config -p proxy.public.ip`
-
-	# repeat setup until all nodes are intialized
-	until ./bin/muchos setup; do
+	while [ ! ${LAUNCHED} ]; do
 		
-		echo "Script will resume once nodes are intialized."
-		echo "Retrying in 20 seconds..."
-		sleep 20
+		echo "Script will resume once cluster is launched.."
+
+		if [ $? -eq 0 ]; then
+			echo "Launch complete."
+			echo "Running Setup"
+			LAUNCHED=true
+		fi
 	done
 
+
+	./bin/muchos setup
 
 	if [ $? -eq 0 ]; then
                 echo "EC2 cluster setup as $USER-cluster"
