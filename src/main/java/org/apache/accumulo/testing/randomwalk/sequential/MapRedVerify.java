@@ -38,14 +38,14 @@ public class MapRedVerify extends Test {
     String[] args = new String[3];
     args[0] = env.getClientPropsPath();
     args[1] = state.getString("seqTableName");
-    args[2] = args[2] + "_MR";
+    args[2] = args[1] + "_MR";
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new MapRedVerifyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
       return;
     }
 
-    Scanner outputScanner = env.getAccumuloClient().createScanner(args[5], Authorizations.EMPTY);
+    Scanner outputScanner = env.getAccumuloClient().createScanner(args[2], Authorizations.EMPTY);
     outputScanner.setRange(new Range());
 
     int count = 0;
@@ -63,8 +63,8 @@ public class MapRedVerify extends Test {
       log.error("Gaps in output");
     }
 
-    log.debug("Dropping table: " + args[5]);
+    log.debug("Dropping table: " + args[2]);
     AccumuloClient client = env.getAccumuloClient();
-    client.tableOperations().delete(args[5]);
+    client.tableOperations().delete(args[2]);
   }
 }
