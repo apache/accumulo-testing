@@ -21,11 +21,13 @@ at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: rw-test <module> (<argument>)
+Usage: $0 <module> (<argument>)
 
    Runs random walk <module>
-   Modules located in core/src/main/resources/randomwalk/modules
+   Modules listed below located in <at_home>/src/main/resources/randomwalk/modules
+
 EOF
+  find "$at_home/src/main/resources/randomwalk/modules/." -name "*.xml" -printf "%f\n"
 }
 
 if [ -f "$at_home/conf/env.sh" ]; then

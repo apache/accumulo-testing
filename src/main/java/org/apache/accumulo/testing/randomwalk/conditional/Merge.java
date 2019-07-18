@@ -32,7 +32,7 @@ public class Merge extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String table = state.getString("tableName");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     AccumuloClient client = env.getAccumuloClient();
     Text row1 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));
     Text row2 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));

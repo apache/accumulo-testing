@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.concurrent;
 
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -34,13 +33,8 @@ public class OfflineTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-
-    String tableName = tableNames.get(rand.nextInt(tableNames.size()));
+    Random rand = state.getRandom();
+    String tableName = state.getRandomTableName();
 
     try {
       client.tableOperations().offline(tableName, rand.nextBoolean());

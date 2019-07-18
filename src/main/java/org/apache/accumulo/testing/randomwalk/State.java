@@ -16,7 +16,10 @@
  */
 package org.apache.accumulo.testing.randomwalk;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 /**
  * A structure for storing state kept during a test. This class is not thread-safe.
@@ -24,6 +27,10 @@ import java.util.HashMap;
 public class State {
 
   private HashMap<String,Object> stateMap = new HashMap<>();
+  private List<String> tables = new ArrayList<>();
+  private List<String> namespaces = new ArrayList<>();
+  private List<String> users = new ArrayList<>();
+  private Random random = new Random();
 
   /**
    * Creates new empty state.
@@ -40,6 +47,20 @@ public class State {
    */
   public void set(String key, Object value) {
     stateMap.put(key, value);
+  }
+
+  /**
+   * Resets the Random object.
+   */
+  public void setRandom(Random rand) {
+    this.random = rand;
+  }
+
+  /**
+   * Gets the random object.
+   */
+  public Random getRandom() {
+    return random;
   }
 
   /**
@@ -66,6 +87,37 @@ public class State {
       throw new RuntimeException("State does not contain " + key);
     }
     return stateMap.get(key);
+  }
+
+  public List<String> getTableNames() {
+    return tables;
+  }
+
+  public void addTable(String tableName) {
+    tables.add(tableName);
+  }
+
+  public void addNamespace(String ns) {
+    namespaces.add(ns);
+  }
+
+  public String getRandomNamespace() {
+    return namespaces.get(random.nextInt(namespaces.size()));
+  }
+
+  /**
+   * Gets a random table name
+   */
+  public String getRandomTableName() {
+    return tables.get(random.nextInt(tables.size()));
+  }
+
+  public void addUser(String userName) {
+    users.add(userName);
+  }
+
+  public String getRandomUser() {
+    return users.get(random.nextInt(users.size()));
   }
 
   /**

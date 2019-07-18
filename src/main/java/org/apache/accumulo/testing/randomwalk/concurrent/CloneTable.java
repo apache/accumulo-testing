@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.concurrent;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -36,14 +35,9 @@ public class CloneTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-
-    String srcTableName = tableNames.get(rand.nextInt(tableNames.size()));
-    String newTableName = tableNames.get(rand.nextInt(tableNames.size()));
+    Random rand = state.getRandom();
+    String srcTableName = state.getRandomTableName();
+    String newTableName = state.getRandomTableName();
     boolean flush = rand.nextBoolean();
 
     try {

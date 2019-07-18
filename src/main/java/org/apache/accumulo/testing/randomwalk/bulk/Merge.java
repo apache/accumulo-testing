@@ -44,7 +44,7 @@ public class Merge extends SelectiveBulkTest {
   }
 
   public static Text[] getRandomTabletRange(State state) {
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     Text[] points = {getRandomRow(rand), getRandomRow(rand),};
     Arrays.sort(points);
     if (rand.nextInt(10) == 0) {

@@ -101,7 +101,7 @@ public class BulkInsert extends Test {
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
     int numPartitions = (Integer) state.get("numPartitions");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     long nextDocID = (Long) state.get("nextDocID");
 
     int minInsert = Integer.parseInt(props.getProperty("minInsert"));

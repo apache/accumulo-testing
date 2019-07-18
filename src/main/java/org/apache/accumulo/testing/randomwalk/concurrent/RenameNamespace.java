@@ -16,9 +16,7 @@
  */
 package org.apache.accumulo.testing.randomwalk.concurrent;
 
-import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.NamespaceExistsException;
@@ -32,14 +30,8 @@ public class RenameNamespace extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> namespaces = (List<String>) state.get("namespaces");
-
-    String srcName = namespaces.get(rand.nextInt(namespaces.size()));
-    String newName = namespaces.get(rand.nextInt(namespaces.size()));
+    String srcName = state.getRandomNamespace();
+    String newName = state.getRandomNamespace();
 
     try {
       client.namespaceOperations().rename(srcName, newName);

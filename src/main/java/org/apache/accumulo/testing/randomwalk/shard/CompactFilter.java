@@ -44,7 +44,7 @@ public class CompactFilter extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String indexTableName = (String) state.get("indexTableName");
     String docTableName = (String) state.get("docTableName");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     String deleteChar = Integer.toHexString(rand.nextInt(16)) + "";
     String regex = "^[0-9a-f][" + deleteChar + "].*";
