@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.concurrent;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -40,13 +39,8 @@ public class BatchWrite extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-
-    String tableName = tableNames.get(rand.nextInt(tableNames.size()));
+    Random rand = state.getRandom();
+    String tableName = state.getRandomTableName();
 
     try {
       BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());

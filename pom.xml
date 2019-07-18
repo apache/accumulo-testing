@@ -30,12 +30,12 @@
   <properties>
     <accumulo.version>2.0.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
-    <hadoop.version>3.1.1</hadoop.version>
+    <hadoop.version>3.2.0</hadoop.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <slf4j.version>1.7.25</slf4j.version>
     <spotbugs.version>3.1.7</spotbugs.version>
-    <zookeeper.version>3.4.13</zookeeper.version>
+    <zookeeper.version>3.4.14</zookeeper.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -240,7 +240,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>8.17</version>
+            <version>8.18</version>
           </dependency>
         </dependencies>
         <executions>

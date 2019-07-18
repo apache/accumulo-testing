@@ -21,37 +21,51 @@ at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 function print_usage() {
   cat <<EOF
 
-Usage: accumulo-testing <script> (<argument>)
+Usage: gcs <application> {-o test.<prop>=<value>}
 
-  Available scripts:
+Available applications:
 
-  cingest     Runs continuous ingest script
-  rwalk       Runs random walk script
-  gcs         Runs garbage collection simulation
+    setup        Create and configure table.
+    generate     Run a data generator.  Can run multiple.
+    collect      Run a collector, should only run one.
+    verify       Verify data.  Stop collect and generate before running.
 EOF
 }
 
+if [ -f "$at_home/conf/env.sh" ]; then
+  . "$at_home"/conf/env.sh
+else
+  . "$at_home"/conf/env.sh.example
+fi
+
 if [ -z "$1" ]; then
-  echo "ERROR: <script> needs to be set"
+  echo "ERROR: <application> needs to be set"
   print_usage
   exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ]; then
-  echo "HADOOP_HOME must be set!"
-  exit 1
-fi
-
+ci_package="org.apache.accumulo.testing.gcs"
 case "$1" in
-  cingest|rwalk|gcs)
-    "${at_home}"/bin/"$1" "${@:2}"
+  generate)
+    ci_main="${ci_package}.Generator"
     ;;
-  -h|help)
+  collect)
+    ci_main="${ci_package}.Collector"
+    ;;
+  verify)
+    ci_main="${ci_package}.Verifier"
+    ;;
+  setup)
+    ci_main="${ci_package}.Setup"
+    ;;
+
+  *)
+    echo "Unknown application: $1"
     print_usage
     exit 1
-    ;;
-  *)
-    echo "ERROR - unknown <script>: $1"
-    exit 1
-    ;;
 esac
+
+export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
+
+java -Dlog4j.configuration="file:$TEST_LOG4J" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
+

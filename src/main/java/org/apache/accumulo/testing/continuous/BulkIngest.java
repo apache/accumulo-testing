@@ -97,7 +97,7 @@ public class BulkIngest extends Configured implements Tool {
         }
 
         job.setPartitionerClass(KeyRangePartitioner.class);
-        KeyRangePartitioner.setSplitFile(job, splitsFile);
+        KeyRangePartitioner.setSplitFile(job, fs.getUri() + splitsFile);
 
         job.waitForCompletion(true);
         boolean success = job.isSuccessful();

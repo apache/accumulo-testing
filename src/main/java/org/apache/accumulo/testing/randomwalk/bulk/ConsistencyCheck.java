@@ -33,7 +33,7 @@ public class ConsistencyCheck extends SelectiveBulkTest {
 
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
     Text row = Merge.getRandomRow(rand);
     log.info("Checking " + row);
     String user = env.getAccumuloClient().whoami();

@@ -14,32 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.accumulo.testing.randomwalk.shard;
+package org.apache.accumulo.testing.gcs;
 
-import java.util.Properties;
-import java.util.Random;
-
-import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
-import org.apache.accumulo.testing.randomwalk.State;
-import org.apache.accumulo.testing.randomwalk.Test;
-
-public class Flush extends Test {
-
-  @Override
-  public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
-    Random rand = state.getRandom();
-
-    String table;
-
-    if (rand.nextDouble() < .5)
-      table = indexTableName;
-    else
-      table = dataTableName;
-
-    env.getAccumuloClient().tableOperations().flush(table, null, null, true);
-    log.debug("Flushed " + table);
+public class Setup {
+  public static void main(String[] args) throws Exception {
+    Persistence.init(new GcsEnv(args));
   }
 
 }

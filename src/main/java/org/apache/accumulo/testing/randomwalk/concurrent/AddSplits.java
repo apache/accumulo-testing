@@ -25,7 +25,6 @@ import java.util.TreeSet;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
-import org.apache.accumulo.core.metadata.MetadataTable;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -36,13 +35,9 @@ public class AddSplits extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-    tableNames = new ArrayList<>(tableNames);
-    tableNames.add(MetadataTable.NAME);
+    Random rand = state.getRandom();
+    List<String> tableNames = new ArrayList<>(state.getTableNames());
+    tableNames.add("accumulo.metadata");
     String tableName = tableNames.get(rand.nextInt(tableNames.size()));
 
     TreeSet<Text> splits = new TreeSet<>();

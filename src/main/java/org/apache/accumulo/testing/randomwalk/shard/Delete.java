@@ -34,7 +34,7 @@ public class Delete extends Test {
     String indexTableName = (String) state.get("indexTableName");
     String dataTableName = (String) state.get("docTableName");
     int numPartitions = (Integer) state.get("numPartitions");
-    Random rand = (Random) state.get("rand");
+    Random rand = state.getRandom();
 
     Entry<Key,Value> entry = Search.findRandomDocument(state, env, dataTableName, rand);
     if (entry == null)

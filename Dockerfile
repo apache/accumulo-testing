@@ -42,6 +42,7 @@ RUN touch /opt/at/conf/env.sh
 
 COPY ./bin/cingest /opt/at/bin
 COPY ./bin/rwalk /opt/at/bin
+COPY ./bin/gcs /opt/at/bin
 COPY ./src/main/docker/docker-entry /opt/at/bin
 
 COPY ./target/accumulo-testing-shaded.jar /opt/at/

@@ -16,7 +16,6 @@
  */
 package org.apache.accumulo.testing.randomwalk.concurrent;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -34,20 +33,10 @@ public class CheckPermission extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-
-    Random rand = (Random) state.get("rand");
-
-    @SuppressWarnings("unchecked")
-    List<String> userNames = (List<String>) state.get("users");
-    String userName = userNames.get(rand.nextInt(userNames.size()));
-
-    @SuppressWarnings("unchecked")
-    List<String> tableNames = (List<String>) state.get("tables");
-    String tableName = tableNames.get(rand.nextInt(tableNames.size()));
-
-    @SuppressWarnings("unchecked")
-    List<String> namespaces = (List<String>) state.get("namespaces");
-    String namespace = namespaces.get(rand.nextInt(namespaces.size()));
+    Random rand = state.getRandom();
+    String userName = state.getRandomUser();
+    String tableName = state.getRandomTableName();
+    String namespace = state.getRandomNamespace();
 
     try {
       int dice = rand.nextInt(2);

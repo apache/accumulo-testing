@@ -41,12 +41,8 @@ while true; do
 	cd $MUCHOS_REPO || (echo "Incorrect fluo-muchos path: $MUCHOS_REPO" && break)
 	./bin/muchos launch -c "$USER-cluster" && echo "Setting up cluster.."
 	
-	CLUSTERUSER=`./bin/muchos config -p cluster_user`
-        PROXYIP=`./bin/muchos config -p proxy.public.ip`
-
 	# repeat setup until all nodes are intialized
 	until ./bin/muchos setup; do
-		
 		echo "Script will resume once nodes are intialized."
 		echo "Retrying in 20 seconds..."
 		sleep 20
@@ -66,7 +62,7 @@ while true; do
 	M2='/home/centos/install/apache-maven*/bin'
 	
 	# installs java-11 and makes it the default for mvn
-	ssh $CLUSTERUSER@$PROXYIP "sudo yum -y install java-11-openjdk-devel"
+	ssh $CLUSTERUSER@$PROXYIP "sudo yum -y install java-11-openjdk-devel &"
 	ssh $CLUSTERUSER@$PROXYIP "sed -i '/export JAVA_HOME/d' ~/.bashrc"
 	ssh $CLUSTERUSER@$PROXYIP "sed -i '/# .bashrc/a export JAVA_HOME=/usr/lib/jvm/java-11-openjdk' ~/.bashrc"
 	ssh $CLUSTERUSER@$PROXYIP "source ~/.bashrc"
