@@ -45,11 +45,8 @@ function build_shade_jar() {
 
 log4j_config="$at_home/conf/log4j.properties"
 if [ ! -f "$log4j_config" ]; then
-  log4j_config="$at_home/conf/log4j.properties.example"
-  if [ ! -f "$log4j_config" ]; then
-    echo "Could not find logj4.properties or log4j.properties.example in $at_home/conf"
-    exit 1
-  fi
+  echo "Could not find logj4.properties in $at_home/conf"
+  exit 1
 fi
 
 

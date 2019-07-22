@@ -52,11 +52,8 @@ if [ ! -f "$TEST_PROPS" ]; then
 fi
 export TEST_LOG4J="${conf_dir}/log4j.properties"
 if [ ! -f "$TEST_LOG4J" ]; then
-  export TEST_LOG4J="${conf_dir}/log4j.properties.example"
-  if [ ! -f "$TEST_LOG4J" ]; then
-    echo "Could not find logj4.properties or log4j.properties.example in $conf_dir"
-    exit 1
-  fi
+  echo "Could not find logj4.properties in $conf_dir"
+  exit 1
 fi
 
 # Shaded test jar
