@@ -70,7 +70,7 @@ while true; do
 	# clones and builds accumulo and  accumulo-testing to EC2
 	ssh $CLUSTERUSER@$PROXYIP "git clone --single-branch --branch 2.0 --depth=1 $ACCUMULO_REPO &"
 	ssh $CLUSTERUSER@$PROXYIP "cd accumulo && $M2/mvn clean install -PskipQA && cd .. &"
-	ssh $CLUSTERUSER@$PROXYIP "git clone ACCUMULO_TESTING_REPO &"
+	ssh $CLUSTERUSER@$PROXYIP "git clone $ACCUMULO_TESTING_REPO &"
 	ssh $CLUSTERUSER@$PROXYIP "cd accumulo-testing && $M2/mvn clean package &"
 
 	break
