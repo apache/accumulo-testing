@@ -20,6 +20,7 @@ import java.util.Properties;
 import java.util.SortedSet;
 
 import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.NamespaceNotFoundException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
@@ -150,7 +151,7 @@ public class Config extends Test {
           env.getAccumuloClient().namespaceOperations().setProperty(namespace, property.getKey(),
               property.getDefaultValue());
         } catch (AccumuloException ex) {
-          if (ex.getCause() instanceof TableNotFoundException) {
+          if (ex.getCause() instanceof NamespaceNotFoundException) {
             return;
           }
           throw ex;
