@@ -19,7 +19,9 @@ bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
 
 if [ -f "$at_home/conf/env.sh" ]; then
-  . "$at_home"/conf/env.sh
+  conf="$at_home/conf/env.sh"
 else
-  . "$at_home"/conf/env.sh.example
+  conf="$at_home/conf/env.sh.example"
 fi
+echo "Using $conf for setup"
+source $conf
