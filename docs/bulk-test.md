@@ -53,10 +53,16 @@ scan -t accumulo.metadata -b ~blip -e ~blip~
 scan -t accumulo.metadata -c loaded
 ```
 
-The counts (add referenced and unrefrenced) output by `cingest verify` should equal :
+The referenced counts output by `cingest verify` should equal :
 
 ```
-test.ci.bulk.map.task * test.ci.bulk.map.nodes * num_bulk_generate_jobs
+test.ci.bulk.map.task * (test.ci.bulk.map.nodes -1) * num_bulk_generate_jobs
+``` 
+
+The unreferenced counts output by `cingest verify` should equal :
+
+```
+test.ci.bulk.map.task * num_bulk_generate_jobs
 ``` 
 
 Its possible the counts could be slightly smaller because of collisions. However collisions 
