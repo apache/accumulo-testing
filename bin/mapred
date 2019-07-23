@@ -53,7 +53,7 @@ esac
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
-if [ ! -z $HADOOP_HOME ]; then
+if [ -n "$HADOOP_HOME" ]; then
   export HADOOP_USE_CLIENT_CLASSLOADER=true
   "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$mr_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS" "${@:2}" 
 else
