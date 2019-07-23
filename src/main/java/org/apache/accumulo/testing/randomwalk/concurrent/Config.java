@@ -222,7 +222,7 @@ public class Config extends Test {
       env.getAccumuloClient().namespaceOperations().setProperty(namespace,
           setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
-      if (ex.getCause() instanceof TableNotFoundException) {
+      if (ex.getCause() instanceof NamespaceNotFoundException) {
         return;
       }
       throw ex;
