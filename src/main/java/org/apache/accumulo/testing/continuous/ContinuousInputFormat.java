@@ -25,6 +25,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -128,7 +130,12 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
         maxQual = job.getConfiguration().getInt(PROP_QUAL_MAX, Short.MAX_VALUE);
         checksum = job.getConfiguration().getBoolean(PROP_CHECKSUM, false);
 
-        random = new Random();
+        try {
+          random = new Random(SecureRandom.getInstanceStrong().nextLong());
+        } catch (NoSuchAlgorithmException e) {
+          throw new AssertionError(
+              "Seeding random from a strong secure random algorithm should never fail", e);
+        }
         nodeCount = 0;
       }
 
@@ -158,9 +165,8 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
 
         if (nodeCount < numNodes) {
           CRC32 cksum = checksum ? new CRC32() : null;
-          byte[] prevRow = prevKey != null ? prevKey.getRowData().toArray() : null;
-
           prevKey = currKey;
+          byte[] prevRow = prevKey != null ? prevKey.getRowData().toArray() : null;
           currKey = genKey(cksum);
           currValue = new Value(createValue(uuid, prevRow, cksum));
 
