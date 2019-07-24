@@ -17,6 +17,6 @@ cache:
   directories:
     - $HOME/.m2
 jdk:
-  - oraclejdk8
+  - openjdk8
 install: true
 script: mvn clean verify
