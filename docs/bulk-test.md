@@ -30,6 +30,9 @@ for i in $(seq 1 10); do
   ./bin/cingest bulk /tmp/bt/$i
 done
 
+# Optionally, copy data before importing.  This can be useful in debugging problems.
+hadoop distcp hdfs://$NAMENODE/tmp/bt hdfs://$NAMENODE/tmp/bt-copy
+
 for i in $(seq 1 10); do
   (
     echo table ci
@@ -51,6 +54,12 @@ not be any.
 ```
 scan -t accumulo.metadata -b ~blip -e ~blip~
 scan -t accumulo.metadata -c loaded
+```
+
+Additionally check that no rfiles exists in the source dir.
+
+```bash
+hadoop fs -ls -R /tmp/bt | grep rf
 ```
 
 The referenced counts output by `cingest verify` should equal :
