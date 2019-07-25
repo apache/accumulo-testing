@@ -19,4 +19,4 @@ cache:
 jdk:
   - openjdk8
 install: true
-script: mvn clean verify
+script: mvn clean verify -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
