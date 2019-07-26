@@ -115,8 +115,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
       cmuts.add(cm);
     }
 
-    // long t1 = System.currentTimeMillis();
     long t1 = System.nanoTime();
+
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
     while (results.hasNext()) {
@@ -134,7 +134,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000 / TimeUnit.MICROSECONDS.toSeconds(t2 - t1);
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runRandomizeConditionalMutationsTest(Environment env, String tableName,
@@ -198,8 +198,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
     cmuts.add(cm);
 
-    // long t1 = System.currentTimeMillis();
     long t1 = System.nanoTime();
+
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
     while (results.hasNext()) {
@@ -217,7 +217,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000 / TimeUnit.MICROSECONDS.toSeconds(t2 - t1);
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runRandomizeBatchScanAndWriteTest(Environment env, String tableName,
@@ -278,8 +278,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
     bw.addMutation(cm);
     bw.flush();
 
-    // long t1 = System.currentTimeMillis();
     long t1 = System.nanoTime();
+
     bs.setRanges(ranges);
 
     int count = 0;
@@ -292,7 +292,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000 / TimeUnit.MICROSECONDS.toSeconds(t2 - t1);
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runSetBlockSizeTest(Environment env, String tableName,
@@ -422,8 +422,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
       cmuts.add(cm);
     }
 
-    // long t1 = System.currentTimeMillis();
     long t1 = System.nanoTime();
+
     int count = 0;
 
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
@@ -442,6 +442,6 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 30000 / TimeUnit.MICROSECONDS.toSeconds(t2 - t1);
+    return 30000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 }
