@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -52,7 +53,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     String tableName = "foo";
 
     Report.Builder reportBuilder = Report.builder();
-    reportBuilder.id("condmut");
+    reportBuilder.id("Conditional Mutations");
     reportBuilder.description("Runs conditional mutations tests with and without randomization,"
         + "setting of block size, and with and without randomization of batch writing/reading.");
 
@@ -76,49 +77,45 @@ public class ConditionalMutationsPT implements PerformanceTest {
     ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig());
 
-    conditionalMutationsTime(cw, null, "0", reportBuilder);
+    conditionalMutationsTime(cw, 0);
 
     double rateSum = 0.0;
-    for (int i = 1; i < 20; i++) {
-      rateSum += conditionalMutationsTime(cw, (long) i, ((Integer) i).toString(), reportBuilder);
+    for (long i = 1; i < 20; i++) {
+      rateSum += conditionalMutationsTime(cw, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "ConditionalMutationsTest:  average rate (in seconds) to run sequence 1-19");
-
-    // System.out.printf("rate avg : %6.2f conditionalMutations/sec \n", rateSum / 20);
-    // System.out.println("Flushing");
+    reportBuilder.result("avgRate: 1-19",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "ConditionalMutationsTest: average rate (conditions/sec) to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0.0;
-    for (int i = 20; i < 40; i++) {
-      rateSum += conditionalMutationsTime(cw, (long) i, ((Integer) i).toString(), reportBuilder);
+    for (long i = 20; i < 40; i++) {
+      rateSum += conditionalMutationsTime(cw, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "ConditionalMutationsTest:  average rate (in seconds) to run sequence 20-39");
-
-    // System.out.printf("rate avg: %6.2f conditionalMutations/sec \n", rateSum / 20);
-
+    reportBuilder.result("avgRate: 20-39",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "ConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
   }
 
-  public static double conditionalMutationsTime(ConditionalWriter cw, Long seq, String testRun,
-      Report.Builder reportBuilder) throws Exception {
+  public static double conditionalMutationsTime(ConditionalWriter cw, long seq) throws Exception {
+
     ArrayList<ConditionalMutation> cmuts = new ArrayList<>();
 
     for (int i = 0; i < 10000; i++) {
       Condition cond = new Condition("meta", "seq");
-      if (seq != null) {
+      if (seq != 0) {
         cond.setValue("" + seq);
       }
 
       ConditionalMutation cm = new ConditionalMutation(String.format("r%07d", i), cond);
-      cm.put("meta", "seq", seq == null ? "1" : (seq + 1) + "");
+      cm.put("meta", "seq", seq == 0 ? "1" : (seq + 1) + "");
       cmuts.add(cm);
     }
 
-    long t1 = System.currentTimeMillis();
+    long t1 = System.nanoTime();
 
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
@@ -134,17 +131,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
     if (cmuts.size() != count) {
       throw new RuntimeException();
     }
-    long t2 = System.currentTimeMillis();
 
-    double rate = 10000 / ((t2 - t1) / 1000.0);
+    long t2 = System.nanoTime();
 
-    // reportBuilder.info("time" + testRun, (t2 - t1), "ConditionalMutationsTest: time in seconds");
-    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-    // "ConditionalMutationsTest: conditionalMutations/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f conditionalMutations/sec \n", (t2 - t1), rate);
-
-    return rate;
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runRandomizeConditionalMutationsTest(Environment env, String tableName,
@@ -159,69 +149,56 @@ public class ConditionalMutationsPT implements PerformanceTest {
     ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig());
 
-    boolean randomize = true;
-
-    randomizeConditionalMutationsTime(cw, null, "0", reportBuilder, randomize);
+    randomizeConditionalMutationsTime(cw, 0);
 
     double rateSum = 0;
-    for (int i = 1; i < 20; i++) {
-      rateSum += randomizeConditionalMutationsTime(cw, (long) i, ((Integer) i).toString(),
-          reportBuilder, randomize);
+    for (long i = 1; i < 20; i++) {
+      rateSum += randomizeConditionalMutationsTime(cw, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "RandomizeConditionalMutationsTest:  average rate (in seconds) to run sequence 1-19");
-
-    // System.out.printf("rate avg : %6.2f conditionalMutations/sec \n", rateSum / 20);
-    // System.out.println("Flushing");
+    reportBuilder.result("avgRate: 1-19",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0;
-    for (int i = 20; i < 40; i++) {
-      rateSum += randomizeConditionalMutationsTime(cw, (long) i, ((Integer) i).toString(),
-          reportBuilder, randomize);
+    for (long i = 20; i < 40; i++) {
+      rateSum += randomizeConditionalMutationsTime(cw, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "RandomizeConditionalMutationsTest:  average rate (in seconds) to run sequence 20-39");
-
-    // System.out.printf("rate avg: %6.2f conditionalMutations/sec \n", rateSum / 20);
+    reportBuilder.result("avgRate: 20-39",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
   }
 
-  private static double randomizeConditionalMutationsTime(ConditionalWriter cw, Long seq,
-      String testRun, Report.Builder reportBuilder, boolean randomize) throws Exception {
+  private static double randomizeConditionalMutationsTime(ConditionalWriter cw, long seq)
+      throws Exception {
 
     ArrayList<ConditionalMutation> cmuts = new ArrayList<>();
-
     ConditionalMutation cm = new ConditionalMutation("r01");
-
     ArrayList<Integer> ints = new ArrayList<>(10000);
 
     for (int i = 0; i < 10000; i++) {
       ints.add(i);
     }
-
-    if (randomize) {
-      Collections.shuffle(ints);
-    }
+    Collections.shuffle(ints);
 
     for (int i = 0; i < 10000; i++) {
       String qual = String.format("q%07d", ints.get(i));
 
       Condition cond = new Condition("seq", qual);
-      if (seq != null) {
+      if (seq != 0) {
         cond.setValue("" + seq);
       }
 
       cm.addCondition(cond);
 
-      cm.put("seq", qual, seq == null ? "1" : (seq + 1) + "");
+      cm.put("seq", qual, seq == 0 ? "1" : (seq + 1) + "");
     }
-
     cmuts.add(cm);
 
-    long t1 = System.currentTimeMillis();
+    long t1 = System.nanoTime();
 
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
@@ -237,18 +214,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
     if (cmuts.size() != count) {
       throw new RuntimeException();
     }
-    long t2 = System.currentTimeMillis();
 
-    double rate = 10000 / ((t2 - t1) / 1000.0);
+    long t2 = System.nanoTime();
 
-    // reportBuilder.info("time" + testRun, (t2 - t1),
-    // "RandomizeConditionalMutationsTest: time in seconds");
-    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-    // "RandomizeConditionalMutationsTest: conditionalMutations/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f conditionalMutations/sec \n", (t2 - t1), rate);
-
-    return rate;
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runRandomizeBatchScanAndWriteTest(Environment env, String tableName,
@@ -263,66 +232,53 @@ public class ConditionalMutationsPT implements PerformanceTest {
     BatchWriter bw = env.getClient().createBatchWriter(tableName, new BatchWriterConfig());
     BatchScanner bs = env.getClient().createBatchScanner(tableName, Authorizations.EMPTY, 1);
 
-    boolean randomize = true;
-
-    randomizeBatchWriteAndScanTime(bw, bs, null, "0", reportBuilder, randomize);
+    randomizeBatchWriteAndScanTime(bw, bs, 0);
 
     double rateSum = 0;
 
-    for (int i = 1; i < 20; i++) {
-      rateSum += randomizeBatchWriteAndScanTime(bw, bs, (long) i, ((Integer) i).toString(),
-          reportBuilder, randomize);
+    for (long i = 1; i < 20; i++) {
+      rateSum += randomizeBatchWriteAndScanTime(bw, bs, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "RandomizeBatchScanAndWriteTest:  average rate (in seconds) to write and scan sequence 1-19");
-
-    // System.out.printf("rate avg : %6.2f \n", rateSum / 20);
-    // System.out.println("Flushing");
+    reportBuilder.result("avgRate: 1-19",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0;
-    for (int i = 20; i < 40; i++) {
-      rateSum += randomizeBatchWriteAndScanTime(bw, bs, (long) i, ((Integer) i).toString(),
-          reportBuilder, randomize);
+    for (long i = 20; i < 40; i++) {
+      rateSum += randomizeBatchWriteAndScanTime(bw, bs, i);
     }
 
-    reportBuilder.result("avgRate", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "RandomizeBatchScanAndWriteTest:  average rate (in seconds) to write and scan sequence 20-39 post flush");
-
-    // System.out.printf("rate avg : %6.2f \n", rateSum / 20);
+    reportBuilder.result("avgRate: 20-39",
+        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 20-39 post flush");
   }
 
-  private static double randomizeBatchWriteAndScanTime(BatchWriter bw, BatchScanner bs, Long seq,
-      String testRun, Report.Builder reportBuilder, boolean randomize) throws Exception {
+  private static double randomizeBatchWriteAndScanTime(BatchWriter bw, BatchScanner bs, long seq)
+      throws Exception {
 
     ArrayList<Range> ranges = new ArrayList<>();
-
     Mutation cm = new Mutation("r01");
-
     ArrayList<Integer> ints = new ArrayList<>(10000);
 
     for (int i = 0; i < 10000; i++) {
       ints.add(i);
     }
-
-    if (randomize) {
-      Collections.shuffle(ints);
-    }
+    Collections.shuffle(ints);
 
     for (int i = 0; i < 10000; i++) {
       String qual = String.format("q%07d", ints.get(i));
-      cm.put("seq", qual, seq == null ? "1" : (seq + 1) + "");
+      cm.put("seq", qual, seq == 0 ? "1" : (seq + 1) + "");
       // look between existing values
       ranges.add(Range.exact("r01", "seq", qual + ".a"));
     }
 
-    long t1 = System.currentTimeMillis();
     bw.addMutation(cm);
     bw.flush();
 
-    long t2 = System.currentTimeMillis();
+    long t1 = System.nanoTime();
 
     bs.setRanges(ranges);
 
@@ -334,24 +290,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
       throw new RuntimeException("count = " + count);
     }
 
-    long t3 = System.currentTimeMillis();
+    long t2 = System.nanoTime();
 
-    double rate1 = 10000 / ((t2 - t1) / 1000.0);
-    double rate2 = 10000 / ((t3 - t2) / 1000.0);
-
-    // reportBuilder.info("time" + testRun, (t2 - t1),
-    // "RandomizeBatchScanAndWriteTest: time in milliseconds to write and flush mutations");
-    // reportBuilder.info("writeRate" + testRun, new Double(new
-    // DecimalFormat("#0.00").format(rate1)),
-    // "RandomizeBatchScanAndWriteTest: writes/sec");
-    // reportBuilder.info("readRate" + testRun, new Double(new
-    // DecimalFormat("#0.00").format(rate2)),
-    // "RandomizeBatchScanAndWriteTest: reads/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f writes/sec %6.2f reads/sec \n", (t2 - t1), rate1,
-    // rate2);
-
-    return rate2;
+    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 
   private static void runSetBlockSizeTest(Environment env, String tableName,
@@ -371,81 +312,59 @@ public class ConditionalMutationsPT implements PerformanceTest {
     int numCols = 100;
     int numTest = 10;
 
-    writeData(env, tableName, numRows, numCols, reportBuilder);
-    writeLgData(env, tableName, numRows, reportBuilder);
+    writeData(env, tableName, numRows, numCols);
+    writeLgData(env, tableName, numRows);
 
     ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig());
 
     double rateSum = 0;
-    // String testRun = "_SetBlockSizeTest1";
     for (int i = 0; i < numTest; i++) {
-      rateSum += setBlockSizeTime(cw, numRows, numCols, ((Integer) i).toString(), reportBuilder);
+      rateSum += setBlockSizeTime(cw, numRows, numCols);
     }
 
     reportBuilder.result("avgRate1",
         new Double(new DecimalFormat("#0.00").format(rateSum / numTest)),
-        "SetBlockSizeTest:  average rate in conditions/sec");
-
-    // System.out.printf("rate avg : %6.2f conditions/sec \n", rateSum / numTest);
-    // System.out.println("Flushing");
+        "SetBlockSizeTest: average rate in conditions/sec");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0;
-    // testRun = "_SetBlockSizeTest2";
     for (int i = 0; i < numTest; i++) {
-      rateSum += setBlockSizeTime(cw, numRows, numCols, ((Integer) i).toString(), reportBuilder);
+      rateSum += setBlockSizeTime(cw, numRows, numCols);
     }
 
     reportBuilder.result("avgRate2",
         new Double(new DecimalFormat("#0.00").format(rateSum / numTest)),
-        "SetBlockSizeTest:  average rate in conditions/sec post flush");
-
-    // System.out.printf("rate avg : %6.2f conditions/sec \n", rateSum / numTest);
-    // System.out.println("Compacting");
+        "SetBlockSizeTest: average rate in conditions/sec post flush");
 
     env.getClient().tableOperations().compact(tableName, null, null, true, true);
 
     rateSum = 0;
-    // testRun = "_SetBlockSizeTest3";
     for (int i = 0; i < numTest; i++) {
-      rateSum += setBlockSizeTime(cw, numRows, numCols, ((Integer) i).toString(), reportBuilder);
+      rateSum += setBlockSizeTime(cw, numRows, numCols);
     }
 
     reportBuilder.result("avgRate3", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
-        "SetBlockSizeTest:  average rate in conditions/sec post compaction");
-
-    // System.out.printf("rate avg : %6.2f conditions/sec \n", rateSum / numTest);
+        "SetBlockSizeTest: average rate in conditions/sec post compaction");
+    reportBuilder.parameter("numRows", numRows, "SetBlockSizeTest: The number of rows");
+    reportBuilder.parameter("numCols", numCols, "SetBlockSizeTest: The number of columns");
+    reportBuilder.parameter("numTest", numTest,
+        "SetBlockSizeTest: The number of tests ran per trial");
   }
 
-  private static void writeData(Environment env, String tableName, int numRows, int numCols,
-      Report.Builder reportBuilder) throws TableNotFoundException, MutationsRejectedException {
-
-    long t1 = System.currentTimeMillis();
+  private static void writeData(Environment env, String tableName, int numRows, int numCols)
+      throws TableNotFoundException, MutationsRejectedException {
 
     BatchWriter bw = env.getClient().createBatchWriter(tableName, new BatchWriterConfig());
-
     for (int row = 0; row < numRows; row++) {
       bw.addMutation(genRow(row, numCols));
     }
-
     bw.close();
-    long t2 = System.currentTimeMillis();
-
-    double rate = numRows * numCols / ((t2 - t1) / 1000.0);
-
-    // reportBuilder.info("time", (t2 - t1),
-    // "WriteData_SetBlockSizeTest: time (in seconds) to write the entries");
-    // reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
-    // "WriteData_SetBlockSizeTest: entries/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f entries/sec written\n", (t2 - t1), rate);
   }
 
   private static Mutation genRow(int row, int numCols) {
     String r = String.format("%08x", Math.abs(Hashing.murmur3_32().hashInt(row).asInt()));
-
     Mutation m = new Mutation(r);
 
     for (int col = 0; col < numCols; col++) {
@@ -453,40 +372,21 @@ public class ConditionalMutationsPT implements PerformanceTest {
           Math.abs(Hashing.murmur3_32().hashInt(col).asInt() & 0xffff));
       m.put("data", c, "1");
     }
-
     return m;
   }
 
-  private static void writeLgData(Environment env, String tableName, int numRows,
-      Report.Builder reportBuilder) throws TableNotFoundException, MutationsRejectedException {
-
-    String testName = "WriteLgDataForSetBlockSizeTest";
-
-    long t1 = System.currentTimeMillis();
+  private static void writeLgData(Environment env, String tableName, int numRows)
+      throws TableNotFoundException, MutationsRejectedException {
 
     BatchWriter bw = env.getClient().createBatchWriter(tableName, new BatchWriterConfig());
-
     numRows = numRows * 10;
-
     for (int row = 0; row < numRows; row++) {
       String r = String.format("%08x", Math.abs(Hashing.murmur3_32().hashInt(row).asInt()));
-
       Mutation m = new Mutation(r);
       m.put("ntfy", "absfasf3", "");
       bw.addMutation(m);
     }
-
     bw.close();
-    long t2 = System.currentTimeMillis();
-
-    double rate = numRows / ((t2 - t1) / 1000.0);
-
-    // reportBuilder.info("time", (t2 - t1),
-    // "WriteLgData_SetBlockSizeTest: time (in seconds) to write the entries");
-    // reportBuilder.info("rate", new Double(new DecimalFormat("#0.00").format(rate)),
-    // "WriteLgData_SetBlockSizeTest: entries/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f entries/sec written\n", (t2 - t1), rate);
   }
 
   private static String randRow(Random rand, int numRows) {
@@ -495,22 +395,20 @@ public class ConditionalMutationsPT implements PerformanceTest {
   }
 
   private static Collection<String> randCols(Random rand, int num, int numCols) {
-    HashSet<String> cols = new HashSet<String>();
+    HashSet<String> cols = new HashSet<>();
     while (cols.size() < num) {
       int col = rand.nextInt(numCols);
       String c = String.format("%04x",
           Math.abs(Hashing.murmur3_32().hashInt(col).asInt() & 0xffff));
       cols.add(c);
     }
-
     return cols;
   }
 
-  private static double setBlockSizeTime(ConditionalWriter cw, int numRows, int numCols,
-      String testRun, Report.Builder reportBuilder) throws Exception {
+  private static double setBlockSizeTime(ConditionalWriter cw, int numRows, int numCols)
+      throws Exception {
 
     Random rand = new Random();
-
     ArrayList<ConditionalMutation> cmuts = new ArrayList<>();
 
     for (int row = 0; row < 3000; row++) {
@@ -524,9 +422,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
       cmuts.add(cm);
     }
 
-    long t1 = System.currentTimeMillis();
+    long t1 = System.nanoTime();
 
     int count = 0;
+
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
     while (results.hasNext()) {
       ConditionalWriter.Result result = results.next();
@@ -540,17 +439,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
     if (cmuts.size() != count) {
       throw new RuntimeException();
     }
-    long t2 = System.currentTimeMillis();
 
-    double rate = 30000 / ((t2 - t1) / 1000.0);
+    long t2 = System.nanoTime();
 
-    // reportBuilder.info("time" + testRun, (t2 - t1),
-    // "SetBlockSizeTest: time (in seconds) to write conditions");
-    // reportBuilder.info("rate" + testRun, new Double(new DecimalFormat("#0.00").format(rate)),
-    // "SetBlockSizeTest: conditions/sec");
-
-    // System.out.printf("time: %d ms rate : %6.2f conditions/sec \n", (t2 - t1), rate);
-
-    return rate;
+    return 30000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
 }
