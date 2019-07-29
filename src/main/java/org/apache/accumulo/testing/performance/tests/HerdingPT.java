@@ -86,7 +86,7 @@ public class HerdingPT implements PerformanceTest {
     final AccumuloClient client = env.getClient();
     initTable(client);
     long herdTime = getHerdingDuration(client);
-    reportBuilder.parameter("herd_time", herdTime, "The time (in ms) it took herding to complete.");
+    reportBuilder.result("herd_time", herdTime, "The time (in ms) it took herding to complete.");
 
     return reportBuilder.build();
   }
