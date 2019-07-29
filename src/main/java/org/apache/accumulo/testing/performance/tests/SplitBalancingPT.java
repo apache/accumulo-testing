@@ -63,15 +63,10 @@ public class SplitBalancingPT implements PerformanceTest {
       boolean balanced = count >= min && count <= max;
       allServersBalanced = allServersBalanced & balanced;
 
-      reportBuilder
-          .parameter("size_tserver_" + tabletServer, count,
-              "Total tablets assigned to tablet server " + tabletServer)
-          .parameter("is_balanced_tserver_" + tabletServer, balanced,
-              "Whether or not tablet server " + tabletServer + " is balanced.");
+      reportBuilder.result("size_tserver_" + tabletServer, count,
+          "Total tablets assigned to tablet server " + tabletServer);
     }
 
-    reportBuilder.parameter("balanced", allServersBalanced,
-        "Whether or not all tablet servers are balanced correctly.");
     return reportBuilder.build();
   }
 

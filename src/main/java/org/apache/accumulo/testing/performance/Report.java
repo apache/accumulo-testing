@@ -97,11 +97,6 @@ public class Report {
       return this;
     }
 
-    public Builder parameter(String id, boolean data, String description) {
-      parameters.add(new Parameter(id, String.valueOf(data), description));
-      return this;
-    }
-
     public Report build() {
       return new Report(id, description, results.build(), parameters.build());
     }

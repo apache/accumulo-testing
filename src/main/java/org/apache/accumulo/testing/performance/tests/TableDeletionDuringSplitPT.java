@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -96,17 +95,17 @@ public class TableDeletionDuringSplitPT implements PerformanceTest {
 
     List<Runnable> queued = pool.shutdownNow();
 
-    reportBuilder.parameter("remaining_pending_tasks", countRemaining(iter),
+    reportBuilder.result("remaining_pending_tasks", countRemaining(iter),
         "The number of remaining pending tasks.");
-    reportBuilder.parameter("remaining_submitted_tasks", queued.size(),
+    reportBuilder.result("remaining_submitted_tasks", queued.size(),
         "The number of remaining submitted tasks.");
 
-    String remainingTables = Arrays.stream(tableNames)
-        .filter((name) -> client.tableOperations().exists(name)).collect(Collectors.joining(","));
-    reportBuilder.parameter("remaining_tables", remainingTables,
-        "Comma delimited list of unsuccessfully deleted tables.");
+    long totalRemainingTables = Arrays.stream(tableNames)
+        .filter((name) -> client.tableOperations().exists(name)).count();
+    reportBuilder.result("total_remaining_tables", totalRemainingTables,
+        "The total number of unsuccessfully deleted tables.");
     Long deletionTime = deletionTimes.sum() / deletedTables.get();
-    reportBuilder.parameter("avg_deletion_time", deletionTime,
+    reportBuilder.result("avg_deletion_time", deletionTime,
         "The average deletion time (in ms) to delete a table.");
   }
 
