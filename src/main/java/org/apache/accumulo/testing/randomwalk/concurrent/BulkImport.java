@@ -126,8 +126,8 @@ public class BulkImport extends Test {
         bw.close();
       }
 
-      client.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f",
-          rand.nextBoolean());
+      client.tableOperations().importDirectory(bulkDir).to(tableName).tableTime(rand.nextBoolean())
+          .load();
 
       log.debug("BulkImported to " + tableName);
     } catch (TableNotFoundException e) {

@@ -140,69 +140,71 @@ public class ContinuousVerify extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
 
-    ContinuousEnv env = new ContinuousEnv(args);
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    String tableName = env.getAccumuloTableName();
+      String tableName = env.getAccumuloTableName();
 
-    Job job = Job.getInstance(getConf(),
-        this.getClass().getSimpleName() + "_" + tableName + "_" + System.currentTimeMillis());
-    job.setJarByClass(this.getClass());
+      Job job = Job.getInstance(getConf(),
+          this.getClass().getSimpleName() + "_" + tableName + "_" + System.currentTimeMillis());
+      job.setJarByClass(this.getClass());
 
-    job.setInputFormatClass(AccumuloInputFormat.class);
+      job.setInputFormatClass(AccumuloInputFormat.class);
 
-    boolean scanOffline = Boolean
-        .parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
-    int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
-    int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
-    String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
+      boolean scanOffline = Boolean
+          .parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
+      int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
+      int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
+      String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
 
-    Set<Range> ranges;
-    String clone = "";
-    AccumuloClient client = env.getAccumuloClient();
-    String table;
+      Set<Range> ranges;
+      String clone = "";
+      AccumuloClient client = env.getAccumuloClient();
+      String table;
 
-    if (scanOffline) {
-      Random random = new Random();
-      clone = tableName + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffL));
-      client.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
-      ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
-      client.tableOperations().offline(clone);
-      table = clone;
-    } else {
-      ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
-      table = tableName;
+      if (scanOffline) {
+        Random random = new Random();
+        clone = tableName + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffL));
+        client.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
+        ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
+        client.tableOperations().offline(clone);
+        table = clone;
+      } else {
+        ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
+        table = tableName;
+      }
+
+      AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
+          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
+
+      job.setMapperClass(CMapper.class);
+      job.setMapOutputKeyClass(LongWritable.class);
+      job.setMapOutputValueClass(VLongWritable.class);
+
+      job.setReducerClass(CReducer.class);
+      job.setNumReduceTasks(reducers);
+
+      job.setOutputFormatClass(TextOutputFormat.class);
+
+      job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
+      job.getConfiguration().set("mapreduce.job.classloader", "true");
+
+      TextOutputFormat.setOutputPath(job, new Path(outputDir));
+
+      job.waitForCompletion(true);
+
+      if (scanOffline) {
+        client.tableOperations().delete(clone);
+      }
+      return job.isSuccessful() ? 0 : 1;
     }
-
-    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
-        .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
-
-    job.setMapperClass(CMapper.class);
-    job.setMapOutputKeyClass(LongWritable.class);
-    job.setMapOutputValueClass(VLongWritable.class);
-
-    job.setReducerClass(CReducer.class);
-    job.setNumReduceTasks(reducers);
-
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
-    job.getConfiguration().set("mapreduce.job.classloader", "true");
-
-    TextOutputFormat.setOutputPath(job, new Path(outputDir));
-
-    job.waitForCompletion(true);
-
-    if (scanOffline) {
-      client.tableOperations().delete(clone);
-    }
-    return job.isSuccessful() ? 0 : 1;
   }
 
   public static void main(String[] args) throws Exception {
-    ContinuousEnv env = new ContinuousEnv(args);
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousVerify(), args);
-    if (res != 0)
-      System.exit(res);
+      int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousVerify(), args);
+      if (res != 0)
+        System.exit(res);
+    }
   }
 }

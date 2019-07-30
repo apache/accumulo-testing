@@ -240,7 +240,7 @@ public class TableOp extends Test {
             rFileWriter.append(k, new Value("Value".getBytes(UTF_8)));
           rFileWriter.close();
           try {
-            tableOps.importDirectory(tableName, dir.toString(), fail.toString(), true);
+            tableOps.importDirectory(dir.toString()).to(tableName).tableTime(true).load();
           } catch (TableNotFoundException tnfe) {
             if (tableExists)
               throw new AccumuloException("Table didn't exist when it should have: " + tableName);
@@ -293,6 +293,9 @@ public class TableOp extends Test {
           props.setProperty("source", "table");
           DropTable.dropTable(state, env, props);
           break;
+
+        case GET_SUMMARIES:
+          throw new UnsupportedOperationException("GET_SUMMARIES not implemented");
       }
     }
   }

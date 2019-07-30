@@ -52,6 +52,8 @@ public class Config extends Test {
     return new Setting(property, min, max);
   }
 
+  @SuppressWarnings("deprecation")
+  Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_READ_AHEAD_MAXCONCURRENT;
   // @formatter:off
 	Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
@@ -69,7 +71,7 @@ public class Config extends Test {
 			s(Property.TSERV_DEFAULT_BLOCKSIZE, 100000, 10000000L),
 			s(Property.TSERV_MAX_IDLE, 10000, 500 * 1000),
 			s(Property.TSERV_MAXMEM, 1000000, 3 * 1024 * 1024 * 1024L),
-			s(Property.TSERV_READ_AHEAD_MAXCONCURRENT, 1, 25),
+			s(TSERV_READ_AHEAD_MAXCONCURRENT_deprecated, 1, 25),
 			s(Property.TSERV_MIGRATE_MAXCONCURRENT, 1, 10),
 			s(Property.TSERV_TOTAL_MUTATION_QUEUE_MAX, 10000, 1024 * 1024),
 			s(Property.TSERV_RECOVERY_MAX_CONCURRENT, 1, 100),

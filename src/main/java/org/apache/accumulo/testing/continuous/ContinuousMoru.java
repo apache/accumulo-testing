@@ -112,44 +112,45 @@ public class ContinuousMoru extends Configured implements Tool {
 
   @Override
   public int run(String[] args) throws Exception {
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-    ContinuousEnv env = new ContinuousEnv(args);
+      Job job = Job.getInstance(getConf(),
+          this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
+      job.setJarByClass(this.getClass());
+      job.setInputFormatClass(AccumuloInputFormat.class);
 
-    Job job = Job.getInstance(getConf(),
-        this.getClass().getSimpleName() + "_" + System.currentTimeMillis());
-    job.setJarByClass(this.getClass());
-    job.setInputFormatClass(AccumuloInputFormat.class);
+      int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
+      Set<Range> ranges = env.getAccumuloClient().tableOperations()
+          .splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
 
-    int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
-    Set<Range> ranges = env.getAccumuloClient().tableOperations()
-        .splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
+      AccumuloInputFormat.configure().clientProperties(env.getClientProps())
+          .table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
 
-    AccumuloInputFormat.configure().clientProperties(env.getClientProps())
-        .table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
+      job.setMapperClass(CMapper.class);
+      job.setNumReduceTasks(0);
+      job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-    job.setMapperClass(CMapper.class);
-    job.setNumReduceTasks(0);
-    job.setOutputFormatClass(AccumuloOutputFormat.class);
+      AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+          .defaultTable(env.getAccumuloTableName()).store(job);
 
-    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
-        .defaultTable(env.getAccumuloTableName()).store(job);
+      Configuration conf = job.getConfiguration();
+      conf.setLong(MIN, env.getRowMin());
+      conf.setLong(MAX, env.getRowMax());
+      conf.setInt(MAX_CF, env.getMaxColF());
+      conf.setInt(MAX_CQ, env.getMaxColQ());
+      conf.set(CI_ID, UUID.randomUUID().toString());
+      conf.set("mapreduce.job.classloader", "true");
 
-    Configuration conf = job.getConfiguration();
-    conf.setLong(MIN, env.getRowMin());
-    conf.setLong(MAX, env.getRowMax());
-    conf.setInt(MAX_CF, env.getMaxColF());
-    conf.setInt(MAX_CQ, env.getMaxColQ());
-    conf.set(CI_ID, UUID.randomUUID().toString());
-    conf.set("mapreduce.job.classloader", "true");
-
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+      job.waitForCompletion(true);
+      return job.isSuccessful() ? 0 : 1;
+    }
   }
 
   public static void main(String[] args) throws Exception {
-    ContinuousEnv env = new ContinuousEnv(args);
-    int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousMoru(), args);
-    if (res != 0)
-      System.exit(res);
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
+      int res = ToolRunner.run(env.getHadoopConfiguration(), new ContinuousMoru(), args);
+      if (res != 0)
+        System.exit(res);
+    }
   }
 }

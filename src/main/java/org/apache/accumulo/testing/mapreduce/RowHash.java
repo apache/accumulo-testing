@@ -58,44 +58,46 @@ public class RowHash extends Configured implements Tool {
 
   @Override
   public int run(String[] args) throws Exception {
-    TestEnv env = new TestEnv(args);
-    Job job = Job.getInstance(getConf());
-    job.setJobName(this.getClass().getName());
-    job.setJarByClass(this.getClass());
-    job.setInputFormatClass(AccumuloInputFormat.class);
+    try (TestEnv env = new TestEnv(args)) {
+      Job job = Job.getInstance(getConf());
+      job.setJobName(this.getClass().getName());
+      job.setJarByClass(this.getClass());
+      job.setInputFormatClass(AccumuloInputFormat.class);
 
-    Properties props = env.getTestProperties();
-    String col = props.getProperty(TestProps.ROWHASH_COLUMN);
-    int idx = col.indexOf(":");
-    Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
-    Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
-    Collection<IteratorSetting.Column> cols = Collections.emptyList();
-    if (cf.getLength() > 0)
-      cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
+      Properties props = env.getTestProperties();
+      String col = props.getProperty(TestProps.ROWHASH_COLUMN);
+      int idx = col.indexOf(":");
+      Text cf = new Text(idx < 0 ? col : col.substring(0, idx));
+      Text cq = idx < 0 ? null : new Text(col.substring(idx + 1));
+      Collection<IteratorSetting.Column> cols = Collections.emptyList();
+      if (cf.getLength() > 0)
+        cols = Collections.singleton(new IteratorSetting.Column(cf, cq));
 
-    String inputTable = props.getProperty(TestProps.ROWHASH_INPUT_TABLE);
-    String outputTable = props.getProperty(TestProps.ROWHASH_OUTPUT_TABLE);
+      String inputTable = props.getProperty(TestProps.ROWHASH_INPUT_TABLE);
+      String outputTable = props.getProperty(TestProps.ROWHASH_OUTPUT_TABLE);
 
-    AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(inputTable)
-        .fetchColumns(cols).store(job);
-    AccumuloOutputFormat.configure().clientProperties(env.getClientProps())
-        .defaultTable(outputTable).createTables(true).store(job);
+      AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(inputTable)
+          .fetchColumns(cols).store(job);
+      AccumuloOutputFormat.configure().clientProperties(env.getClientProps())
+          .defaultTable(outputTable).createTables(true).store(job);
 
-    job.getConfiguration().set("mapreduce.job.classloader", "true");
-    job.setMapperClass(HashDataMapper.class);
-    job.setMapOutputKeyClass(Text.class);
-    job.setMapOutputValueClass(Mutation.class);
+      job.getConfiguration().set("mapreduce.job.classloader", "true");
+      job.setMapperClass(HashDataMapper.class);
+      job.setMapOutputKeyClass(Text.class);
+      job.setMapOutputValueClass(Mutation.class);
 
-    job.setNumReduceTasks(0);
+      job.setNumReduceTasks(0);
 
-    job.setOutputFormatClass(AccumuloOutputFormat.class);
+      job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+      job.waitForCompletion(true);
+      return job.isSuccessful() ? 0 : 1;
+    }
   }
 
   public static void main(String[] args) throws Exception {
-    TestEnv env = new TestEnv(args);
-    ToolRunner.run(env.getHadoopConfiguration(), new RowHash(), args);
+    try (TestEnv env = new TestEnv(args)) {
+      ToolRunner.run(env.getHadoopConfiguration(), new RowHash(), args);
+    }
   }
 }

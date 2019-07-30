@@ -22,10 +22,8 @@ import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Condition;
 import org.apache.accumulo.core.data.ConditionalMutation;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.performance.Environment;
 import org.apache.accumulo.testing.performance.PerformanceTest;
@@ -35,6 +33,7 @@ import org.apache.hadoop.io.Text;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.hash.Hashing;
 
 public class ConditionalMutationsPT implements PerformanceTest {
@@ -85,7 +84,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "ConditionalMutationsTest: average rate (conditions/sec) to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -96,7 +95,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 20-39",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "ConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
   }
 
@@ -157,7 +156,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -168,7 +167,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 20-39",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
   }
 
@@ -241,7 +240,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -252,7 +251,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 20-39",
-        new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 20-39 post flush");
   }
 
@@ -282,10 +281,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     bs.setRanges(ranges);
 
-    int count = 0;
-    for (Map.Entry<Key,Value> entry : bs) {
-      count++;
-    }
+    int count = Iterables.size(bs);
     if (0 != count) {
       throw new RuntimeException("count = " + count);
     }
@@ -324,7 +320,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate1",
-        new Double(new DecimalFormat("#0.00").format(rateSum / numTest)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / numTest)),
         "SetBlockSizeTest: average rate in conditions/sec");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -335,7 +331,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate2",
-        new Double(new DecimalFormat("#0.00").format(rateSum / numTest)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / numTest)),
         "SetBlockSizeTest: average rate in conditions/sec post flush");
 
     env.getClient().tableOperations().compact(tableName, null, null, true, true);
@@ -345,7 +341,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
       rateSum += setBlockSizeTime(cw, numRows, numCols);
     }
 
-    reportBuilder.result("avgRate3", new Double(new DecimalFormat("#0.00").format(rateSum / 20)),
+    reportBuilder.result("avgRate3",
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "SetBlockSizeTest: average rate in conditions/sec post compaction");
     reportBuilder.parameter("numRows", numRows, "SetBlockSizeTest: The number of rows");
     reportBuilder.parameter("numCols", numCols, "SetBlockSizeTest: The number of columns");
