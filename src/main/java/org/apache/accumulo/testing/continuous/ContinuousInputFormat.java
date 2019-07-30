@@ -25,7 +25,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,12 +129,8 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
         maxQual = job.getConfiguration().getInt(PROP_QUAL_MAX, Short.MAX_VALUE);
         checksum = job.getConfiguration().getBoolean(PROP_CHECKSUM, false);
 
-        try {
-          random = new Random(SecureRandom.getInstanceStrong().nextLong());
-        } catch (NoSuchAlgorithmException e) {
-          throw new AssertionError(
-              "Seeding random from a strong secure random algorithm should never fail", e);
-        }
+        random = new Random(new SecureRandom().nextLong());
+
         nodeCount = 0;
       }
 
