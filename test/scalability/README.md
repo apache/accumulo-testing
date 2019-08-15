@@ -28,16 +28,16 @@ data.
 1.  Make sure you have both `ACCUMULO_HOME` and `HADOOP_HOME` set in your
     `$ACCUMULO_CONF_DIR/accumulo-env.sh.`
 
-2.  Create a 'site.conf' file in the `conf` directory containing settings
+2.  Edit the 'site.conf' file in the `conf` directory containing settings
     needed by test nodes to connect to Accumulo, and to guide the tests.
 
-    `$ cp conf/site.conf.example conf/site.conf`
+    `$ vim conf/site.conf`
 
-3.  Create an 'Ingest.conf' file in the `conf` directory containing performance
+3.  Edit the 'Ingest.conf' file in the `conf` directory containing performance
     settings for the Ingest test. (This test is currently the only scalability
     test available.)
 
-    `$ cp conf/Ingest.conf.example conf/Ingest.conf`
+    `$ vim conf/Ingest.conf`
 
     Each test has a unique ID (e.g., "Ingest") which correlates with its test
     code in:
