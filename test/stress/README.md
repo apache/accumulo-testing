@@ -55,10 +55,9 @@ to install pssh on the machines that will be controlled by them.
 
 ## Running
 
-Copy `stress-env.sh.example` to `stress-env.sh` and edit it, supplying at least
-correct values for the USERPASS and INSTANCE variables. The remainder of this
-file describes and provides defaults for many of the configuration options
-for the stress utilities.
+Edit the script `stress-env.sh`, supplying at least correct values for the
+USERPASS and INSTANCE variables. The remainder of this file describes and
+provides defaults for many of the configuration options for the stress utilities.
 
 ### Individual Execution
 

@@ -37,7 +37,6 @@ RUN mkdir /opt/at/conf
 COPY ./conf/accumulo-client.properties /opt/at/conf/
 COPY ./conf/accumulo-testing.properties /opt/at/conf/
 COPY ./conf/log4j.properties* /opt/at/conf/
-RUN if [[ ! -f /opt/at/conf/log4j.properties ]]; then mv /opt/at/conf/log4j.properties.example /opt/at/conf/log4j.properties; fi
 RUN touch /opt/at/conf/env.sh
 
 COPY ./bin/cingest /opt/at/bin
