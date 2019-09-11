@@ -39,6 +39,7 @@ COPY ./conf/accumulo-testing.properties /opt/at/conf/
 COPY ./conf/log4j.properties* /opt/at/conf/
 RUN touch /opt/at/conf/env.sh
 
+COPY ./bin/build /opt/at/bin
 COPY ./bin/cingest /opt/at/bin
 COPY ./bin/rwalk /opt/at/bin
 COPY ./bin/gcs /opt/at/bin
