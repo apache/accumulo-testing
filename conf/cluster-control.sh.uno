@@ -71,7 +71,9 @@ function get_version {
 }
 
 function start_cluster {
-  $UNO setup accumulo
+  $UNO install accumulo
+  $UNO run zookeeper
+  $UNO run hadoop
 }
 
 function setup_accumulo {
