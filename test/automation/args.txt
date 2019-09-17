@@ -1,0 +1,7 @@
+https://github.com/apache/accumulo.git
+master
+https://github.com/apache/accumulo-testing.git
+master
+https://github.com/apache/fluo-muchos
+master
+/home/thor/muchos.props
