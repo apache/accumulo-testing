@@ -66,6 +66,18 @@ case "$1" in
       print_usage
       exit 1
     fi
+    # don't start unless we can find the class provided
+    found=false
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read -r test_class; do
+      if [[ "$test_class" == "$3" ]]; then
+        found=true
+      fi
+    done
+    if [[ ! $found ]]; then
+      echo "ERROR: Did not find test class: $3"
+      print_usage
+      exit 1
+    fi
     mkdir -p "$2"
     start_cluster
     CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read -r test_class; do
