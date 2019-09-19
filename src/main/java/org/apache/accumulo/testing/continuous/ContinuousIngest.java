@@ -97,15 +97,7 @@ public class ContinuousIngest {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-      String vis = env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES);
-      if (vis == null) {
-        visibilities = Collections.singletonList(new ColumnVisibility());
-      } else {
-        visibilities = new ArrayList<>();
-        for (String v : vis.split(",")) {
-          visibilities.add(new ColumnVisibility(v.trim()));
-        }
-      }
+      visibilities = parseVisibilities(env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES));
 
       long rowMin = env.getRowMin();
       long rowMax = env.getRowMax();
@@ -213,6 +205,19 @@ public class ContinuousIngest {
       }
       bw.close();
     }
+  }
+
+  public static List<ColumnVisibility> parseVisibilities(String visString) {
+    List<ColumnVisibility> vis;
+    if (visString == null) {
+      vis = Collections.singletonList(new ColumnVisibility());
+    } else {
+      vis = new ArrayList<>();
+      for (String v : visString.split(",")) {
+        vis.add(new ColumnVisibility(v.trim()));
+      }
+    }
+    return vis;
   }
 
   private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime)
