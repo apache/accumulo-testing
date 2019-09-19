@@ -15,10 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 # reads all git repositories and properties from cluster_props.sh
 source cluster_props.sh
 
+
 while true; do
+
+	# check for null properties
+	[ -z "$ACCUMULO_REPO" ] && echo "Check accumulo in cluster_props.sh" && break
+	[ -z "$ACCUMULO_BRANCH" ] && echo "Check accumulo branch in cluster_props.sh" && break
+	[ -z "$ACCUMULO_TESTING_REPO" ] && echo "Check accumulo-testing in cluster_props.sh" && break
+	[ -z "$ACCUMULO_TESTING_BRANCH" ] && echo "Check accumulo-testing branch in cluster_props.sh" && break
+	[ -z "$FLUO_MUCHOS_REPO" ] && echo "Check fluo-muchos in cluster_props.sh" && break
+	[ -z "$FLUO_MUCHOS_BRANCH" ] && echo "Check fluo-muchos branch in cluster_props.sh" && break
+	[ -z "$MUCHOS_PROPS" ] && echo "Check muchos.props in cluster_props.sh" && break
+
 
 
 	# builds Accumulo tarball and installs fluo-muchos in a temporary directory

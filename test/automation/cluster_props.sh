@@ -16,7 +16,7 @@
 # limitations under the License.
 
 export ACCUMULO_REPO=https://github.com/apache/accumulo.git
-export ACCUMULO_BRANCH=2.0
+export ACCUMULO_BRANCH=master
 
 export ACCUMULO_TESTING_REPO=https://github.com/apache/accumulo-testing.git
 export ACCUMULO_TESTING_BRANCH=master
@@ -24,4 +24,5 @@ export ACCUMULO_TESTING_BRANCH=master
 export FLUO_MUCHOS_REPO=https://github.com/apache/fluo-muchos
 export FLUO_MUCHOS_BRANCH=master
 
-export MUCHOS_PROPS=/home/thor/muchos.props
+# path/to/muchos.props
+export MUCHOS_PROPS=
