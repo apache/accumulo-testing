@@ -24,5 +24,5 @@ export ACCUMULO_TESTING_BRANCH=master
 export FLUO_MUCHOS_REPO=https://github.com/apache/fluo-muchos
 export FLUO_MUCHOS_BRANCH=master
 
-# path/to/muchos.props
-export MUCHOS_PROPS=
+export MUCHOS_PROPS=${MUCHOS_PROPS:-/path/to/muchos/props}
+

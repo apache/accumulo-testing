@@ -18,8 +18,6 @@
 
 # reads all git repositories and properties from cluster_props.sh
 source cluster_props.sh
-
-
 while true; do
 
 	# check for null properties
@@ -29,7 +27,7 @@ while true; do
 	[ -z "$ACCUMULO_TESTING_BRANCH" ] && echo "Check accumulo-testing branch in cluster_props.sh" && break
 	[ -z "$FLUO_MUCHOS_REPO" ] && echo "Check fluo-muchos in cluster_props.sh" && break
 	[ -z "$FLUO_MUCHOS_BRANCH" ] && echo "Check fluo-muchos branch in cluster_props.sh" && break
-	[ -z "$MUCHOS_PROPS" ] && echo "Check muchos.props in cluster_props.sh" && break
+	[[ -z "$MUCHOS_PROPS" || ! -f "$MUCHOS_PROPS" ]] && echo "Check muchos.props in cluster_props.sh" && break
 
 
 
@@ -51,7 +49,7 @@ while true; do
 	# sets up the cluster
 	cd $TMPDIR/fluo-muchos || (echo "Could not find Fluo-Muchos" && break)
 	cp conf/muchos.props.example conf/muchos.props
-	cp $MUCHOS_PROPS ./conf/muchos.props || (echo Could not use custom config. Check paths in args.txt)
+	cp $MUCHOS_PROPS ./conf/muchos.props || (echo Could not use custom config. Check path in cluster_props.sh)
 
 	./bin/muchos launch -c "$USER-cluster" && echo "Setting up cluster.."
 	# repeat setup until all nodes are intialized
