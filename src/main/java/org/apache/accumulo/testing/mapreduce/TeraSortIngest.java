@@ -352,42 +352,44 @@ public class TeraSortIngest extends Configured implements Tool {
   }
 
   public static void main(String[] args) throws Exception {
-    TestEnv env = new TestEnv(args);
-    ToolRunner.run(env.getHadoopConfiguration(), new TeraSortIngest(), args);
+    try (TestEnv env = new TestEnv(args)) {
+      ToolRunner.run(env.getHadoopConfiguration(), new TeraSortIngest(), args);
+    }
   }
 
   @Override
   public int run(String[] args) throws Exception {
 
-    TestEnv env = new TestEnv(args);
+    try (TestEnv env = new TestEnv(args)) {
 
-    Job job = Job.getInstance(getConf());
-    job.setJobName("TeraSortIngest");
-    job.setJarByClass(this.getClass());
-    job.setInputFormatClass(RangeInputFormat.class);
-    job.setMapperClass(SortGenMapper.class);
-    job.setMapOutputKeyClass(Text.class);
-    job.setMapOutputValueClass(Mutation.class);
-    job.setNumReduceTasks(0);
-    job.setOutputFormatClass(AccumuloOutputFormat.class);
+      Job job = Job.getInstance(getConf());
+      job.setJobName("TeraSortIngest");
+      job.setJarByClass(this.getClass());
+      job.setInputFormatClass(RangeInputFormat.class);
+      job.setMapperClass(SortGenMapper.class);
+      job.setMapOutputKeyClass(Text.class);
+      job.setMapOutputValueClass(Mutation.class);
+      job.setNumReduceTasks(0);
+      job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-    Properties testProps = env.getTestProperties();
-    String tableName = testProps.getProperty(TestProps.TERASORT_TABLE);
-    Objects.requireNonNull(tableName);
+      Properties testProps = env.getTestProperties();
+      String tableName = testProps.getProperty(TestProps.TERASORT_TABLE);
+      Objects.requireNonNull(tableName);
 
-    AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
-        .defaultTable(tableName).store(job);
+      AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+          .defaultTable(tableName).store(job);
 
-    Configuration conf = job.getConfiguration();
-    conf.set("mapreduce.job.classloader", "true");
-    for (Object keyObj : testProps.keySet()) {
-      String key = (String) keyObj;
-      if (key.startsWith(TestProps.TERASORT)) {
-        conf.set(key, testProps.getProperty(key));
+      Configuration conf = job.getConfiguration();
+      conf.set("mapreduce.job.classloader", "true");
+      for (Object keyObj : testProps.keySet()) {
+        String key = (String) keyObj;
+        if (key.startsWith(TestProps.TERASORT)) {
+          conf.set(key, testProps.getProperty(key));
+        }
       }
-    }
 
-    job.waitForCompletion(true);
-    return job.isSuccessful() ? 0 : 1;
+      job.waitForCompletion(true);
+      return job.isSuccessful() ? 0 : 1;
+    }
   }
 }

@@ -30,7 +30,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -58,9 +57,7 @@ public class BulkPlusOne extends BulkImportTest {
     final FileSystem fs = (FileSystem) state.get("fs");
     final Path dir = new Path(fs.getUri() + "/tmp", "bulk_" + UUID.randomUUID().toString());
     log.debug("Bulk loading from {}", dir);
-    final Path fail = new Path(dir.toString() + "_fail");
     final Random rand = state.getRandom();
-    fs.mkdirs(fail);
     final int parts = rand.nextInt(10) + 1;
 
     TreeSet<Integer> startRows = new TreeSet<>();
@@ -96,15 +93,9 @@ public class BulkPlusOne extends BulkImportTest {
       }
       writer.close();
     }
-    env.getAccumuloClient().tableOperations().importDirectory(Setup.getTableName(), dir.toString(),
-        fail.toString(), true);
+    env.getAccumuloClient().tableOperations().importDirectory(dir.toString())
+        .to(Setup.getTableName()).tableTime(true);
     fs.delete(dir, true);
-    FileStatus[] failures = fs.listStatus(fail);
-    if (failures != null && failures.length > 0) {
-      state.set("bulkImportSuccess", "false");
-      throw new Exception(failures.length + " failure files found importing files from " + dir);
-    }
-    fs.delete(fail, true);
     log.debug("Finished bulk import, start rows " + printRows + " last row "
         + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
   }

@@ -15,30 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
-source "${bin_dir}/build"
+export ACCUMULO_REPO=https://github.com/apache/accumulo.git
+export ACCUMULO_BRANCH=master
 
-function print_usage() {
-  cat <<EOF
+export ACCUMULO_TESTING_REPO=https://github.com/apache/accumulo-testing.git
+export ACCUMULO_TESTING_BRANCH=master
 
-Usage: $0 <module> (<argument>)
+export FLUO_MUCHOS_REPO=https://github.com/apache/fluo-muchos
+export FLUO_MUCHOS_BRANCH=master
 
-   Runs random walk <module>
-   Modules listed below located in <at_home>/src/main/resources/randomwalk/modules
+export MUCHOS_PROPS=${MUCHOS_PROPS:-/path/to/muchos/props}
 
-EOF
-  find "$at_home/src/main/resources/randomwalk/modules/." -name "*.xml" -printf "%f\n"
-}
-
-export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
-
-randomwalk_main="org.apache.accumulo.testing.randomwalk.Framework"
-
-if [ -z "$1" ]; then
-  echo "ERROR: <module> needs to be set"
-  print_usage
-  exit 1
-fi
-
-java -Dlog4j.configuration="file:$TEST_LOG4J" "$randomwalk_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS" "$1"

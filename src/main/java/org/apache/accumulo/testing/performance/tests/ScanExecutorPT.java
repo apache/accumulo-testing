@@ -18,6 +18,7 @@
 package org.apache.accumulo.testing.performance.tests;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -161,7 +162,7 @@ public class ScanExecutorPT implements PerformanceTest {
     while (!stop.get()) {
       try (Scanner scanner = c.createScanner(tableName, Authorizations.EMPTY)) {
         scanner.setExecutionHints(hints);
-        for (Entry<Key,Value> entry : scanner) {
+        for (Iterator<Entry<Key,Value>> iter = scanner.iterator(); iter.hasNext(); iter.next()) {
           count++;
           if (stop.get()) {
             return count;

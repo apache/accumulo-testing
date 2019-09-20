@@ -16,7 +16,7 @@
 # limitations under the License.
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+source "${bin_dir}/build"
 
 function print_usage() {
   cat <<EOF
@@ -36,12 +36,6 @@ Available applications:
     bulk          Create RFiles in a Map Reduce job and calls importDirectory if successful
 EOF
 }
-
-if [ -f "$at_home/conf/env.sh" ]; then
-  . "$at_home"/conf/env.sh
-else
-  . "$at_home"/conf/env.sh.example
-fi
 
 if [ -z "$1" ]; then
   echo "ERROR: <application> needs to be set"
@@ -89,7 +83,7 @@ export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
 case "$1" in
   verify|moru|bulk)
-    if [ ! -z $HADOOP_HOME ]; then
+    if [ -n "$HADOOP_HOME" ]; then
       export HADOOP_USE_CLIENT_CLASSLOADER=true
       "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
     else

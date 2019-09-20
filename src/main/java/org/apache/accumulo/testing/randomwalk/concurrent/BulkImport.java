@@ -97,7 +97,7 @@ public class BulkImport extends Test {
 
     FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
 
-    String bulkDir = "/tmp/concurrent_bulk/b_"
+    String bulkDir = env.getHdfsRoot() + "/tmp/concurrent_bulk/b_"
         + String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl);
 
     fs.mkdirs(new Path(bulkDir));
@@ -126,8 +126,8 @@ public class BulkImport extends Test {
         bw.close();
       }
 
-      client.tableOperations().importDirectory(tableName, bulkDir, bulkDir + "_f",
-          rand.nextBoolean());
+      client.tableOperations().importDirectory(bulkDir).to(tableName).tableTime(rand.nextBoolean())
+          .load();
 
       log.debug("BulkImported to " + tableName);
     } catch (TableNotFoundException e) {

@@ -20,8 +20,8 @@ import java.util.Properties;
 import java.util.SortedSet;
 
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.clientImpl.thrift.TableOperationExceptionType;
-import org.apache.accumulo.core.clientImpl.thrift.ThriftTableOperationException;
+import org.apache.accumulo.core.client.NamespaceNotFoundException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -52,6 +52,8 @@ public class Config extends Test {
     return new Setting(property, min, max);
   }
 
+  @SuppressWarnings("deprecation")
+  Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_READ_AHEAD_MAXCONCURRENT;
   // @formatter:off
 	Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
@@ -69,7 +71,7 @@ public class Config extends Test {
 			s(Property.TSERV_DEFAULT_BLOCKSIZE, 100000, 10000000L),
 			s(Property.TSERV_MAX_IDLE, 10000, 500 * 1000),
 			s(Property.TSERV_MAXMEM, 1000000, 3 * 1024 * 1024 * 1024L),
-			s(Property.TSERV_READ_AHEAD_MAXCONCURRENT, 1, 25),
+			s(TSERV_READ_AHEAD_MAXCONCURRENT_deprecated, 1, 25),
 			s(Property.TSERV_MIGRATE_MAXCONCURRENT, 1, 10),
 			s(Property.TSERV_TOTAL_MUTATION_QUEUE_MAX, 10000, 1024 * 1024),
 			s(Property.TSERV_RECOVERY_MAX_CONCURRENT, 1, 100),
@@ -131,10 +133,8 @@ public class Config extends Test {
           env.getAccumuloClient().tableOperations().setProperty(table, property.getKey(),
               property.getDefaultValue());
         } catch (AccumuloException ex) {
-          if (ex.getCause() instanceof ThriftTableOperationException) {
-            ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
-            if (ttoe.type == TableOperationExceptionType.NOTFOUND)
-              return;
+          if (ex.getCause() instanceof TableNotFoundException) {
+            return;
           }
           throw ex;
         }
@@ -153,10 +153,8 @@ public class Config extends Test {
           env.getAccumuloClient().namespaceOperations().setProperty(namespace, property.getKey(),
               property.getDefaultValue());
         } catch (AccumuloException ex) {
-          if (ex.getCause() instanceof ThriftTableOperationException) {
-            ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
-            if (ttoe.type == TableOperationExceptionType.NAMESPACE_NOTFOUND)
-              return;
+          if (ex.getCause() instanceof NamespaceNotFoundException) {
+            return;
           }
           throw ex;
         }
@@ -197,10 +195,8 @@ public class Config extends Test {
       env.getAccumuloClient().tableOperations().setProperty(table, setting.property.getKey(),
           "" + newValue);
     } catch (AccumuloException ex) {
-      if (ex.getCause() instanceof ThriftTableOperationException) {
-        ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
-        if (ttoe.type == TableOperationExceptionType.NOTFOUND)
-          return;
+      if (ex.getCause() instanceof TableNotFoundException) {
+        return;
       }
       throw ex;
     }
@@ -228,10 +224,8 @@ public class Config extends Test {
       env.getAccumuloClient().namespaceOperations().setProperty(namespace,
           setting.property.getKey(), "" + newValue);
     } catch (AccumuloException ex) {
-      if (ex.getCause() instanceof ThriftTableOperationException) {
-        ThriftTableOperationException ttoe = (ThriftTableOperationException) ex.getCause();
-        if (ttoe.type == TableOperationExceptionType.NAMESPACE_NOTFOUND)
-          return;
+      if (ex.getCause() instanceof NamespaceNotFoundException) {
+        return;
       }
       throw ex;
     }

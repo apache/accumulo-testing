@@ -182,7 +182,7 @@ public class YieldingScanExecutorPT implements PerformanceTest {
         scanner.addScanIterator(is);
 
         // scanner.setExecutionHints(hints);
-        for (Entry<Key,Value> entry : scanner) {
+        for (Iterator<Entry<Key,Value>> iter = scanner.iterator(); iter.hasNext(); iter.next()) {
           count++;
           if (stop.get()) {
             return count;

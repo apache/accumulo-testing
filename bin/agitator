@@ -17,6 +17,7 @@
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+source "${bin_dir}/build"
 
 function print_usage() {
   cat <<EOF
@@ -28,12 +29,6 @@ Possible commands:
   stop      Stop agitator
 EOF
 }
-
-if [ -f "$at_home/conf/env.sh" ]; then
-  . "$at_home"/conf/env.sh
-else
-  . "$at_home"/conf/env.sh.example
-fi
 
 function start_agitator() {
   hash pssh 2>/dev/null || { echo >&2 "The agitator requires pssh to be installed. Aborting."; exit 1; }
@@ -49,28 +44,21 @@ function start_agitator() {
   datanode_cmd="nohup ${libexec}/datanode-agitator.pl $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $HADOOP_HOME $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL"
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
 
-  if [[ $AGITATOR_USER == root ]];  then
-    echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using su. Running datanode-agitator as $AGTR_HDFS_USER using su."
-    su -c "$master_cmd >${master_log}.out 2>${master_log}.err" & -m - "$AGTR_ACCUMULO_USER"
-    su -c "$tserver_cmd >${tserver_log}.out 2>${tserver_log}.err" & -m - "$AGTR_ACCUMULO_USER"
-    su -c "$datanode_cmd >${datanode_log}.out 2>${datanode_log}.err" & -m - "$AGTR_HDFS_USER"
+  if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
+    echo "Running master-agitator and tserver-agitator as $AGITATOR_USER"
+    $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
+    $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
   else
-    if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
-      echo "Running master-agitator and tserver-agitator as $AGITATOR_USER"
-      $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
-      $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
-    else
-      echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
-      sudo -u "$AGTR_ACCUMULO_USER" $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
-      sudo -u "$AGTR_ACCUMULO_USER" $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
-    fi
-    if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
-      echo "Running datanode-agitator as $AGITATOR_USER"
-      $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
-    else
-      echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-      sudo -u "$AGTR_HDFS_USER" $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
-    fi
+    echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
+    sudo -u "$AGTR_ACCUMULO_USER" "$master_cmd" > "${master_log}.out" 2> "${master_log}.err" &
+    sudo -u "$AGTR_ACCUMULO_USER" "$tserver_cmd" > "${tserver_log}.out" 2> "${tserver_log}.err" &
+  fi
+  if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
+    echo "Running datanode-agitator as $AGITATOR_USER"
+    $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
+  else
+    echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
+    sudo -u "$AGTR_HDFS_USER" "$datanode_cmd" > "${datanode_log}.out" 2> "${datanode_log}.err" &
   fi
 
   if ${AGTR_HDFS:-false} ; then
@@ -81,10 +69,7 @@ function start_agitator() {
 
 function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
-  if [[ $AGITATOR_USER == root ]]; then
-    echo "Stopping all processes matching 'agitator.pl' as root"
-    pkill -f agitator.pl 2>/dev/null
-  elif [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]];  then
+  if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]];  then
     echo "Stopping all processes matching 'datanode-agitator.pl' as $AGTR_HDFS_USER"
     sudo -u "$AGTR_HDFS_USER" pkill -f datanode-agitator.pl 2>/dev/null
     echo "Stopping all processes matching 'hdfs-agitator.pl' as $AGTR_HDFS_USER"

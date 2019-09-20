@@ -45,7 +45,6 @@ public class SecurityHelper {
 
   private static final String authsMap = "authorizationsCountMap";
   private static final String lastKey = "lastMutationKey";
-  private static final String filesystem = "securityFileSystem";
 
   public static String getTableName(State state) {
     return state.getString(tableName);

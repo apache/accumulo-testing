@@ -24,6 +24,15 @@ export ACCUMULO_HOME="${ACCUMULO_HOME:-/path/to/accumulo}"
 ## Path to Accumulo client properties
 export ACCUMULO_CLIENT_PROPS="$ACCUMULO_HOME/conf/accumulo-client.properties"
 
+if [ ! -d "$ACCUMULO_HOME" ]; then
+  echo "$ACCUMULO_HOME does not exist. Make sure to set ACCUMULO_HOME"
+  exit 1
+fi
+if [ ! -d "$HADOOP_HOME" ]; then
+  echo "$HADOOP_HOME does not exist. Make sure to set HADOOP_HOME"
+  exit 1
+fi
+
 # Add HADOOP conf directory to CLASSPATH, if set (for defaultFS in core-site.xml, etc.)
 if [[ -n $HADOOP_CONF_DIR ]]; then
   if [[ -z $CLASSPATH ]]; then
@@ -43,11 +52,8 @@ if [ ! -f "$TEST_PROPS" ]; then
 fi
 export TEST_LOG4J="${conf_dir}/log4j.properties"
 if [ ! -f "$TEST_LOG4J" ]; then
-  export TEST_LOG4J="${conf_dir}/log4j.properties.example"
-  if [ ! -f "$TEST_LOG4J" ]; then
-    echo "Could not find logj4.properties or log4j.properties.example in $conf_dir"
-    exit 1
-  fi
+  echo "Could not find logj4.properties in $conf_dir"
+  exit 1
 fi
 
 # Shaded test jar

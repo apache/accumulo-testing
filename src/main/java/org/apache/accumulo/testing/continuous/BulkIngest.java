@@ -49,13 +49,14 @@ public class BulkIngest extends Configured implements Tool {
 
   @Override
   public int run(String[] args) throws Exception {
+    String ingestInstanceId = UUID.randomUUID().toString();
+
     Job job = Job.getInstance(getConf());
+    job.setJobName("BulkIngest_" + ingestInstanceId);
     job.setJarByClass(BulkIngest.class);
     // very important to prevent guava conflicts
     job.getConfiguration().set("mapreduce.job.classloader", "true");
     FileSystem fs = FileSystem.get(job.getConfiguration());
-
-    String ingestInstanceId = UUID.randomUUID().toString();
 
     log.info(String.format("UUID %d %s", System.currentTimeMillis(), ingestInstanceId));
 

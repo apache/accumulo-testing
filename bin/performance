@@ -17,6 +17,7 @@
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+source "${bin_dir}/build"
 at_version=2.0.0-SNAPSHOT
 
 function print_usage() {
@@ -38,17 +39,14 @@ function build_shade_jar() {
   if [ ! -f "$at_shaded_jar" ]; then
     echo "Building $at_shaded_jar"
     cd "$at_home" || exit 1
-    mvn clean package -P create-shade-jar -D skipTests -D accumulo.version=$(get_version "ACCUMULO") -D hadoop.version=$(get_version "HADOOP") -D zookeeper.version=$(get_version "ZOOKEEPER")
+    mvn clean package -P create-shade-jar -D skipTests -D accumulo.version="$(get_version 'ACCUMULO')" -D hadoop.version="$(get_version 'HADOOP')" -D zookeeper.version="$(get_version 'ZOOKEEPER')"
   fi
 }
 
 log4j_config="$at_home/conf/log4j.properties"
 if [ ! -f "$log4j_config" ]; then
-  log4j_config="$at_home/conf/log4j.properties.example"
-  if [ ! -f "$log4j_config" ]; then
-    echo "Could not find logj4.properties or log4j.properties.example in $at_home/conf"
-    exit 1
-  fi
+  echo "Could not find logj4.properties in $at_home/conf"
+  exit 1
 fi
 
 
@@ -57,7 +55,7 @@ if [ ! -f "$at_home/conf/cluster-control.sh" ]; then
   exit 1
 fi
 
-. $at_home/conf/cluster-control.sh
+source "$at_home"/conf/cluster-control.sh
 build_shade_jar
 CP="$at_home/target/accumulo-testing-shaded.jar:$(get_hadoop_client)"
 perf_pkg="org.apache.accumulo.testing.performance.impl"
@@ -68,9 +66,21 @@ case "$1" in
       print_usage
       exit 1
     fi
+    # don't start unless we can find the class provided
+    found=false
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read -r test_class; do
+      if [[ "$test_class" == "$3" ]]; then
+        found=true
+      fi
+    done
+    if [[ ! $found ]]; then
+      echo "ERROR: Did not find test class: $3"
+      print_usage
+      exit 1
+    fi
     mkdir -p "$2"
     start_cluster
-    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read test_class; do
+    CLASSPATH="$CP" java -Dlog4j.configuration="file:$log4j_config" ${perf_pkg}.ListTests | while read -r test_class; do
       if [[ -z $3 || $test_class == *$3* ]]; then
         echo "Running test $test_class"
         pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)

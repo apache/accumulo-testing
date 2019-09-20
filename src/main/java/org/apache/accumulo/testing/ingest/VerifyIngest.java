@@ -62,10 +62,9 @@ public class VerifyIngest {
     opts.parseArgs(VerifyIngest.class.getName(), args);
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
       if (opts.trace) {
-        String name = VerifyIngest.class.getSimpleName();
         /*
-         * DistributedTrace.enable(); Trace.on(name); Trace.data("cmdLine",
-         * Arrays.asList(args).toString());
+         * String name = VerifyIngest.class.getSimpleName(); DistributedTrace.enable();
+         * Trace.on(name); Trace.data("cmdLine", Arrays.asList(args).toString());
          */
       }
 

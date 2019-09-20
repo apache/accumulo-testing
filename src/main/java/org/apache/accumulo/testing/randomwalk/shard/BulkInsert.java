@@ -142,6 +142,7 @@ public class BulkInsert extends Test {
     fs.delete(new Path(rootDir), true);
   }
 
+  @SuppressWarnings("deprecation")
   private void bulkImport(FileSystem fs, State state, RandWalkEnv env, String tableName,
       String rootDir, String prefix) throws Exception {
     while (true) {

@@ -15,12 +15,11 @@ on your machine as well as an Accumulo instance to use for testing.
         cd accumulo-testing
 
 2. All configuation files for the test suite are in `conf/`. Only the `accumulo-testing.properties`
-   configuration file needs to be created and edited as all other configuration files are optional.
+   configuration file needs to be edited as all other configuration files are optional.
    In `accumulo-testing.properites`, review the properties with `test.common.*` prefix as these are
    used by all tests.
 
         cd conf/
-        cp accumulo-testing.properties.example accumulo-testing.properties
         vim accumulo-testing.properties
 
 
@@ -47,8 +46,8 @@ run in Docker:
 
 1. To create the `accumulo-testing` docker image, make sure the following files exist in your clone:
 
-    * `conf/accumulo-client.properties` - Copy and configure this from your Accumulo install
-    * `conf/accumulo-testing.properties` - Copy this from the example file and configure it
+    * `conf/accumulo-client.properties` - Configure this file from your Accumulo install
+    * `conf/accumulo-testing.properties` - Configure this file for testing
     * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
 
    Run the following command to create the image. `HADOOP_HOME` should be where Hadoop is installed on your cluster.

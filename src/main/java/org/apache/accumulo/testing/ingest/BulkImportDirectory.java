@@ -41,6 +41,7 @@ public class BulkImportDirectory {
     String failures = null;
   }
 
+  @SuppressWarnings("deprecation")
   public static void main(String[] args)
       throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
     final FileSystem fs = FileSystem.get(new Configuration());
