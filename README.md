@@ -239,7 +239,7 @@ There are some utilities for working with the json result files, run the `perfor
 with no options to see them.
 
 ## Run Accumulo on EC2 Test Cluster
-see the [readme.md](/test/automation/README.md)
+See the [readme.md](/test/automation/README.md).
 
 [Uno]: https://github.com/apache/fluo-uno
 [modules]: core/src/main/resources/randomwalk/modules
