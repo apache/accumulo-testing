@@ -238,7 +238,7 @@ test and produce json result files.
 There are some utilities for working with the json result files, run the `performance` script
 with no options to see them.
 
-## Run Accumulo on EC2 Test Cluster
+## Automated Cluster Testing
 See the [readme.md](/test/automation/README.md).
 
 [Uno]: https://github.com/apache/fluo-uno
