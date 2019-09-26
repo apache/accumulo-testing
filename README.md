@@ -238,6 +238,9 @@ test and produce json result files.
 There are some utilities for working with the json result files, run the `performance` script
 with no options to see them.
 
+## Automated Cluster Testing
+See the [readme.md](/test/automation/README.md).
+
 [Uno]: https://github.com/apache/fluo-uno
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml
