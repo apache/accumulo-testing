@@ -27,7 +27,7 @@ public class ContinuousEnv extends TestEnv {
         authList = Collections.singletonList(Authorizations.EMPTY);
       } else {
         authList = new ArrayList<>();
-        for (String a : authValue.split("|")) {
+        for (String a : authValue.split("\\|")) {
           authList.add(new Authorizations(a.split(",")));
         }
       }
