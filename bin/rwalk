@@ -41,4 +41,4 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-java -Dlog4j.configuration="file:$TEST_LOG4J" "$randomwalk_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS" "$1"
+java $JAVA_OPTS -Dlog4j.configuration="file:$TEST_LOG4J" "$randomwalk_main" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS" "$1"
