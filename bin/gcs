@@ -61,5 +61,4 @@ esac
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
-java -Dlog4j.configuration="file:$TEST_LOG4J" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
-
+java $JAVA_OPTS -Dlog4j.configuration="file:$TEST_LOG4J" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
