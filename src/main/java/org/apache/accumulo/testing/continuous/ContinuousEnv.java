@@ -8,6 +8,7 @@ import java.util.Random;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestEnv;
 import org.apache.accumulo.testing.TestProps;
+import org.apache.hadoop.mapreduce.InputFormat;
 
 public class ContinuousEnv extends TestEnv {
 
@@ -41,6 +42,18 @@ public class ContinuousEnv extends TestEnv {
   Authorizations getRandomAuthorizations() {
     Random r = new Random();
     return getAuthList().get(r.nextInt(getAuthList().size()));
+  }
+
+  /**
+   * Provide the input format
+   * 
+   * @return input format specified via the configuration. Default is the threaded input format,
+   *         which may not be desireable in all cases.
+   * @throws ClassNotFoundException
+   */
+  public Class<? extends InputFormat> getInputFormat() throws ClassNotFoundException {
+    return Class.forName(testProps.getProperty(TestProps.CI_COMMON_INPUT_FORMAT,
+        ThreadedContinousInputFormat.class.getCanonicalName())).asSubclass(InputFormat.class);
   }
 
   public long getRowMin() {

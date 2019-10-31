@@ -26,10 +26,8 @@ import java.util.Collection;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat;
-import org.apache.accumulo.hadoop.mapreduce.partition.KeyRangePartitioner;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -51,7 +49,7 @@ public class BulkIngest extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     String ingestInstanceId = UUID.randomUUID().toString();
-    String bulkDir = args[0];
+    final String bulkDir = args[0];
 
     Job job = Job.getInstance(getConf());
     job.setJobName("BulkIngest_" + ingestInstanceId);
@@ -62,24 +60,27 @@ public class BulkIngest extends Configured implements Tool {
 
     log.info(String.format("UUID %d %s", System.currentTimeMillis(), ingestInstanceId));
 
-    job.setInputFormatClass(ContinuousInputFormat.class);
-
-    // map the generated random longs to key values
-    job.setMapOutputKeyClass(Key.class);
-    job.setMapOutputValueClass(Value.class);
-
     // remove bulk dir from args
     args = Arrays.asList(args).subList(1, 3).toArray(new String[2]);
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
-      fs.mkdirs(fs.makeQualified(new Path(bulkDir)));
+
+      /**
+       * Support various Input Formats
+       */
+      job.setInputFormatClass(env.getInputFormat());
+
+      // map the generated random longs to key values
+      job.setMapOutputKeyClass(BulkKey.class);
+      job.setMapOutputValueClass(Value.class);
+
+      fs.mkdirs(new Path(bulkDir));
 
       // output RFiles for the import
-      job.setOutputFormatClass(AccumuloFileOutputFormat.class);
-      AccumuloFileOutputFormat.configure()
-          .outputPath(fs.makeQualified(new Path(bulkDir + "/files"))).store(job);
+      job.setOutputFormatClass(BulkOutputWriter.class);
+      AccumuloFileOutputFormat.configure().outputPath(new Path(bulkDir + "/files")).store(job);
 
-      ContinuousInputFormat.configure(job.getConfiguration(), ingestInstanceId, env);
+      ThreadedContinousInputFormat.configure(job.getConfiguration(), ingestInstanceId, env);
 
       String tableName = env.getAccumuloTableName();
 
@@ -98,9 +99,8 @@ public class BulkIngest extends Configured implements Tool {
           job.setNumReduceTasks(splits.size() + 1);
         }
 
-        job.setPartitionerClass(KeyRangePartitioner.class);
-        KeyRangePartitioner.setSplitFile(job, fs.makeQualified(new Path(splitsFile)).toString());
-
+        job.setPartitionerClass(BulkKeyPartitioner.class);
+        BulkKeyPartitioner.setSplitFile(job, fs.getUri() + splitsFile);
         job.waitForCompletion(true);
         boolean success = job.isSuccessful();
 

@@ -59,6 +59,8 @@ public class TestProps {
   // randomly selected by scanners
   // and walkers
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
+  // input format option
+  public static final String CI_COMMON_INPUT_FORMAT = CI_COMMON + ".input.format";
 
   /** Ingest **/
   // Number of entries each ingest client should write

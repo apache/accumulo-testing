@@ -48,19 +48,19 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
  * Generates a continuous ingest linked list per map reduce split. Each linked list is of
  * configurable length.
  */
-public class ContinuousInputFormat extends InputFormat<Key,Value> {
+public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
 
-  private static final String PROP_UUID = "mrbulk.uuid";
-  private static final String PROP_MAP_TASK = "mrbulk.map.task";
-  private static final String PROP_MAP_NODES = "mrbulk.map.nodes";
-  private static final String PROP_ROW_MIN = "mrbulk.row.min";
-  private static final String PROP_ROW_MAX = "mrbulk.row.max";
-  private static final String PROP_FAM_MAX = "mrbulk.fam.max";
-  private static final String PROP_QUAL_MAX = "mrbulk.qual.max";
-  private static final String PROP_CHECKSUM = "mrbulk.checksum";
-  private static final String PROP_VIS = "mrbulk.vis";
+  static final String PROP_UUID = "mrbulk.uuid";
+  static final String PROP_MAP_TASK = "mrbulk.map.task";
+  static final String PROP_MAP_NODES = "mrbulk.map.nodes";
+  static final String PROP_ROW_MIN = "mrbulk.row.min";
+  static final String PROP_ROW_MAX = "mrbulk.row.max";
+  static final String PROP_FAM_MAX = "mrbulk.fam.max";
+  static final String PROP_QUAL_MAX = "mrbulk.qual.max";
+  static final String PROP_CHECKSUM = "mrbulk.checksum";
+  static final String PROP_VIS = "mrbulk.vis";
 
-  private static class RandomSplit extends InputSplit implements Writable {
+  static class RandomSplit extends InputSplit implements Writable {
     @Override
     public void write(DataOutput dataOutput) {}
 
@@ -102,9 +102,9 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
   }
 
   @Override
-  public RecordReader<Key,Value> createRecordReader(InputSplit inputSplit,
+  public RecordReader<BulkKey,Value> createRecordReader(InputSplit inputSplit,
       TaskAttemptContext taskAttemptContext) {
-    return new RecordReader<Key,Value>() {
+    return new RecordReader<BulkKey,Value>() {
       long numNodes;
       long nodeCount;
       private Random random;
@@ -179,8 +179,8 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
       }
 
       @Override
-      public Key getCurrentKey() {
-        return currKey;
+      public BulkKey getCurrentKey() {
+        return new BulkKey(currKey);
       }
 
       @Override
