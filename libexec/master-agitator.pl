@@ -51,6 +51,14 @@ for $master (@mastersRaw){
 while(1){
 	sleep($sleep1 * 60);
 	$t = strftime "%Y%m%d %H:%M:%S", localtime;
+
+	$gcfile = '';
+	if (-e "$accumuloConfDir/gc") {
+		$gcfile = 'gc';
+	} else {
+		$gcfile = 'masters';
+	}
+
 	if(rand(1) < .5){
 		$masterNodeToWack = $masters[int(rand(scalar(@masters)))];
 		print STDERR "$t Killing master on $masterNodeToWack\n";
@@ -63,14 +71,7 @@ while(1){
 		print "$t $cmd\n";
 		system($cmd);
 
-		$file = '';
-		if (-e "$accumuloConfDir/gc") {
-			$file = 'gc';
-		} else {
-			$file = 'masters';
-		}
-
-		$cmd = "pssh -h $accumuloConfDir/$file \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
+		$cmd = "pssh -h $accumuloConfDir/$gcfile \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
 		print "$t $cmd\n";
 		system($cmd);
 	}
@@ -80,6 +81,10 @@ while(1){
 	print STDERR "$t Running start-all\n";
 
 	$cmd = "pssh -h $accumuloConfDir/masters \"$accumuloHome/bin/accumulo-service master start\" < /dev/null";
+	print "$t $cmd\n";
+	system($cmd);
+
+	$cmd = "pssh -h $accumuloConfDir/$gcfile \"$accumuloHome/bin/accumulo-service gc start\" < /dev/null";
 	print "$t $cmd\n";
 	system($cmd);
 }
