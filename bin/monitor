@@ -16,43 +16,36 @@
 # limitations under the License.
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+source "${bin_dir}/build"
 
 function print_usage() {
   cat <<EOF
 
-Usage: accumulo-testing <script> (<argument>)
+Usage: monitor <application> {-o test.<prop>=<value>}
 
-  Available scripts:
+Available applications:
 
-  cingest     Runs continuous ingest script
-  rwalk       Runs random walk script
-  gcs         Runs garbage collection simulation
-  monitor     Runs a readprobe for monitoring read timings
+    readprobe   Runs a probe that scans random keys and reports scan timings
+
 EOF
 }
 
 if [ -z "$1" ]; then
-  echo "ERROR: <script> needs to be set"
+  echo "ERROR: <application> needs to be set"
   print_usage
   exit 1
 fi
 
-if [ -z "$HADOOP_HOME" ]; then
-  echo "HADOOP_HOME must be set!"
-  exit 1
-fi
-
+ci_package="org.apache.accumulo.testing.healthprobe"
 case "$1" in
-  cingest|rwalk|gcs|monitor)
-    "${at_home}"/bin/"$1" "${@:2}"
-    ;;
-  -h|help)
-    print_usage
-    exit 1
+  readprobe)
+    ci_main="${ci_package}.Monitor"
     ;;
   *)
-    echo "ERROR - unknown <script>: $1"
+    echo "Unknown application: $1"
+    print_usage
     exit 1
-    ;;
 esac
+
+export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
+java $JAVA_OPTS -DINSTRUMENTATIONKEY="$INSTRUMENTATIONKEY" -Dlog4j.configuration="file:$TEST_LOG4J" "$ci_main" "${@:2}" "-c" "$ACCUMULO_CLIENT_PROPS"

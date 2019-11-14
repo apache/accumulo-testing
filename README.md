@@ -32,6 +32,7 @@ Tests are run using the following scripts in `bin/`:
   * `performance` - Runs performance test
   * `agitator` - Runs agitator
   * `gcs` - Runs garbage collection simultation
+  * `monitor` - Runs availability monitor probe
 
 Run the scripts without arguments to view usage.
 
@@ -43,6 +44,7 @@ run in Docker:
 
   * `cingest` - All applications can be run except `verify` & `moru` which launch a MapReduce job.
   * `rwalk` - All modules can be run.
+  * `monitor` - All modules can be run.
 
 1. To create the `accumulo-testing` docker image, make sure the following files exist in your clone:
 
@@ -237,6 +239,11 @@ test and produce json result files.
 
 There are some utilities for working with the json result files, run the `performance` script
 with no options to see them.
+
+## Availability Monitor 
+Monitor class aims at verifying availability of overall accumulo cluster by continually doing
+scans of random values across various tablet servers and capturing timing
+information related to how long such scans take. 
 
 ## Automated Cluster Testing
 See the [readme.md](/test/automation/README.md).
