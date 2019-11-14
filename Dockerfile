@@ -43,6 +43,7 @@ COPY ./bin/build /opt/at/bin
 COPY ./bin/cingest /opt/at/bin
 COPY ./bin/rwalk /opt/at/bin
 COPY ./bin/gcs /opt/at/bin
+COPY ./bin/monitor /opt/at/bin
 COPY ./src/main/docker/docker-entry /opt/at/bin
 
 COPY ./target/accumulo-testing-shaded.jar /opt/at/
