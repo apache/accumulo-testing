@@ -80,7 +80,7 @@ public class BulkIngest extends Configured implements Tool {
       job.setOutputFormatClass(BulkOutputWriter.class);
       AccumuloFileOutputFormat.configure().outputPath(new Path(bulkDir + "/files")).store(job);
 
-      ThreadedContinousInputFormat.configure(job.getConfiguration(), ingestInstanceId, env);
+      ContinousInputOptions.configure(job.getConfiguration(), ingestInstanceId, env);
 
       String tableName = env.getAccumuloTableName();
 

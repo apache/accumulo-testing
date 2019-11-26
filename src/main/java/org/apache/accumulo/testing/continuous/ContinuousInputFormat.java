@@ -17,26 +17,12 @@
 
 package org.apache.accumulo.testing.continuous;
 
-import static org.apache.accumulo.testing.continuous.ContinuousIngest.genCol;
-import static org.apache.accumulo.testing.continuous.ContinuousIngest.genLong;
-import static org.apache.accumulo.testing.continuous.ContinuousIngest.genRow;
-
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.zip.CRC32;
-import java.util.zip.Checksum;
 
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.testing.TestProps;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -49,16 +35,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
  * configurable length.
  */
 public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
-
-  static final String PROP_UUID = "mrbulk.uuid";
-  static final String PROP_MAP_TASK = "mrbulk.map.task";
-  static final String PROP_MAP_NODES = "mrbulk.map.nodes";
-  static final String PROP_ROW_MIN = "mrbulk.row.min";
-  static final String PROP_ROW_MAX = "mrbulk.row.max";
-  static final String PROP_FAM_MAX = "mrbulk.fam.max";
-  static final String PROP_QUAL_MAX = "mrbulk.qual.max";
-  static final String PROP_CHECKSUM = "mrbulk.checksum";
-  static final String PROP_VIS = "mrbulk.vis";
 
   static class RandomSplit extends InputSplit implements Writable {
     @Override
@@ -80,7 +56,7 @@ public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
 
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) {
-    int numTask = jobContext.getConfiguration().getInt(PROP_MAP_TASK, 1);
+    int numTask = jobContext.getConfiguration().getInt(ContinousInputOptions.PROP_MAP_TASK, 1);
     List<InputSplit> splits = new ArrayList<>();
     for (int i = 0; i < numTask; i++) {
       splits.add(new RandomSplit());
@@ -88,115 +64,9 @@ public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
     return splits;
   }
 
-  public static void configure(Configuration conf, String uuid, ContinuousEnv env) {
-    conf.set(PROP_UUID, uuid);
-    conf.setInt(PROP_MAP_TASK, env.getBulkMapTask());
-    conf.setLong(PROP_MAP_NODES, env.getBulkMapNodes());
-    conf.setLong(PROP_ROW_MIN, env.getRowMin());
-    conf.setLong(PROP_ROW_MAX, env.getRowMax());
-    conf.setInt(PROP_FAM_MAX, env.getMaxColF());
-    conf.setInt(PROP_QUAL_MAX, env.getMaxColQ());
-    conf.setBoolean(PROP_CHECKSUM,
-        Boolean.parseBoolean(env.getTestProperty(TestProps.CI_INGEST_CHECKSUM)));
-    conf.set(PROP_VIS, env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES));
-  }
-
   @Override
   public RecordReader<BulkKey,Value> createRecordReader(InputSplit inputSplit,
       TaskAttemptContext taskAttemptContext) {
-    return new RecordReader<BulkKey,Value>() {
-      long numNodes;
-      long nodeCount;
-      private Random random;
-
-      private byte[] uuid;
-
-      long minRow;
-      long maxRow;
-      int maxFam;
-      int maxQual;
-      List<ColumnVisibility> visibilities;
-      boolean checksum;
-
-      Key prevKey;
-      Key currKey;
-      Value currValue;
-
-      @Override
-      public void initialize(InputSplit inputSplit, TaskAttemptContext job) {
-        numNodes = job.getConfiguration().getLong(PROP_MAP_NODES, 1000000);
-        uuid = job.getConfiguration().get(PROP_UUID).getBytes(StandardCharsets.UTF_8);
-
-        minRow = job.getConfiguration().getLong(PROP_ROW_MIN, 0);
-        maxRow = job.getConfiguration().getLong(PROP_ROW_MAX, Long.MAX_VALUE);
-        maxFam = job.getConfiguration().getInt(PROP_FAM_MAX, Short.MAX_VALUE);
-        maxQual = job.getConfiguration().getInt(PROP_QUAL_MAX, Short.MAX_VALUE);
-        checksum = job.getConfiguration().getBoolean(PROP_CHECKSUM, false);
-        visibilities = ContinuousIngest.parseVisibilities(job.getConfiguration().get(PROP_VIS));
-
-        random = new Random(new SecureRandom().nextLong());
-
-        nodeCount = 0;
-      }
-
-      private Key genKey(CRC32 cksum) {
-
-        byte[] row = genRow(genLong(minRow, maxRow, random));
-
-        byte[] fam = genCol(random.nextInt(maxFam));
-        byte[] qual = genCol(random.nextInt(maxQual));
-        byte[] cv = visibilities.get(random.nextInt(visibilities.size())).flatten();
-
-        if (cksum != null) {
-          cksum.update(row);
-          cksum.update(fam);
-          cksum.update(qual);
-          cksum.update(cv);
-        }
-
-        return new Key(row, fam, qual, cv);
-      }
-
-      private byte[] createValue(byte[] ingestInstanceId, byte[] prevRow, Checksum cksum) {
-        return ContinuousIngest.createValue(ingestInstanceId, nodeCount, prevRow, cksum);
-      }
-
-      @Override
-      public boolean nextKeyValue() {
-
-        if (nodeCount < numNodes) {
-          CRC32 cksum = checksum ? new CRC32() : null;
-          prevKey = currKey;
-          byte[] prevRow = prevKey != null ? prevKey.getRowData().toArray() : null;
-          currKey = genKey(cksum);
-          currValue = new Value(createValue(uuid, prevRow, cksum));
-
-          nodeCount++;
-          return true;
-        } else {
-          return false;
-        }
-      }
-
-      @Override
-      public BulkKey getCurrentKey() {
-        return new BulkKey(currKey);
-      }
-
-      @Override
-      public Value getCurrentValue() {
-        return currValue;
-      }
-
-      @Override
-      public float getProgress() {
-        return nodeCount * 1.0f / numNodes;
-      }
-
-      @Override
-      public void close() throws IOException {
-
-      }
-    };
+    return new ContinousRecordReader();
   }
 }

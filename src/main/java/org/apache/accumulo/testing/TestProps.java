@@ -61,6 +61,10 @@ public class TestProps {
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
   // input format option
   public static final String CI_COMMON_INPUT_FORMAT = CI_COMMON + ".input.format";
+  // asynchronous thread count configuration
+  public static final String CI_COMMON_ASYNC_THREADS = CI_COMMON + ".async.threads";
+  // asynchronous configuration for the number of keys to queue
+  public static final String CI_COMMON_ASYNC_KEYS_QUEUE = CI_COMMON + ".async.keys.queue";
 
   /** Ingest **/
   // Number of entries each ingest client should write

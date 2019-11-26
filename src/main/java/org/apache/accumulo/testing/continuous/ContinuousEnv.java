@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestEnv;
 import org.apache.accumulo.testing.TestProps;
@@ -48,12 +49,34 @@ public class ContinuousEnv extends TestEnv {
    * Provide the input format
    * 
    * @return input format specified via the configuration. Default is the threaded input format,
-   *         which may not be desireable in all cases.
+   *         which may not be useful in all cases.
    * @throws ClassNotFoundException
    */
-  public Class<? extends InputFormat> getInputFormat() throws ClassNotFoundException {
-    return Class.forName(testProps.getProperty(TestProps.CI_COMMON_INPUT_FORMAT,
-        ThreadedContinousInputFormat.class.getCanonicalName())).asSubclass(InputFormat.class);
+  @SuppressWarnings("unchecked")
+  public Class<? extends InputFormat<BulkKey,Value>> getInputFormat()
+      throws ClassNotFoundException, ClassCastException {
+    return (Class<? extends InputFormat<BulkKey,Value>>) Class
+        .forName(testProps.getProperty(TestProps.CI_COMMON_INPUT_FORMAT,
+            AsyncContinousInputFormat.class.getCanonicalName()))
+        .asSubclass(InputFormat.class);
+  }
+
+  /**
+   * Returns the number of threads to use when async mode is selected
+   *
+   * @return number of threads
+   */
+  public long getAsyncThreadCount() {
+    return Long.parseLong(testProps.getProperty(TestProps.CI_COMMON_ASYNC_THREADS, "5"));
+  }
+
+  /**
+   * Returns the number of keys to queue in async mode
+   *
+   * @return number of keys to queue
+   */
+  public long getAsyncKeysToQueue() {
+    return Long.parseLong(testProps.getProperty(TestProps.CI_COMMON_ASYNC_KEYS_QUEUE, "1000"));
   }
 
   public long getRowMin() {
