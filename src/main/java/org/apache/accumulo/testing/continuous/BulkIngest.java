@@ -19,6 +19,7 @@ package org.apache.accumulo.testing.continuous;
 
 import java.io.BufferedOutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
@@ -50,13 +51,14 @@ public class BulkIngest extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     String ingestInstanceId = UUID.randomUUID().toString();
+    String bulkDir = args[0];
 
     Job job = Job.getInstance(getConf());
     job.setJobName("BulkIngest_" + ingestInstanceId);
     job.setJarByClass(BulkIngest.class);
     // very important to prevent guava conflicts
     job.getConfiguration().set("mapreduce.job.classloader", "true");
-    FileSystem fs = FileSystem.get(job.getConfiguration());
+    FileSystem fs = FileSystem.get(URI.create(bulkDir), job.getConfiguration());
 
     log.info(String.format("UUID %d %s", System.currentTimeMillis(), ingestInstanceId));
 
@@ -66,17 +68,16 @@ public class BulkIngest extends Configured implements Tool {
     job.setMapOutputKeyClass(Key.class);
     job.setMapOutputValueClass(Value.class);
 
-    String bulkDir = args[0];
-
     // remove bulk dir from args
     args = Arrays.asList(args).subList(1, 3).toArray(new String[2]);
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
-      fs.mkdirs(new Path(bulkDir));
+      fs.mkdirs(fs.makeQualified(new Path(bulkDir)));
 
       // output RFiles for the import
       job.setOutputFormatClass(AccumuloFileOutputFormat.class);
-      AccumuloFileOutputFormat.configure().outputPath(new Path(bulkDir + "/files")).store(job);
+      AccumuloFileOutputFormat.configure()
+          .outputPath(fs.makeQualified(new Path(bulkDir + "/files"))).store(job);
 
       ContinuousInputFormat.configure(job.getConfiguration(), ingestInstanceId, env);
 
@@ -88,7 +89,7 @@ public class BulkIngest extends Configured implements Tool {
 
         // make sure splits file is closed before continuing
         try (PrintStream out = new PrintStream(
-            new BufferedOutputStream(fs.create(new Path(splitsFile))))) {
+            new BufferedOutputStream(fs.create(fs.makeQualified(new Path(splitsFile)))))) {
           Collection<Text> splits = client.tableOperations().listSplits(tableName,
               env.getBulkReducers() - 1);
           for (Text split : splits) {
@@ -98,7 +99,7 @@ public class BulkIngest extends Configured implements Tool {
         }
 
         job.setPartitionerClass(KeyRangePartitioner.class);
-        KeyRangePartitioner.setSplitFile(job, fs.getUri() + splitsFile);
+        KeyRangePartitioner.setSplitFile(job, fs.makeQualified(new Path(splitsFile)).toString());
 
         job.waitForCompletion(true);
         boolean success = job.isSuccessful();
