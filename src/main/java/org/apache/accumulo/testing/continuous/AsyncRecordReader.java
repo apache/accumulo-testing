@@ -1,15 +1,16 @@
 package org.apache.accumulo.testing.continuous;
 
-import com.google.common.collect.Maps;
-import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.IntStream;
 import java.util.zip.CRC32;
+
+import org.apache.accumulo.core.data.Value;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import com.google.common.collect.Maps;
 
 public class AsyncRecordReader extends ContinousRecordReader {
 

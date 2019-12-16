@@ -4,14 +4,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import com.google.common.cache.CacheLoader;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
-
-import com.google.common.base.Preconditions;
 import org.apache.hadoop.io.WritableUtils;
 
 /**
@@ -44,10 +41,14 @@ public class TestKey implements WritableComparable<TestKey> {
     hashCode = key.hashCode();
   }
 
+  @Override
+  public int hashCode() {
+    return hashCode;
+  }
+
   public Key getKey() {
     return key;
   }
-
 
   public ByteSequence getRowData() {
     return key.getRowData();
@@ -91,20 +92,20 @@ public class TestKey implements WritableComparable<TestKey> {
     key.getColumnVisibility(cv);
 
     /**
-     * writeVInt for sizes < 128 ends up writing a single byte
-     * which reduces the pass through size for map reduce jobs.
+     * writeVInt for sizes < 128 ends up writing a single byte which reduces the pass through size
+     * for map reduce jobs.
      */
 
-    WritableUtils.writeVInt(out,row.getLength());
+    WritableUtils.writeVInt(out, row.getLength());
     out.write(row.getBytes(), 0, row.getLength());
 
-    WritableUtils.writeVInt(out,cf.getLength());
+    WritableUtils.writeVInt(out, cf.getLength());
     out.write(cf.getBytes(), 0, cf.getLength());
 
-    WritableUtils.writeVInt(out,cq.getLength());
+    WritableUtils.writeVInt(out, cq.getLength());
     out.write(cq.getBytes(), 0, cq.getLength());
 
-    WritableUtils.writeVInt(out,cv.getLength());
+    WritableUtils.writeVInt(out, cv.getLength());
     out.write(cv.getBytes(), 0, cv.getLength());
   }
 
@@ -180,7 +181,7 @@ public class TestKey implements WritableComparable<TestKey> {
         i = i << 8;
         i = i | (b & 0xFF);
       }
-      return (int)(WritableUtils.isNegativeVInt(firstByte) ? (i ^ -1L) : i);
+      return (int) (WritableUtils.isNegativeVInt(firstByte) ? (i ^ -1L) : i);
     }
 
   }
