@@ -17,10 +17,6 @@
 
 package org.apache.accumulo.testing.continuous;
 
-import static org.apache.accumulo.testing.continuous.ContinuousIngest.*;
-
-import java.util.concurrent.*;
-
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.mapreduce.*;
 
@@ -38,7 +34,7 @@ import org.apache.hadoop.mapreduce.*;
  */
 public class AsyncContinousInputFormat extends ContinuousInputFormat {
   @Override
-  public RecordReader<BulkKey,Value> createRecordReader(InputSplit inputSplit,
+  public RecordReader<TestKey,Value> createRecordReader(InputSplit inputSplit,
       TaskAttemptContext taskAttemptContext) {
     return new AsyncRecordReader();
   }

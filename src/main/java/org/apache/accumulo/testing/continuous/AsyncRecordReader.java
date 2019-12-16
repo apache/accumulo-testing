@@ -1,17 +1,15 @@
 package org.apache.accumulo.testing.continuous;
 
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.IntStream;
-import java.util.zip.CRC32;
-
+import com.google.common.collect.Maps;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.IntStream;
+import java.util.zip.CRC32;
 
 public class AsyncRecordReader extends ContinousRecordReader {
 
@@ -20,10 +18,9 @@ public class AsyncRecordReader extends ContinousRecordReader {
 
   ExecutorService service = null;
 
-  BlockingQueue<Map.Entry<BulkKey,Value>> queue;
+  BlockingQueue<Map.Entry<TestKey,Value>> queue;
 
   final LongAdder generatedCount = new LongAdder();
-  final AtomicBoolean running = new AtomicBoolean(false);
 
   @Override
   public void initialize(InputSplit inputSplit, TaskAttemptContext job) {
@@ -48,7 +45,7 @@ public class AsyncRecordReader extends ContinousRecordReader {
             CRC32 cksum = checksum ? new CRC32() : null;
             while (generatedCount.longValue() < numNodes && running.get()) {
               try {
-                final BulkKey key = genKey(cksum);
+                final TestKey key = genKey(cksum);
                 final Value value = new Value(createValue(uuid, key.getRowData().toArray(), cksum));
                 while (!queue.offer(Maps.immutableEntry(key, value), 1, TimeUnit.SECONDS)) {
                   if (!running.get())
@@ -64,7 +61,7 @@ public class AsyncRecordReader extends ContinousRecordReader {
         });
       }
       while (null == currKey) {
-        Map.Entry<BulkKey,Value> kv = null;
+        Map.Entry<TestKey,Value> kv = null;
         try {
           kv = queue.poll(1, TimeUnit.SECONDS);
           if (null != kv) {

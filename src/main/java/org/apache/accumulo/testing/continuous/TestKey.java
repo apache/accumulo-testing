@@ -4,45 +4,50 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import com.google.common.cache.CacheLoader;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
+
+import com.google.common.base.Preconditions;
 import org.apache.hadoop.io.WritableUtils;
 
 /**
  * Supports immediate sorting via eager deser of the key object. This has the benefit of reducing
  * the amount of deserialization that may occur when sorting keys in memory
  */
-public class BulkKey implements WritableComparable<BulkKey> {
+public class TestKey implements WritableComparable<TestKey> {
 
   protected Key key = new Key();
   protected int hashCode = 31;
 
   static final byte[] EMPTY = {};
 
-  Text row = new Text();
-  Text cf = new Text();
-  Text cq = new Text();
-  Text cv = new Text();
+  protected Text row = new Text();
+  protected Text cf = new Text();
+  protected Text cq = new Text();
+  protected Text cv = new Text();
 
-  public BulkKey() {}
+  public TestKey() {}
 
-  public BulkKey(Key key) {
-    this.key = key;
+  public TestKey(byte[] row, byte[] cf, byte[] cq, byte[] cv, long ts, boolean deleted) {
+    // don't copy the arrays
+    this.key = new Key(row, cf, cq, cv);
     hashCode = key.hashCode();
   }
 
-  public BulkKey(byte[] row, byte[] cf, byte[] cq, byte[] cv, long ts, boolean deleted) {
+  public TestKey(byte[] row, byte[] cf, byte[] cq, byte[] cv) {
     // don't copy the arrays
-    this.key = new Key(row, cf, cq, cv, ts, deleted, false);
+    this.key = new Key(row, cf, cq, cv);
     hashCode = key.hashCode();
   }
 
   public Key getKey() {
     return key;
   }
+
 
   public ByteSequence getRowData() {
     return key.getRowData();
@@ -51,27 +56,25 @@ public class BulkKey implements WritableComparable<BulkKey> {
   @Override
   public void readFields(DataInput in) throws IOException {
 
-    final int rowsize = WritableUtils.readVInt(in);
+    final int rowsize = in.readInt();
     final byte[] row = readBytes(in, rowsize);
 
-    final int cfsize = WritableUtils.readVInt(in);
+    final int cfsize = in.readInt();
     final byte[] cf = readBytes(in, cfsize);
 
-    final int cqsize = WritableUtils.readVInt(in);
+    final int cqsize = in.readInt();
     final byte[] cq = readBytes(in, cqsize);
 
-    final int cvsize = WritableUtils.readVInt(in);
+    final int cvsize = in.readInt();
+
     final byte[] cv = readBytes(in, cvsize);
 
-    final long ts = WritableUtils.readVLong(in);
-    boolean isDeleted = in.readBoolean();
-
-    key = new Key(row, cf, cq, cv, ts, isDeleted, false);
+    key = new Key(row, cf, cq, cv);
 
     hashCode = key.hashCode();
   }
 
-  private static byte[] readBytes(DataInput in, int size) throws IOException {
+  protected static byte[] readBytes(DataInput in, int size) throws IOException {
     if (size == 0)
       return EMPTY;
     final byte[] data = new byte[size];
@@ -87,24 +90,26 @@ public class BulkKey implements WritableComparable<BulkKey> {
     key.getColumnQualifier(cq);
     key.getColumnVisibility(cv);
 
-    WritableUtils.writeVInt(out, row.getLength());
+    /**
+     * writeVInt for sizes < 128 ends up writing a single byte
+     * which reduces the pass through size for map reduce jobs.
+     */
+
+    WritableUtils.writeVInt(out,row.getLength());
     out.write(row.getBytes(), 0, row.getLength());
 
-    WritableUtils.writeVInt(out, cf.getLength());
+    WritableUtils.writeVInt(out,cf.getLength());
     out.write(cf.getBytes(), 0, cf.getLength());
 
-    WritableUtils.writeVInt(out, cq.getLength());
+    WritableUtils.writeVInt(out,cq.getLength());
     out.write(cq.getBytes(), 0, cq.getLength());
 
-    WritableUtils.writeVInt(out, cv.getLength());
+    WritableUtils.writeVInt(out,cv.getLength());
     out.write(cv.getBytes(), 0, cv.getLength());
-
-    WritableUtils.writeVLong(out, key.getTimestamp());
-    out.writeBoolean(key.isDeleted());
   }
 
   @Override
-  public int compareTo(BulkKey other) {
+  public int compareTo(TestKey other) {
     return key.compareTo(other.key);
   }
 
@@ -116,24 +121,18 @@ public class BulkKey implements WritableComparable<BulkKey> {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    BulkKey other = (BulkKey) obj;
+    TestKey other = (TestKey) obj;
     return compareTo(other) == 0;
   }
 
-  @Override
-  public int hashCode() {
-    return hashCode;
-  }
-
-  /** A WritableComparator optimized for BulkKey keys. */
-  public static class KeyShortCircuitComparator extends WritableComparator {
-    public KeyShortCircuitComparator() {
-      super(BulkKey.class);
+  /** A WritableComparator optimized for TestKey objects. */
+  public static class TestShortCircuitComparator extends WritableComparator {
+    public TestShortCircuitComparator() {
+      super(TestKey.class);
     }
 
     @Override
     public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-
       int o1 = s1;
       int o2 = s2;
       int[] startAndLen = {0, 0};
@@ -154,50 +153,7 @@ public class BulkKey implements WritableComparable<BulkKey> {
         o1 += tl1;
         o2 += tl2;
       }
-
-      // get timestamp
-      startAndLen[0] = o1;
-      long ts1 = readVLong(b1, startAndLen);
-      o1 += startAndLen[1];
-      startAndLen[0] = o2;
-      long ts2 = readVLong(b2, startAndLen);
-      o2 += startAndLen[1];
-
-      if (ts1 < ts2) {
-        return 1;
-      } else if (ts1 > ts2) {
-        return -1;
-      }
-
-      boolean deleted1 = readBoolean(b1, o1);
-      boolean deleted2 = readBoolean(b2, o2);
-      if (deleted1 != deleted2) {
-        // if deleted=true return -1 indicating a deleted key is 'less than' a non-deleted key, and
-        // that
-        // the deleted key must be sorted before the non-deleted key
-        return (deleted1 ? -1 : 1);
-      }
-
       return 0;
-    }
-
-    public static boolean readBoolean(byte[] bytes, int start) {
-      return (bytes[start] != 0);
-    }
-
-    /**
-     * Reads a Variable int from a byte[]
-     *
-     * @see KeyShortCircuitComparator#readVLong(byte[], int[])
-     * @param bytes
-     *          payload containing variable int
-     * @param startAndLen
-     *          index 0 holds the offset into the byte array and position 1 is populated with the
-     *          length of the bytes
-     * @return the value
-     */
-    public static int readVInt(byte[] bytes, int[] startAndLen) {
-      return (int) readVLong(bytes, startAndLen);
     }
 
     /**
@@ -212,7 +168,7 @@ public class BulkKey implements WritableComparable<BulkKey> {
      *          length of the bytes
      * @return the value
      */
-    public static long readVLong(byte[] bytes, int[] startAndLen) {
+    public static int readVInt(byte[] bytes, int[] startAndLen) {
       byte firstByte = bytes[startAndLen[0]];
       startAndLen[1] = WritableUtils.decodeVIntSize(firstByte);
       if (startAndLen[1] == 1) {
@@ -224,13 +180,14 @@ public class BulkKey implements WritableComparable<BulkKey> {
         i = i << 8;
         i = i | (b & 0xFF);
       }
-      return (WritableUtils.isNegativeVInt(firstByte) ? (i ^ -1L) : i);
+      return (int)(WritableUtils.isNegativeVInt(firstByte) ? (i ^ -1L) : i);
     }
+
   }
 
   static {
     // register this comparator
-    WritableComparator.define(BulkKey.class, new KeyShortCircuitComparator());
+    WritableComparator.define(TestKey.class, new TestShortCircuitComparator());
   }
 
 }

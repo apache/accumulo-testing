@@ -34,7 +34,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
  * Generates a continuous ingest linked list per map reduce split. Each linked list is of
  * configurable length.
  */
-public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
+public class ContinuousInputFormat extends InputFormat<TestKey,Value> {
 
   static class RandomSplit extends InputSplit implements Writable {
     @Override
@@ -65,7 +65,7 @@ public class ContinuousInputFormat extends InputFormat<BulkKey,Value> {
   }
 
   @Override
-  public RecordReader<BulkKey,Value> createRecordReader(InputSplit inputSplit,
+  public RecordReader<TestKey,Value> createRecordReader(InputSplit inputSplit,
       TaskAttemptContext taskAttemptContext) {
     return new ContinousRecordReader();
   }

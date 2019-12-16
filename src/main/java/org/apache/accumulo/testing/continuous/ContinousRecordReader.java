@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -18,7 +19,7 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
+public class ContinousRecordReader extends RecordReader<TestKey,Value> {
   protected long numNodes;
   protected long nodeCount;
   protected Random random;
@@ -32,9 +33,11 @@ public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
   protected List<ColumnVisibility> visibilities;
   protected boolean checksum;
 
-  protected BulkKey prevKey;
-  protected BulkKey currKey;
+  protected TestKey prevKey;
+  protected TestKey currKey;
   protected Value currValue;
+
+  final AtomicBoolean running = new AtomicBoolean(false);
 
   @Override
   public void initialize(InputSplit inputSplit, TaskAttemptContext job) {
@@ -55,7 +58,7 @@ public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
     nodeCount = 0;
   }
 
-  protected BulkKey genKey(CRC32 cksum) {
+  protected TestKey genKey(CRC32 cksum) {
 
     byte[] row = genRow(genLong(minRow, maxRow, random));
     byte[] fam = genCol(random.nextInt(maxFam));
@@ -69,7 +72,7 @@ public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
       cksum.update(cv);
     }
 
-    return new BulkKey(row, fam, qual, cv, Long.MAX_VALUE, false);
+    return new TestKey(row, fam, qual, cv);
   }
 
   protected byte[] createValue(byte[] ingestInstanceId, byte[] prevRow, Checksum cksum) {
@@ -93,7 +96,7 @@ public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
   }
 
   @Override
-  public BulkKey getCurrentKey() {
+  public TestKey getCurrentKey() {
     return currKey;
   }
 
@@ -109,6 +112,6 @@ public class ContinousRecordReader extends RecordReader<BulkKey,Value> {
 
   @Override
   public void close() throws IOException {
-
+    running.set(false);
   }
 }

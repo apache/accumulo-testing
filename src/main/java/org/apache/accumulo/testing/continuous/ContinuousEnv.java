@@ -53,9 +53,9 @@ public class ContinuousEnv extends TestEnv {
    * @throws ClassNotFoundException
    */
   @SuppressWarnings("unchecked")
-  public Class<? extends InputFormat<BulkKey,Value>> getInputFormat()
+  public Class<? extends InputFormat<TestKey,Value>> getInputFormat()
       throws ClassNotFoundException, ClassCastException {
-    return (Class<? extends InputFormat<BulkKey,Value>>) Class
+    return (Class<? extends InputFormat<TestKey,Value>>) Class
         .forName(testProps.getProperty(TestProps.CI_COMMON_INPUT_FORMAT,
             AsyncContinousInputFormat.class.getCanonicalName()))
         .asSubclass(InputFormat.class);

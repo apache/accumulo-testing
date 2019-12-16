@@ -8,14 +8,14 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Partitioner;
 
 /**
- * Defines a partitioner for BulkKey
+ * Defines a partitioner for TestKey
  */
-public class BulkKeyPartitioner extends Partitioner<BulkKey,Writable> implements Configurable {
+public class TestKeyPartitioner extends Partitioner<TestKey,Writable> implements Configurable {
   private RangePartitioner rp = new RangePartitioner();
 
-  public BulkKeyPartitioner() {}
+  public TestKeyPartitioner() {}
 
-  public int getPartition(BulkKey key, Writable value, int numPartitions) {
+  public int getPartition(TestKey key, Writable value, int numPartitions) {
     return this.rp.getPartition(key.getKey().getRow(), value, numPartitions);
   }
 

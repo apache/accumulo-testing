@@ -71,13 +71,13 @@ public class BulkIngest extends Configured implements Tool {
       job.setInputFormatClass(env.getInputFormat());
 
       // map the generated random longs to key values
-      job.setMapOutputKeyClass(BulkKey.class);
+      job.setMapOutputKeyClass(TestKey.class);
       job.setMapOutputValueClass(Value.class);
 
       fs.mkdirs(new Path(bulkDir));
 
       // output RFiles for the import
-      job.setOutputFormatClass(BulkOutputWriter.class);
+      job.setOutputFormatClass(TestKeyWriter.class);
       AccumuloFileOutputFormat.configure().outputPath(new Path(bulkDir + "/files")).store(job);
 
       ContinousInputOptions.configure(job.getConfiguration(), ingestInstanceId, env);
@@ -99,8 +99,8 @@ public class BulkIngest extends Configured implements Tool {
           job.setNumReduceTasks(splits.size() + 1);
         }
 
-        job.setPartitionerClass(BulkKeyPartitioner.class);
-        BulkKeyPartitioner.setSplitFile(job, fs.getUri() + splitsFile);
+        job.setPartitionerClass(TestKeyPartitioner.class);
+        TestKeyPartitioner.setSplitFile(job, fs.getUri() + splitsFile);
         job.waitForCompletion(true);
         boolean success = job.isSuccessful();
 

@@ -9,7 +9,6 @@ import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.hadoop.mapreduce.FileOutputFormatBuilder;
-import org.apache.accumulo.hadoop.mapreduce.FileOutputFormatBuilder.PathParams;
 import org.apache.accumulo.hadoopImpl.mapreduce.FileOutputFormatBuilderImpl;
 import org.apache.accumulo.hadoopImpl.mapreduce.lib.ConfiguratorBase;
 import org.apache.accumulo.hadoopImpl.mapreduce.lib.FileOutputConfigurator;
@@ -20,10 +19,10 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-public class BulkOutputWriter extends FileOutputFormat<BulkKey,Value> {
-  private static final Class<BulkOutputWriter> CLASS = BulkOutputWriter.class;
+public class TestKeyWriter extends FileOutputFormat<TestKey,Value> {
+  private static final Class<TestKeyWriter> CLASS = TestKeyWriter.class;
 
-  public RecordWriter<BulkKey,Value> getRecordWriter(TaskAttemptContext context)
+  public RecordWriter<TestKey,Value> getRecordWriter(TaskAttemptContext context)
       throws IOException {
     final Configuration conf = context.getConfiguration();
     final AccumuloConfiguration acuConf = FileOutputConfigurator
@@ -31,7 +30,7 @@ public class BulkOutputWriter extends FileOutputFormat<BulkKey,Value> {
     String extension = acuConf.get(Property.TABLE_FILE_TYPE);
     final Path file = this.getDefaultWorkFile(context, "." + extension);
     final int visCacheSize = ConfiguratorBase.getVisibilityCacheSize(conf);
-    return new RecordWriter<BulkKey,Value>() {
+    return new RecordWriter<TestKey,Value>() {
       RFileWriter out = null;
 
       public void close(TaskAttemptContext context) throws IOException {
@@ -41,7 +40,7 @@ public class BulkOutputWriter extends FileOutputFormat<BulkKey,Value> {
 
       }
 
-      public void write(BulkKey key, Value value) throws IOException {
+      public void write(TestKey key, Value value) throws IOException {
         if (this.out == null) {
           this.out = RFile.newWriter().to(file.toString()).withFileSystem(file.getFileSystem(conf))
               .withTableProperties(acuConf).withVisibilityCacheSize(visCacheSize).build();
