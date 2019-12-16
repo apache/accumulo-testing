@@ -4,17 +4,14 @@ import java.io.IOException;
 
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
+import org.apache.accumulo.core.clientImpl.mapreduce.lib.ConfiguratorBase;
+import org.apache.accumulo.core.clientImpl.mapreduce.lib.FileOutputConfigurator;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat;
-import org.apache.accumulo.hadoop.mapreduce.FileOutputFormatBuilder;
-import org.apache.accumulo.hadoopImpl.mapreduce.FileOutputFormatBuilderImpl;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.ConfiguratorBase;
-import org.apache.accumulo.hadoopImpl.mapreduce.lib.FileOutputConfigurator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -50,13 +47,6 @@ public class TestKeyWriter extends FileOutputFormat<TestKey,Value> {
         this.out.append(key.getKey(), value);
       }
     };
-  }
-
-  /**
-   * Sets all the information required for this map reduce job.
-   */
-  public static FileOutputFormatBuilder.PathParams<JobConf> configure() {
-    return new FileOutputFormatBuilderImpl<>(CLASS);
   }
 
 }
