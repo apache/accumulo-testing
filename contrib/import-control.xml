@@ -23,6 +23,7 @@
     <allow pkg="org.apache.accumulo.testing"/>
     <!-- API packages -->
     <allow pkg="org.apache.accumulo.core.client"/>
+    <allow pkg="org.apache.accumulo.core.clientImpl.mapreduce"/>
     <allow pkg="org.apache.accumulo.core.data"/>
     <allow pkg="org.apache.accumulo.core.security"/>
     <allow pkg="org.apache.accumulo.core.iterators"/>
