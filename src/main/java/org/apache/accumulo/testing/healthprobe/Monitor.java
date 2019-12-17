@@ -49,6 +49,8 @@ public class Monitor {
   private static final byte[] EMPTY_BYTES = new byte[0];
   Random r = new Random();
   static long distance = 100l;
+  static ArrayList<Text> splits;
+  static boolean cachedSplits = true;
 
   public static void main(String[] args) throws Exception {
     MonitorOpts opts = new MonitorOpts();
@@ -137,7 +139,10 @@ public class Monitor {
   public static Range pickRange(TableOperations tops, String table, Random r)
       throws TableNotFoundException, AccumuloSecurityException, AccumuloException {
 
-    ArrayList<Text> splits = Lists.newArrayList(tops.listSplits(table));
+    if (cachedSplits) {
+      splits = Lists.newArrayList(tops.listSplits(table));
+      cachedSplits = false;
+    }
     if (splits.isEmpty()) {
       return new Range();
     } else {
