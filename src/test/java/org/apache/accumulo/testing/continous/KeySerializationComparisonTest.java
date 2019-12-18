@@ -1,11 +1,13 @@
 package org.apache.accumulo.testing.continous;
 
+import static org.apache.accumulo.testing.continuous.ContinuousIngest.genCol;
+import static org.apache.accumulo.testing.continuous.ContinuousIngest.genRow;
+
 import java.util.List;
 import java.util.Random;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.continuous.ContinuousIngest;
 import org.apache.accumulo.testing.continuous.TestKey;
 import org.apache.commons.lang3.time.StopWatch;
@@ -17,8 +19,7 @@ import org.junit.Test;
 public class KeySerializationComparisonTest {
 
   private static List<ColumnVisibility> visibilities;
-  private static final byte[] EMPTY_BYTES = new byte[0];
-  private static final long MEGABYTE = 10 * 1024L * 1024L;
+  private static final long MEGABYTE = 50 * 1024L * 1024L;
   Random random;
 
   @Before
@@ -27,28 +28,12 @@ public class KeySerializationComparisonTest {
     visibilities = ContinuousIngest.parseVisibilities("IMATEST");
   }
 
-  public static byte[] genCol(long cfInt) {
-    return FastFormat.toZeroPaddedString(cfInt, 4, 16, EMPTY_BYTES);
-  }
-
-  public static long genLong(long min, long max, Random r) {
-    return ((r.nextLong() & 0x7fffffffffffffffL) % (max - min)) + min;
-  }
-
-  static byte[] genRow(long min, long max, Random r) {
-    return genRow(genLong(min, max, r));
-  }
-
-  public static byte[] genRow(long rowLong) {
-    return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
-  }
-
   /**
    * Avoid reflection by creating a fancy function.
    * 
    * @return Test Key
    */
-  protected TestKey genTestKey(long rowl, long coll) {
+  protected TestKey genTestKey(long rowl, int coll) {
 
     byte[] row = genRow(rowl);
     byte[] col = genCol(coll);
@@ -60,23 +45,11 @@ public class KeySerializationComparisonTest {
    * 
    * @return Test Key
    */
-  protected Key genRegularKey(long rowl, long coll) {
+  protected Key genRegularKey(long rowl, int coll) {
 
     byte[] row = genRow(rowl);
     byte[] col = genCol(coll);
     return new Key(row, col, col, col);
-  }
-
-  /**
-   * Generate a full key
-   * 
-   * @return Test Key
-   */
-  protected BulkKey genBulkKey(long rowl, long coll) {
-
-    byte[] row = genRow(rowl);
-    byte[] col = genCol(coll);
-    return new BulkKey(row, col, col, col, Long.MAX_VALUE, false);
   }
 
   @Test
@@ -86,7 +59,12 @@ public class KeySerializationComparisonTest {
       byte[] a = WritableUtils.toByteArray(genTestKey(i, i));
       int adder = random.nextInt(1001) + 1 + i;
       byte[] b = WritableUtils.toByteArray(genTestKey(adder, adder));
+      byte[] c = WritableUtils.toByteArray(genTestKey(i, adder));
       int comparisonResult = comparator.compare(a, 0, a.length, b, 0, b.length);
+      Assert.assertTrue("Comparision should be negative, not " + comparisonResult,
+          comparisonResult < 0);
+      // in this case c has a larger cf
+      comparisonResult = comparator.compare(a, 0, a.length, c, 0, c.length);
       Assert.assertTrue("Comparision should be negative, not " + comparisonResult,
           comparisonResult < 0);
     }
@@ -95,14 +73,21 @@ public class KeySerializationComparisonTest {
       int adder = random.nextInt(1001) + 1 + i;
       byte[] a = WritableUtils.toByteArray(genTestKey(adder, adder));
       byte[] b = WritableUtils.toByteArray(genTestKey(i, i));
+      byte[] c = WritableUtils.toByteArray(genTestKey(i, adder));
       int comparisonResult = comparator.compare(a, 0, a.length, b, 0, b.length);
-      Assert.assertTrue("Comparision should be negative, not " + comparisonResult,
+      Assert.assertTrue("Comparision should be positive, not " + comparisonResult,
           comparisonResult > 0);
 
       comparisonResult = comparator.compare(a, 0, a.length, a, 0, a.length);
       Assert.assertTrue("Comparision should be negative, not " + comparisonResult,
           comparisonResult == 0);
+
+      // in this case a has a larger row so we should be
+      comparisonResult = comparator.compare(a, 0, a.length, c, 0, c.length);
+      Assert.assertTrue("Comparision should be positive, not " + comparisonResult,
+          comparisonResult > 0);
     }
+
   }
 
   /**
@@ -141,29 +126,16 @@ public class KeySerializationComparisonTest {
       counter++;
       total += a.length;
     }
-
-    stopWatch.stop();
-    long bulkKeyTime = stopWatch.getTime();
-    long bulkKeysGenerated = counter;
-
-    total = counter = 0;
-    stopWatch.reset();
-    stopWatch.start();
-    while (total <= MEGABYTE) {
-      byte[] a = WritableUtils.toByteArray(genBulkKey(counter, counter));
-      counter++;
-      total += a.length;
-    }
     stopWatch.stop();
     long regularKeyTime = stopWatch.getTime();
     long regularKeysGenerated = counter;
 
     Assert.assertTrue("It is expected that test keys generate more keys in the same space ",
-        testKeysGenerated > regularKeysGenerated && testKeysGenerated > bulkKeysGenerated);
+        testKeysGenerated > regularKeysGenerated);
 
     // may not always be faster than bulk key but we should be within 10%
-    Assert.assertTrue("It is expected that test keys generate more keys in the same space ",
-        testKeyTime <= regularKeyTime && testKeyTime <= (bulkKeyTime + (bulkKeyTime * .10)));
+    Assert.assertTrue("It is expected that test keys generate more keys in the same space "
+        + testKeyTime + " " + regularKeyTime, testKeyTime <= regularKeyTime);
 
   }
 

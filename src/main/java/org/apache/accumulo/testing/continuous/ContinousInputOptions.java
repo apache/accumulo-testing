@@ -29,8 +29,8 @@ public interface ContinousInputOptions {
     conf.set(ContinousInputOptions.PROP_VIS, env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES));
     // set the async option to only be used in async mode
     conf.set(ContinousInputOptions.PROP_ASYNC,
-        env.getTestProperty(TestProps.CI_COMMON_ASYNC_THREADS));
+        env.getTestProperty(TestProps.CI_BULK_ASYNC_THREADS));
     conf.set(ContinousInputOptions.PROP_ASYNC_KEYS,
-        env.getTestProperty(TestProps.CI_COMMON_ASYNC_KEYS_QUEUE));
+        env.getTestProperty(TestProps.CI_BULK_ASYNC_KEYS_QUEUE));
   }
 }

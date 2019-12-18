@@ -29,12 +29,6 @@ public class TestKey implements WritableComparable<TestKey> {
 
   public TestKey() {}
 
-  public TestKey(byte[] row, byte[] cf, byte[] cq, byte[] cv, long ts, boolean deleted) {
-    // don't copy the arrays
-    this.key = new Key(row, cf, cq, cv);
-    hashCode = key.hashCode();
-  }
-
   public TestKey(byte[] row, byte[] cf, byte[] cq, byte[] cv) {
     // don't copy the arrays
     this.key = new Key(row, cf, cq, cv);
@@ -57,17 +51,16 @@ public class TestKey implements WritableComparable<TestKey> {
   @Override
   public void readFields(DataInput in) throws IOException {
 
-    final int rowsize = in.readInt();
+    final int rowsize = WritableUtils.readVInt(in);
     final byte[] row = readBytes(in, rowsize);
 
-    final int cfsize = in.readInt();
+    final int cfsize = WritableUtils.readVInt(in);
     final byte[] cf = readBytes(in, cfsize);
 
-    final int cqsize = in.readInt();
+    final int cqsize = WritableUtils.readVInt(in);
     final byte[] cq = readBytes(in, cqsize);
 
-    final int cvsize = in.readInt();
-
+    final int cvsize = WritableUtils.readVInt(in);
     final byte[] cv = readBytes(in, cvsize);
 
     key = new Key(row, cf, cq, cv);

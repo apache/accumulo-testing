@@ -67,7 +67,7 @@ public class ContinuousEnv extends TestEnv {
    * @return number of threads
    */
   public long getAsyncThreadCount() {
-    return Long.parseLong(testProps.getProperty(TestProps.CI_COMMON_ASYNC_THREADS, "5"));
+    return Long.parseLong(testProps.getProperty(TestProps.CI_BULK_ASYNC_THREADS, "5"));
   }
 
   /**
@@ -76,7 +76,7 @@ public class ContinuousEnv extends TestEnv {
    * @return number of keys to queue
    */
   public long getAsyncKeysToQueue() {
-    return Long.parseLong(testProps.getProperty(TestProps.CI_COMMON_ASYNC_KEYS_QUEUE, "1000"));
+    return Long.parseLong(testProps.getProperty(TestProps.CI_BULK_ASYNC_KEYS_QUEUE, "1000"));
   }
 
   public long getRowMin() {
