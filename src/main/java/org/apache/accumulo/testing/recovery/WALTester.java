@@ -66,7 +66,8 @@ public class WALTester {
     void sync(FSDataOutputStream out) throws IOException;
   }
   
-  public void verifyWalOps(Path filePath, boolean syncable, SyncFunc syncFunc) throws IOException {
+  public boolean verifyWalOps(Path filePath, boolean syncable, SyncFunc syncFunc) throws IOException {
+    boolean succeeded = true;
     FSDataOutputStream out;
     if (syncable) {
       log.info("Creating syncable file");
@@ -95,11 +96,13 @@ public class WALTester {
     }
     if (!gotException) {
       log.error("No exception on write+sync after log was closed");
+      succeeded = false;
     }
 
     try {
       if (out != null) {
         out.close();
+        succeeded = false;
       }
     } catch (Exception e) {
       log.info("Got exception on close as expected", e);
@@ -116,8 +119,11 @@ public class WALTester {
       }
       if (count != 1) {
         log.error("Expected to read 1 flushed entry from file, but got {}", count);
+        succeeded = false;
       }
     }
+    
+    return succeeded;
   }
 
   public static void main(String[] args) throws Exception {
@@ -128,9 +134,13 @@ public class WALTester {
     WALTester walTester = new WALTester(args[0]);
     Path basePath = new Path(args[1]);
 
-    walTester.verifyWalOps(new Path(basePath, "1"), false, FSDataOutputStream::hsync);
-    walTester.verifyWalOps(new Path(basePath, "2"), false, FSDataOutputStream::hflush);
-    walTester.verifyWalOps(new Path(basePath, "3"), true, FSDataOutputStream::hsync);
-    walTester.verifyWalOps(new Path(basePath, "4"), true, FSDataOutputStream::hflush);
+    boolean succeeded = true;
+
+    succeeded &= walTester.verifyWalOps(new Path(basePath, "1"), false, FSDataOutputStream::hsync);
+    succeeded &= walTester.verifyWalOps(new Path(basePath, "2"), false, FSDataOutputStream::hflush);
+    succeeded &= walTester.verifyWalOps(new Path(basePath, "3"), true, FSDataOutputStream::hsync);
+    succeeded &= walTester.verifyWalOps(new Path(basePath, "4"), true, FSDataOutputStream::hflush);
+
+    if(!succeeded) System.exit(1);
   }
 }
