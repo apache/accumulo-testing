@@ -25,7 +25,6 @@ import org.apache.accumulo.server.fs.VolumeManager;
 import org.apache.accumulo.server.fs.VolumeManagerImpl;
 import org.apache.accumulo.server.master.recovery.HadoopLogCloser;
 import org.apache.accumulo.server.master.recovery.LogCloser;
-import org.apache.accumulo.testing.continuous.BulkIngest;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -43,7 +42,7 @@ import java.io.IOException;
  *   hdfs://localhost:8020/accumulo/file
  */
 public class WALTester {
-  public static final Logger log = LoggerFactory.getLogger(BulkIngest.class);
+  public static final Logger log = LoggerFactory.getLogger(WALTester.class);
   private static final Text HELLO = new Text("hello");
 
   private AccumuloConfiguration siteConfig;
@@ -52,9 +51,15 @@ public class WALTester {
   private LogCloser logCloser;
   private VolumeManager fs;
 
-  public WALTester(String logCloserClass) throws IOException {
+  private Path basePath;
+  private int fileCount = 0;
+
+  private String errMsg;
+
+  public WALTester(String logCloserClass, String basePath) throws IOException {
     this.siteConfig = new SiteConfiguration();
     this.hadoopConfig = new Configuration();
+    this.basePath = new Path(basePath);
 
     this.logCloser = ConfigurationTypeHelper.getClassInstance((String)null, logCloserClass,
         LogCloser.class, new HadoopLogCloser());
@@ -65,8 +70,15 @@ public class WALTester {
   public static interface SyncFunc {
     void sync(FSDataOutputStream out) throws IOException;
   }
+
+  public String getErrMsg() {
+    return errMsg;
+  }
   
-  public boolean verifyWalOps(Path filePath, boolean syncable, SyncFunc syncFunc) throws IOException {
+  public boolean verifyWalOps(boolean syncable, SyncFunc syncFunc, String method) throws IOException {
+    fileCount++;
+    errMsg = String.format("Test failure: syncable %s, sync function %s. ", syncable, method);
+    Path filePath = new Path(basePath, Integer.toString(fileCount));
     boolean succeeded = true;
     FSDataOutputStream out;
     if (syncable) {
@@ -81,8 +93,16 @@ public class WALTester {
     syncFunc.sync(out);
     
     HELLO.write(out);
-    log.info("Calling log closer");
-    logCloser.close(siteConfig, hadoopConfig, fs, filePath);
+    long time = 1;
+    while (time > 0) {
+      log.info("Calling log closer");
+      time = logCloser.close(siteConfig, hadoopConfig, fs, filePath);
+      log.info("Sleeping for {}ms", time);
+      try {
+        Thread.sleep(time);
+      } catch (InterruptedException e) {
+      }
+    }
 
     boolean gotException = false;
     try {
@@ -95,7 +115,9 @@ public class WALTester {
       gotException = true;
     }
     if (!gotException) {
-      log.error("No exception on write+sync after log was closed");
+      String err = "No exception on write+sync after log was closed. ";
+      errMsg += err;
+      log.error(err);
       succeeded = false;
     }
 
@@ -118,11 +140,16 @@ public class WALTester {
         count++;
       }
       if (count != 1) {
-        log.error("Expected to read 1 flushed entry from file, but got {}", count);
+        String err = String.format("Expected to read 1 flushed entry from file, got %d.\n", count);
+        errMsg += err;
+        log.error(err);
         succeeded = false;
       }
     }
-    
+
+    if (succeeded) {
+      errMsg = "";
+    }
     return succeeded;
   }
 
@@ -131,16 +158,25 @@ public class WALTester {
       throw new IllegalArgumentException("Expected <logCloserClass> <basePath> arguments.");
     }
 
-    WALTester walTester = new WALTester(args[0]);
-    Path basePath = new Path(args[1]);
+    WALTester walTester = new WALTester(args[0], args[1]);
 
     boolean succeeded = true;
+    String errMsg = "";
 
-    succeeded &= walTester.verifyWalOps(new Path(basePath, "1"), false, FSDataOutputStream::hsync);
-    succeeded &= walTester.verifyWalOps(new Path(basePath, "2"), false, FSDataOutputStream::hflush);
-    succeeded &= walTester.verifyWalOps(new Path(basePath, "3"), true, FSDataOutputStream::hsync);
-    succeeded &= walTester.verifyWalOps(new Path(basePath, "4"), true, FSDataOutputStream::hflush);
+    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hsync, "hsync");
+    errMsg += walTester.getErrMsg();
+    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hflush, "hflush");
+    errMsg += walTester.getErrMsg();
+    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hsync, "hsync");
+    errMsg += walTester.getErrMsg();
+    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hflush, "hflush");
+    errMsg += walTester.getErrMsg();
 
-    if(!succeeded) System.exit(1);
+    if (succeeded) {
+      log.info("TEST SUCCEEDED");
+    } else {
+      log.error("TEST FAILED\n{}", errMsg);
+      System.exit(1);
+    }
   }
 }
