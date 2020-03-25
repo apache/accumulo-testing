@@ -62,7 +62,11 @@ public class WALTester {
     this.fs = VolumeManagerImpl.get(siteConfig, hadoopConfig);
   }
 
-  public void verifyWalOps(Path filePath, boolean syncable, boolean useHsync) throws IOException {
+  public static interface SyncFunc {
+    void sync(FSDataOutputStream out) throws IOException;
+  }
+  
+  public void verifyWalOps(Path filePath, boolean syncable, SyncFunc syncFunc) throws IOException {
     FSDataOutputStream out;
     if (syncable) {
       log.info("Creating syncable file");
@@ -73,11 +77,8 @@ public class WALTester {
     }
     log.info("Writing to file");
     HELLO.write(out);
-    if (useHsync) {
-      out.hsync();
-    } else {
-      out.hflush();
-    }
+    syncFunc.sync(out);
+    
     HELLO.write(out);
     log.info("Calling log closer");
     logCloser.close(siteConfig, hadoopConfig, fs, filePath);
@@ -87,11 +88,7 @@ public class WALTester {
       log.info("Writing to file after log close");
       HELLO.write(out);
       log.info("Syncing after log close");
-      if (useHsync) {
-        out.hsync();
-      } else {
-        out.hflush();
-      }
+      syncFunc.sync(out);
     } catch (Exception e) {
       log.info("Got exception on write+sync after close as expected", e);
       gotException = true;
@@ -131,9 +128,9 @@ public class WALTester {
     WALTester walTester = new WALTester(args[0]);
     Path basePath = new Path(args[1]);
 
-    walTester.verifyWalOps(new Path(basePath, "1"), false, true);
-    walTester.verifyWalOps(new Path(basePath, "2"), false, false);
-    walTester.verifyWalOps(new Path(basePath, "3"), true, true);
-    walTester.verifyWalOps(new Path(basePath, "4"), true, false);
+    walTester.verifyWalOps(new Path(basePath, "1"), false, FSDataOutputStream::hsync);
+    walTester.verifyWalOps(new Path(basePath, "2"), false, FSDataOutputStream::hflush);
+    walTester.verifyWalOps(new Path(basePath, "3"), true, FSDataOutputStream::hsync);
+    walTester.verifyWalOps(new Path(basePath, "4"), true, FSDataOutputStream::hflush);
   }
 }
