@@ -37,6 +37,9 @@ import java.io.IOException;
 
 /**
  * To run the WALTester, copy accumulo-testing-shaded.jar to the Accumulo classpath, then run
+ * accumulo org.apache.accumulo.testing.recovery.WALTester logCloserClass basePath [sleepSeconds]
+ *
+ * Example:
  * accumulo org.apache.accumulo.testing.recovery.WALTester \
  *   org.apache.accumulo.server.master.recovery.HadoopLogCloser \
  *   hdfs://localhost:8020/accumulo/file
@@ -75,7 +78,8 @@ public class WALTester {
     return errMsg;
   }
   
-  public boolean verifyWalOps(boolean syncable, SyncFunc syncFunc, String method) throws IOException {
+  public boolean verifyWalOps(boolean syncable, SyncFunc syncFunc, String method,
+      long sleepSeconds) throws IOException {
     fileCount++;
     errMsg = String.format("Test failure: syncable %s, sync function %s. ", syncable, method);
     Path filePath = new Path(basePath, Integer.toString(fileCount));
@@ -88,6 +92,15 @@ public class WALTester {
       log.info("Creating file");
       out = fs.create(filePath, true, 0, (short) 3, 67108864);
     }
+
+    if (sleepSeconds > 0) {
+      log.info("Sleeping for {} seconds before trying to write to file (for example to check " +
+              "lease renewal)", sleepSeconds);
+      try {
+        Thread.sleep(sleepSeconds * 1000);
+      } catch (InterruptedException e) {}
+    }
+
     log.info("Writing to file");
     HELLO.write(out);
     syncFunc.sync(out);
@@ -154,22 +167,27 @@ public class WALTester {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      throw new IllegalArgumentException("Expected <logCloserClass> <basePath> arguments.");
+    if (args.length < 2 || args.length > 3) {
+      throw new IllegalArgumentException("Expected <logCloserClass> <basePath> " +
+          "[sleepSeconds] arguments.");
     }
 
     WALTester walTester = new WALTester(args[0], args[1]);
+    long sleepSeconds = 0;
+    if (args.length > 2) {
+      sleepSeconds = Long.parseLong(args[2]);
+    }
 
     boolean succeeded = true;
     String errMsg = "";
 
-    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hsync, "hsync");
+    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hsync, "hsync", sleepSeconds);
     errMsg += walTester.getErrMsg();
-    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hflush, "hflush");
+    succeeded &= walTester.verifyWalOps(false, FSDataOutputStream::hflush, "hflush", sleepSeconds);
     errMsg += walTester.getErrMsg();
-    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hsync, "hsync");
+    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hsync, "hsync", sleepSeconds);
     errMsg += walTester.getErrMsg();
-    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hflush, "hflush");
+    succeeded &= walTester.verifyWalOps(true, FSDataOutputStream::hflush, "hflush", sleepSeconds);
     errMsg += walTester.getErrMsg();
 
     if (succeeded) {
