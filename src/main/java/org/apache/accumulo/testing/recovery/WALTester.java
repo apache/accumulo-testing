@@ -36,13 +36,29 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
+ * WALTester tests a file system to determine if it meets Accumulo WAL assumptions. Provide a
+ * file URI (with the scheme indicating the file system type, such as hdfs) and a LogCloser
+ * implementation. The test will perform the following steps:
+ * <p><ul>
+ * <li>open an output stream, write, and sync
+ * <li>invoke the LogCloser
+ * <li>write and sync again, expecting an exception to occur
+ * <li>close the output stream
+ * <li>read the file and verify it contains only the data from the first write.
+ * </ul>
+ * <p>
  * To run the WALTester, copy accumulo-testing-shaded.jar to the Accumulo classpath, then run
- * accumulo org.apache.accumulo.testing.recovery.WALTester logCloserClass basePath [sleepSeconds]
- *
+ * accumulo org.apache.accumulo.testing.recovery.WALTester logCloserClass basePath [sleepSeconds].
+ * The sleepSeconds parameter optionally sleeps after opening the output stream and before
+ * attempting to write data. If the file system is holding a lease on the file, this can verify
+ * that lease renewal is being performed if the sleep time is greater than the renewal interval.
+ * <p>
  * Example:
+ * <pre>
  * accumulo org.apache.accumulo.testing.recovery.WALTester \
  *   org.apache.accumulo.server.master.recovery.HadoopLogCloser \
  *   hdfs://localhost:8020/accumulo/file
+ * </pre>
  */
 public class WALTester {
   public static final Logger log = LoggerFactory.getLogger(WALTester.class);
