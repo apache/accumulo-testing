@@ -27,11 +27,11 @@ on your machine as well as an Accumulo instance to use for testing.
 
 Tests are run using the following scripts in `bin/`:
 
-  * `cingest` - Runs continous ingest tests
+  * `cingest` - Runs continuous ingest tests
   * `rwalk` - Runs random walk tests
   * `performance` - Runs performance test
   * `agitator` - Runs agitator
-  * `gcs` - Runs garbage collection simultation
+  * `gcs` - Runs garbage collection simulation
   * `monitor` - Runs availability monitor probe
 
 Run the scripts without arguments to view usage.
@@ -130,7 +130,7 @@ entries, inserted by continuous ingest references a previously flushed entry. Si
 referencing flushed entries, they should always exist. The MapReduce job checks that all referenced
 entries exist. If it finds any that do not exist it will increment the UNDEFINED counter and emit
 the referenced but undefined node.  The MapReduce job produces two other counts: REFERENCED and
-UNREFERENCED. It is expected that these two counts are non zero. REFERENCED counts nodes that are
+UNREFERENCED. It is expected that these two counts are non-zero. REFERENCED counts nodes that are
 defined and referenced. UNREFERENCED counts nodes that defined and unreferenced, these are the
 latest nodes inserted.
 * `bulk` - Runs a MapReduce job that generates data for bulk import.  See [bulk-test.md](docs/bulk-test.md).
@@ -139,7 +139,7 @@ table. This MapReduce job will write out an entry for every entry in the table (
 created by the MapReduce job itself). Stop ingest before running this MapReduce job. Do not run more
 than one instance of this MapReduce job concurrently against a table.
 
-Checkout [ingest-test.md](docs/ingest-test.md) for pointers on running a long
+Check out [ingest-test.md](docs/ingest-test.md) for pointers on running a long
 running ingest and verification test.
 
 ## Garbage Collection Simulator
@@ -169,7 +169,7 @@ Run the command below stop the agitator:
 ## Performance Test
 
 To run performance test a `cluster-control.sh` script is needed to assist with starting, stopping,
-wiping, and confguring an Accumulo instance.  This script should define the following functions.
+wiping, and configuring an Accumulo instance.  This script should define the following functions.
 
 ```bash
 
