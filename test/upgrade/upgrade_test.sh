@@ -78,7 +78,7 @@ else
 fi
 
 cd $ACCUMULO_DIR
-git checkout master
+git checkout main
 git clean -xfd
 cd $UNO_DIR
 ./bin/uno fetch accumulo

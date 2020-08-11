@@ -252,5 +252,5 @@ See the [readme.md](/test/automation/README.md).
 [modules]: core/src/main/resources/randomwalk/modules
 [image]: core/src/main/resources/randomwalk/modules/Image.xml
 [Docker Swarm]: https://docs.docker.com/engine/swarm/swarm-tutorial/
-[ti]: https://travis-ci.org/apache/accumulo-testing.svg?branch=master
-[tl]: https://travis-ci.org/apache/accumulo-testing
+[ti]: https://github.com/apache/accumulo-testing/workflows/QA/badge.svg
+[tl]: https://github.com/apache/accumulo-testing/actions

@@ -13,7 +13,7 @@ Optionally, you can use the --skip-classes argument with the provided exclude_cl
 org.apache.accumulo.core.data that aren't in the public API.
 
 This directory should have a library configuration file for each release on supported lines as well as an in-progress
-for whatever version is currently the master branch. The examples below all make use of version-specific library definitions.
+for whatever version is currently the main branch. The examples below all make use of version-specific library definitions.
 
 When looking at a patch release, you should verify that changes introduced are forwards and backwards compatible, per
 semver.

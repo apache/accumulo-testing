@@ -2,7 +2,7 @@
 
 Testing a snapshot version of Accumulo on a cluster using this respository requires many repetive steps.  Luckily, there is script that automates this using [Muchos].  This script is found in [test/automation/automateEC2.sh](automateEC2.sh).  
 
-Before running the script, edit [cluster_props.sh](cluster_props.sh). All repositories are set to the master branch of the corresponding Apache project by default. You can change these values to your specific forks and branches as desired.
+Before running the script, edit [cluster_props.sh](cluster_props.sh). All repositories are set to the main branch of the corresponding Apache project by default. You can change these values to your specific forks and branches as desired.
 
 A path to `muchos.props` is required in order to run the script. You can find the required configurations and an example of `muchos.props` [in the official Fluo-Muchos readme][Muchos].
 
