@@ -31,7 +31,7 @@ from lib.options import log
 class TableSplitsBenchmark(Benchmark):
     "Creating a table with predefined splits and then deletes it"
 
-    splitsfile = 'slowsplits'
+    splitsfile = 'data/slowsplits'
     tablename = 'test_splits'
 
     def setUp(self): 
@@ -64,11 +64,11 @@ class TableSplitsBenchmark(Benchmark):
     def setSpeed(self, speed):
         dir = os.path.dirname(os.path.realpath(__file__))
         if speed == "slow":
-            splitsfile = 'slowsplits'
+            splitsfile = 'data/slowsplits'
         elif speed == "medium":
-            splitsfile = 'mediumsplits'
+            splitsfile = 'data/mediumsplits'
         else: # speed == "fast"
-            splitsfile = 'fastsplits'
+            splitsfile = 'data/fastsplits'
         self.splitsfile = os.path.join( dir, splitsfile)
         
     def needsAuthentication(self):
