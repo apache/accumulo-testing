@@ -5,5 +5,4 @@
 /*.iml
 /.idea
 /logs/
-/test/bench/lib/*.pyc
-/test/bench/cloudstone*/*.pyc
+*.pyc
