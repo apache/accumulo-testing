@@ -15,9 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This script intentionally does not use other accumulo-testing scripts and
+# config and only relies on cluster-control.sh script to get all environmental
+# information.
+
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
-source "${bin_dir}/build"
 at_version=2.0.0-SNAPSHOT
 
 function print_usage() {
