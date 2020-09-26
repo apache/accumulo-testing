@@ -21,11 +21,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -35,6 +38,7 @@ import org.apache.accumulo.testing.performance.Environment;
 import org.apache.accumulo.testing.performance.PerformanceTest;
 import org.apache.accumulo.testing.performance.Report;
 import org.apache.accumulo.testing.performance.SystemConfiguration;
+import org.apache.hadoop.io.Text;
 
 import com.google.common.base.Preconditions;
 
@@ -169,8 +173,17 @@ public class GroupCommitPT implements PerformanceTest {
 
     Preconditions.checkArgument(NUM_MUTATIONS % numThreads == 0);
 
+    // presplit tablet to allow more concurrency to tablet in memory map updates, so this does not
+    // impeded write ahead log appends.
+    NewTableConfiguration ntc = new NewTableConfiguration();
+    SortedSet<Text> splits = new TreeSet<>();
+    for (int s = 16; s < 256; s += 16) {
+      splits.add(new Text(new byte[] {(byte) s}));
+    }
+    ntc.withSplits(splits);
+
     String tableName = "mutslam";
-    env.getClient().tableOperations().create(tableName);
+    env.getClient().tableOperations().create(tableName, ntc);
 
     // scan just to wait for tablet be online
     Scanner scanner = env.getClient().createScanner(tableName, Authorizations.EMPTY);
