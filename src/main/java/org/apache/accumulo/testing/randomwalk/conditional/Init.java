@@ -53,7 +53,7 @@ public class Init extends Test {
     for (int i = 0; i < numBanks; i++)
       banks.add(i);
     // shuffle for case when multiple threads are adding banks
-    Collections.shuffle(banks, (Random) state.get("rand"));
+    Collections.shuffle(banks, (Random) state.getRandom());
 
     ConditionalWriter cw = (ConditionalWriter) state.get("cw");
 
