@@ -356,6 +356,8 @@
                     <excludes>
                       <exclude>org.apache.accumulo:accumulo-native</exclude>
                       <exclude>org.apache.hadoop:*</exclude>
+                      <exclude>org.apache.logging.log4j:log4j-api:jar:</exclude>
+                      <exclude>org.apache.logging.log4j:log4j-1.2-api:jar:</exclude>
                     </excludes>
                   </artifactSet>
                   <filters>
