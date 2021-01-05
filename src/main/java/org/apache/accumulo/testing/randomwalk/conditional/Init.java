@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.randomwalk.conditional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
-import java.util.Random;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.ConditionalWriter;
@@ -53,7 +52,7 @@ public class Init extends Test {
     for (int i = 0; i < numBanks; i++)
       banks.add(i);
     // shuffle for case when multiple threads are adding banks
-    Collections.shuffle(banks, (Random) state.getRandom());
+    Collections.shuffle(banks, state.getRandom());
 
     ConditionalWriter cw = (ConditionalWriter) state.get("cw");
 
