@@ -27,6 +27,8 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.randomwalk.Fixture;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 
 public class MultiTableFixture extends Fixture {
 
@@ -41,6 +43,7 @@ public class MultiTableFixture extends Fixture {
     state.set("numWrites", Long.valueOf(0));
     state.set("totalWrites", Long.valueOf(0));
     state.set("tableList", new CopyOnWriteArrayList<String>());
+    state.set("fs", FileSystem.get(new Configuration()));
   }
 
   @Override
