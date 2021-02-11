@@ -35,13 +35,13 @@
 
     <!-- exceptions for testing -->
     <allow pkg="org.apache.accumulo.core.conf"/>
+    <allow class="org.apache.accumulo.core.util.threads.ThreadPools"/>
 
     <!-- TODO refactor code to remove the following exceptions -->
     <allow class="org.apache.accumulo.core.metadata.MetadataTable"/>
     <allow class="org.apache.accumulo.core.replication.ReplicationTable"/>
     <allow class="org.apache.accumulo.core.spi.scan.HintScanPrioritizer"/>
     <allow class="org.apache.accumulo.core.clientImpl.TabletServerBatchWriter"/>
-    <allow class="org.apache.accumulo.core.util.SimpleThreadPool"/>
     <allow class="org.apache.accumulo.core.util.FastFormat"/>
     <allow class="org.apache.accumulo.core.util.Pair"/>
     <allow class="org.apache.accumulo.core.trace.Trace"/>
