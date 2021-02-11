@@ -26,7 +26,7 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.iterators.LongCombiner;
 import org.apache.accumulo.core.iterators.user.SummingCombiner;
-import org.apache.accumulo.core.util.SimpleThreadPool;
+import org.apache.accumulo.core.util.threads.ThreadPools;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -60,8 +60,8 @@ public class Setup extends Test {
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set("bulkImportSuccess", "true");
     BulkPlusOne.counter.set(0l);
-
-    ThreadPoolExecutor e = new SimpleThreadPool(MAX_POOL_SIZE, "bulkImportPool");
+    ThreadPoolExecutor e = ThreadPools.createFixedThreadPool(MAX_POOL_SIZE, "bulkImportPool",
+        false);
     state.set("pool", e);
   }
 

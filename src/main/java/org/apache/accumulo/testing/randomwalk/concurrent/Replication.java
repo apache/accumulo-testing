@@ -17,7 +17,7 @@
 package org.apache.accumulo.testing.randomwalk.concurrent;
 
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
-import static org.apache.accumulo.core.conf.Property.MASTER_REPLICATION_SCAN_INTERVAL;
+import static org.apache.accumulo.core.conf.Property.MANAGER_REPLICATION_SCAN_INTERVAL;
 import static org.apache.accumulo.core.conf.Property.REPLICATION_NAME;
 import static org.apache.accumulo.core.conf.Property.REPLICATION_PEERS;
 import static org.apache.accumulo.core.conf.Property.REPLICATION_PEER_PASSWORD;
@@ -74,7 +74,7 @@ public class Replication extends Test {
     iOps.setProperty(REPLICATION_PEER_USER.getKey() + instName, env.getAccumuloUserName());
     iOps.setProperty(REPLICATION_PEER_PASSWORD.getKey() + instName, env.getAccumuloPassword());
     // Tweak some replication parameters to make the replication go faster
-    iOps.setProperty(MASTER_REPLICATION_SCAN_INTERVAL.getKey(), "1s");
+    iOps.setProperty(MANAGER_REPLICATION_SCAN_INTERVAL.getKey(), "1s");
     iOps.setProperty(REPLICATION_WORK_ASSIGNMENT_SLEEP.getKey(), "1s");
     iOps.setProperty(REPLICATION_WORK_PROCESSOR_DELAY.getKey(), "1s");
     iOps.setProperty(REPLICATION_WORK_PROCESSOR_PERIOD.getKey(), "1s");
