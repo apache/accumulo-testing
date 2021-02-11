@@ -43,7 +43,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.util.SimpleThreadPool;
+import org.apache.accumulo.core.util.threads.ThreadPools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -224,7 +224,7 @@ public class Module extends Node {
       fixture.setUp(state, env);
     }
 
-    ExecutorService service = new SimpleThreadPool(1, "RandomWalk Runner");
+    ExecutorService service = ThreadPools.createFixedThreadPool(1, "RandomWalk Runner", false);
 
     try {
       Node initNode = getNode(initNodeId);

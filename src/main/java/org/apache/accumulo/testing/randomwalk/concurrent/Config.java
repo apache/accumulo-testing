@@ -84,14 +84,14 @@ public class Config extends Test {
 			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,
 					1024 * 1024 * 1024 * 10L),
 			s(Property.TSERV_WORKQ_THREADS, 1, 10),
-			s(Property.MASTER_BULK_THREADPOOL_SIZE, 1, 10),
-			s(Property.MASTER_BULK_RETRIES, 1, 10),
-			s(Property.MASTER_BULK_TIMEOUT, 10, 600),
-			s(Property.MASTER_FATE_THREADPOOL_SIZE, 1, 100),
-			s(Property.MASTER_RECOVERY_DELAY, 0, 100),
-			s(Property.MASTER_LEASE_RECOVERY_WAITING_PERIOD, 0, 10),
-			s(Property.MASTER_THREADCHECK, 100, 10000),
-			s(Property.MASTER_MINTHREADS, 1, 200),};
+			s(Property.MANAGER_BULK_THREADPOOL_SIZE, 1, 10),
+			s(Property.MANAGER_BULK_RETRIES, 1, 10),
+			s(Property.MANAGER_BULK_TIMEOUT, 10, 600),
+			s(Property.MANAGER_FATE_THREADPOOL_SIZE, 1, 100),
+			s(Property.MANAGER_RECOVERY_DELAY, 0, 100),
+			s(Property.MANAGER_LEASE_RECOVERY_WAITING_PERIOD, 0, 10),
+			s(Property.MANAGER_THREADCHECK, 100, 10000),
+			s(Property.MANAGER_MINTHREADS, 1, 200),};
 
 	Setting[] tableSettings = {
 			s(Property.TABLE_MAJC_RATIO, 1, 10),
