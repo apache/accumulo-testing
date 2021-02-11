@@ -28,7 +28,7 @@
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
   <properties>
-    <accumulo.version>2.0.0</accumulo.version>
+    <accumulo.version>2.1.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <hadoop.version>3.2.0</hadoop.version>
     <maven.compiler.source>1.8</maven.compiler.source>
