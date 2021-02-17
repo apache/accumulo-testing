@@ -36,13 +36,16 @@ public class CreateTable extends Test {
     for (int i = 1; i < 10; i++) {
       splits.add(new Text(Integer.toString(i)));
     }
+    for (String s : "a b c d e f".split(" ")) {
+      splits.add(new Text(s));
+    }
   }
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
 
-    int nextId = ((Integer) state.get("nextId")).intValue();
+    int nextId = (Integer) state.get("nextId");
     String tableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
     try {
       client.tableOperations().create(tableName);
@@ -61,6 +64,6 @@ public class CreateTable extends Test {
     }
 
     nextId++;
-    state.set("nextId", Integer.valueOf(nextId));
+    state.set("nextId", nextId);
   }
 }
