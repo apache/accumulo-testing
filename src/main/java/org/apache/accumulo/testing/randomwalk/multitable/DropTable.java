@@ -34,7 +34,7 @@ public class DropTable extends Test {
     List<String> tables = (List<String>) state.get("tableList");
 
     // don't drop a table if we only have one table or less
-    if (tables.size() <= 1) {
+    if (tables.size() <= 25) {
       return;
     }
 

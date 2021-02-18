@@ -52,6 +52,13 @@ public class CopyTable extends Test {
     int nextId = ((Integer) state.get("nextId")).intValue();
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
+    if (env.getAccumuloClient().tableOperations().exists(dstTableName)) {
+      log.debug(dstTableName + " already exists so don't copy.");
+      nextId++;
+      state.set("nextId", Integer.valueOf(nextId));
+      return;
+    }
+
     String[] args = new String[3];
     args[0] = env.getClientPropsPath();
     args[1] = srcTableName;

@@ -18,6 +18,9 @@ package org.apache.accumulo.testing.randomwalk.multitable;
 
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.TableDeletedException;
+import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -26,7 +29,20 @@ public class Commit extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    env.getMultiTableBatchWriter().flush();
+    try {
+      env.getMultiTableBatchWriter().flush();
+    } catch (TableOfflineException e) {
+      log.debug("Commit failed, table offline");
+      return;
+    } catch (MutationsRejectedException mre) {
+      if (mre.getCause() instanceof TableDeletedException)
+        log.debug("Commit failed, table deleted");
+      else if (mre.getCause() instanceof TableOfflineException)
+        log.debug("Commit failed, table offline");
+      else
+        throw mre;
+      return;
+    }
 
     Long numWrites = state.getLong("numWrites");
     Long totalWrites = state.getLong("totalWrites") + numWrites;
