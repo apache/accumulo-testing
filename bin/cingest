@@ -31,7 +31,7 @@ Available applications:
     batchwalk     Randomly walks the graph using a batch scanner
     scan          Scans the graph
     verify        Verifies continous ingest test. Stop ingest before running.
-    moru          Streses Accumulo by reading and writing to the ingest table.
+    moru          Stresses Accumulo by reading and writing to the ingest table.
                   Stop ingest before running.
     bulk          Create RFiles in a Map Reduce job and calls importDirectory if successful
 EOF
