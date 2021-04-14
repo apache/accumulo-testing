@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.testing.zookeeper;
+package zookeeper;
 
 import static org.apache.accumulo.fate.util.UtilWaitThread.sleepUninterruptibly;
 
@@ -30,6 +30,7 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
+import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TabletId;
 import org.apache.accumulo.minicluster.ServerType;
@@ -43,6 +44,8 @@ import org.apache.accumulo.tserver.ZKDroppingTServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +54,7 @@ import org.slf4j.LoggerFactory;
  * with a rack of tservers that has trouble connecting with ZK, while the Manager and other servers
  * are fine.
  */
+@Ignore
 public class ZKDroppingIT extends ConfigurableMacBase {
   private static Logger log = LoggerFactory.getLogger(ZKDroppingIT.class);
   public static int ROWS = 5000;
@@ -59,6 +63,7 @@ public class ZKDroppingIT extends ConfigurableMacBase {
   @Override
   protected void configure(MiniAccumuloConfigImpl cfg, Configuration hadoopCoreSite) {
     cfg.setNumTservers(1);
+    cfg.setProperty(Property.TSERV_NATIVEMAP_ENABLED, "false");
   }
 
   @Override
@@ -66,7 +71,7 @@ public class ZKDroppingIT extends ConfigurableMacBase {
     return 10 * 60;
   }
 
-  // @Test
+  @Test
   public void test() throws Exception {
     List<ProcessReference> tProcs = new ArrayList<>(
         cluster.getProcesses().get(ServerType.TABLET_SERVER));
@@ -82,6 +87,7 @@ public class ZKDroppingIT extends ConfigurableMacBase {
     fs.deleteOnExit(testrf);
     var zoo = cluster.getServerContext().getZooReaderWriter();
 
+    log.debug("Getting propertiers????!?!?");
     try (AccumuloClient client = Accumulo.newClient().from(getClientProperties()).build()) {
       var tservers = client.instanceOperations().getTabletServers();
       while (tservers.size() != 2) {
