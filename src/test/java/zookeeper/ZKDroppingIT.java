@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.admin.CompactionConfig;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
@@ -110,22 +111,20 @@ public class ZKDroppingIT extends ConfigurableMacBase {
 
       printTabletLocations(client, tableName);
 
-      // cluster.killProcess(ServerType.TABLET_SERVER, tProcs.get(0));
-
-      // log.info("Killing Tserver");
-      // printTabletLocations(client, tableName);
-
-      // log.info("Wait for balance.");
-      // client.instanceOperations().waitForBalance();
-
       // signal to the server to start dropping
       log.info("signal to the server to start dropping");
       zoo.mkdirs(ZKDroppingTServer.ZPATH_START_DROPPING);
-      // zoo.mutateOrCreate(ZKDroppingTServer.ZPATH_START_DROPPING, new byte[0],
-      // b -> b = "false".getBytes(StandardCharsets.UTF_8));
+      // zoo.mutateOrCreate(ZKDroppingTServer.ZPATH_START_DROPPING, new byte[0], b -> b =
+      // "false".getBytes(UTF_8));
 
       log.info("Compact {}", tableName);
-      client.tableOperations().compact(tableName, new CompactionConfig().setWait(true));
+      try {
+        client.tableOperations().compact(tableName, new CompactionConfig());
+      } catch (AccumuloException e) {
+        log.info("Saw Exception trying to compact, remove signal to try again", e);
+        zoo.delete(ZKDroppingTServer.ZPATH_START_DROPPING);
+      }
+      client.tableOperations().compact(tableName, new CompactionConfig());
 
       printTabletLocations(client, tableName);
 
@@ -137,7 +136,7 @@ public class ZKDroppingIT extends ConfigurableMacBase {
       // ensure each tablet does not have all map files, should be ~2.5 files per tablet
       // FunctionalTestUtils.checkRFiles(client, tableName, SPLITS, SPLITS + 1, 1, 4);
     }
-    sleepUninterruptibly(30, TimeUnit.SECONDS);
+    sleepUninterruptibly(300, TimeUnit.SECONDS);
     // Assert.assertEquals(0, zombie.waitFor());
   }
 

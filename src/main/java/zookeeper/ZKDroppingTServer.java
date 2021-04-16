@@ -30,6 +30,7 @@ import org.apache.accumulo.server.ServerOpts;
 import org.apache.accumulo.tserver.TabletServer;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -76,24 +77,20 @@ class TestServerContext extends ServerContext {
     super(siteConfig);
     this.badZooReaderWriter = new BadZooReaderWriter(siteConfig);
     setupCrypto();
-    try {
-      // set watcher for signal in ZK to start dropping
-      super.getZooReaderWriter().exists(ZKDroppingTServer.ZPATH_START_DROPPING, event -> {
-        log.info("Start dropping ZK signal node created");
-        getBad = true;
-      });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+
   }
 
   @Override
   public ZooReaderWriter getZooReaderWriter() {
-    if (getBad) {
-      log.debug("Return BadZooReaderWriter");
-      return this.badZooReaderWriter;
-    } else {
-      return super.getZooReaderWriter();
+    try {
+      if (super.getZooReaderWriter().exists(ZKDroppingTServer.ZPATH_START_DROPPING)) {
+        log.debug("Return BadZooReaderWriter");
+        return this.badZooReaderWriter;
+      } else {
+        return super.getZooReaderWriter();
+      }
+    } catch (InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
     }
   }
 }
@@ -110,6 +107,18 @@ class BadZooReaderWriter extends ZooReaderWriter {
     log.warn("Saw (possibly) transient exception communicating with ZooKeeper", e);
     throw e;
   }
+
+  // getting and closing the zookeeper is an easy way to kill the tserver!
+  /*@Override
+  public ZooKeeper getZooKeeper() {
+    var zk = super.getZooKeeper();
+    try {
+      zk.close();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    return zk;
+  }*/
 
   @Override
   public void sync(String path) throws KeeperException, InterruptedException {
