@@ -59,6 +59,8 @@ public class TestProps {
   // randomly selected by scanners
   // and walkers
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
+  // input format option
+  public static final String CI_COMMON_INPUT_FORMAT = CI_COMMON + ".input.format";
 
   /** Ingest **/
   // Number of entries each ingest client should write
@@ -123,6 +125,10 @@ public class TestProps {
   public static final String CI_BULK_MAP_TASK = CI_BULK + "map.task";
   public static final String CI_BULK_MAP_NODES = CI_BULK + "map.nodes";
   public static final String CI_BULK_REDUCERS = CI_BULK + "reducers.max";
+  // asynchronous thread count configuration
+  public static final String CI_BULK_ASYNC_THREADS = CI_BULK + "async.threads";
+  // asynchronous configuration for the number of keys to queue
+  public static final String CI_BULK_ASYNC_KEYS_QUEUE = CI_BULK + "async.keys.queue";
 
   /** TeraSort **/
   public static final String TERASORT_TABLE = TERASORT + "table";
