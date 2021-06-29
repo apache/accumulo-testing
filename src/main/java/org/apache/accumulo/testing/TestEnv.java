@@ -171,6 +171,7 @@ public class TestEnv implements AutoCloseable {
    */
   public synchronized AccumuloClient getAccumuloClient() {
     if (client == null) {
+      KerberosHelper.saslLogin(clientProps, getHadoopConfiguration());
       client = Accumulo.newClient().from(clientProps).build();
     }
     return client;

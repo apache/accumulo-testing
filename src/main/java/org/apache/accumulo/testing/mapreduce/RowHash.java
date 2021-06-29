@@ -28,6 +28,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
 import org.apache.accumulo.testing.TestEnv;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configured;
@@ -76,10 +77,12 @@ public class RowHash extends Configured implements Tool {
       String inputTable = props.getProperty(TestProps.ROWHASH_INPUT_TABLE);
       String outputTable = props.getProperty(TestProps.ROWHASH_OUTPUT_TABLE);
 
-      AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(inputTable)
+      Properties clientProps = KerberosHelper.configDelegationToken(env);
+
+      AccumuloInputFormat.configure().clientProperties(clientProps).table(inputTable)
           .fetchColumns(cols).store(job);
-      AccumuloOutputFormat.configure().clientProperties(env.getClientProps())
-          .defaultTable(outputTable).createTables(true).store(job);
+      AccumuloOutputFormat.configure().clientProperties(clientProps).defaultTable(outputTable)
+          .createTables(true).store(job);
 
       job.getConfiguration().set("mapreduce.job.classloader", "true");
       job.setMapperClass(HashDataMapper.class);
