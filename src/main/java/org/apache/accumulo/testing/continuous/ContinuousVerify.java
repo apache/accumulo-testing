@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,6 +31,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -173,8 +175,10 @@ public class ContinuousVerify extends Configured implements Tool {
         table = tableName;
       }
 
-      AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
-          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
+      Properties clientProps = KerberosHelper.configDelegationToken(env.getClientProps(), client);
+
+      AccumuloInputFormat.configure().clientProperties(clientProps).table(table).ranges(ranges)
+          .autoAdjustRanges(false).offlineScan(scanOffline).store(job);
 
       job.setMapperClass(CMapper.class);
       job.setMapOutputKeyClass(LongWritable.class);
