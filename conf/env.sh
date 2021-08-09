@@ -16,6 +16,7 @@
 
 # General
 # =======
+echo "*******INSIDE env.sh**************"
 
 ## Hadoop installation
 export HADOOP_HOME="${HADOOP_HOME:-/path/to/hadoop}"
