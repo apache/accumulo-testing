@@ -59,7 +59,7 @@ public class TestProps {
   // randomly selected by scanners and walkers
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
   // Tserver props to set when a table is created
-  public static final String CI_COMMON_SERVER_PROPS = CI_COMMON + "accumulo.server.props";
+  public static final String CI_COMMON_ACCUMULO_SERVER_PROPS = CI_COMMON + "accumulo.server.props";
 
   /** Ingest **/
   // Number of entries each ingest client should write

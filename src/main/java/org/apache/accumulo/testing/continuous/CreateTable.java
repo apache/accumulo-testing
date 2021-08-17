@@ -58,7 +58,7 @@ public class CreateTable {
       }
 
       // retrieve and set tserver props
-      Map<String,String> props = getProps(env, TestProps.CI_COMMON_SERVER_PROPS);
+      Map<String,String> props = getProps(env, TestProps.CI_COMMON_ACCUMULO_SERVER_PROPS);
       props.forEach((k, v) -> {
         try {
           client.instanceOperations().setProperty(k, v);
