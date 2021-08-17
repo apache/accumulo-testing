@@ -24,6 +24,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
@@ -55,9 +57,19 @@ public class CreateTable {
         System.exit(-1);
       }
 
+      // retrieve and set tserver props
+      Map<String,String> props = getProps(env, TestProps.CI_COMMON_SERVER_PROPS);
+      props.forEach((k, v) -> {
+        try {
+          client.instanceOperations().setProperty(k, v);
+        } catch (AccumuloException | AccumuloSecurityException e) {
+          e.printStackTrace();
+        }
+      });
+
       SortedSet<Text> splits = new TreeSet<>();
-      int numSplits = numTablets - 1;
-      long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
+      final int numSplits = numTablets - 1;
+      final long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
       long split = distance;
       for (int i = 0; i < numSplits; i++) {
         String s = String.format("%016x", split + env.getRowMin());
@@ -70,7 +82,7 @@ public class CreateTable {
 
       NewTableConfiguration ntc = new NewTableConfiguration();
       ntc.withSplits(splits);
-      ntc.setProperties(getTableProps(env));
+      ntc.setProperties(getProps(env, TestProps.CI_COMMON_ACCUMULO_TABLE_PROPS));
 
       client.tableOperations().create(tableName, ntc);
 
@@ -78,14 +90,14 @@ public class CreateTable {
     }
   }
 
-  private static Map<String,String> getTableProps(ContinuousEnv env) {
-    String[] props = env.getTestProperty(TestProps.CI_COMMON_ACCUMULO_TABLE_PROPS).split(" ");
-    Map<String,String> tableProps = new HashMap<>();
-    for (String prop : props) {
+  private static Map<String,String> getProps(ContinuousEnv env, String propType) {
+    String[] propArray = env.getTestProperty(propType).split(" ");
+    Map<String,String> propMap = new HashMap<>();
+    for (String prop : propArray) {
       log.debug("prop: {}", prop);
       String[] kv = prop.split("=");
-      tableProps.put(kv[0], kv[1]);
+      propMap.put(kv[0], kv[1]);
     }
-    return tableProps;
+    return propMap;
   }
 }

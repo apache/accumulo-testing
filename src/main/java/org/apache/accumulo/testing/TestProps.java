@@ -56,9 +56,10 @@ public class TestProps {
   // Number of tablets that should exist in Accumulo table when created
   public static final String CI_COMMON_ACCUMULO_NUM_TABLETS = CI_COMMON + "accumulo.num.tablets";
   // Optional authorizations (in CSV format) that if specified will be
-  // randomly selected by scanners
-  // and walkers
+  // randomly selected by scanners and walkers
   public static final String CI_COMMON_AUTHS = CI_COMMON + "auths";
+  // Tserver props to set when a table is created
+  public static final String CI_COMMON_SERVER_PROPS = CI_COMMON + "accumulo.server.props";
 
   /** Ingest **/
   // Number of entries each ingest client should write
