@@ -59,13 +59,14 @@ public class CreateTable {
 
       // retrieve and set tserver props
       Map<String,String> props = getProps(env, TestProps.CI_COMMON_ACCUMULO_SERVER_PROPS);
-      props.forEach((k, v) -> {
-        try {
-          client.instanceOperations().setProperty(k, v);
-        } catch (AccumuloException | AccumuloSecurityException e) {
-          e.printStackTrace();
+      try {
+        for (Map.Entry<String,String> entry : props.entrySet()) {
+          client.instanceOperations().setProperty(entry.getKey(), entry.getValue());
         }
-      });
+      } catch (AccumuloException | AccumuloSecurityException e) {
+        log.error("Failed to set tserver props");
+        throw new Exception(e);
+      }
 
       SortedSet<Text> splits = new TreeSet<>();
       final int numSplits = numTablets - 1;
