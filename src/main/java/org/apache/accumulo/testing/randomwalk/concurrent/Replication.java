@@ -46,7 +46,6 @@ import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.replication.ReplicationTable;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -65,6 +64,7 @@ public class Replication extends Test {
     final String zookeepers = ClientProperty.INSTANCE_ZOOKEEPERS.getValue(c.properties());
     final InstanceOperations iOps = c.instanceOperations();
     final TableOperations tOps = c.tableOperations();
+    final String replicationTableName = "accumulo.replication";
 
     // Replicate to ourselves
     iOps.setProperty(REPLICATION_NAME.getKey(), instName);
@@ -80,13 +80,13 @@ public class Replication extends Test {
     iOps.setProperty(REPLICATION_WORK_PROCESSOR_PERIOD.getKey(), "1s");
 
     // Ensure the replication table is online
-    ReplicationTable.setOnline(c);
-    boolean online = ReplicationTable.isOnline(c);
+    tOps.online(replicationTableName, true);
+    boolean online = tOps.isOnline(replicationTableName);
     for (int i = 0; i < 10; i++) {
       if (online)
         break;
       sleepUninterruptibly(2, TimeUnit.SECONDS);
-      online = ReplicationTable.isOnline(c);
+      online = tOps.isOnline(replicationTableName);
     }
     assertTrue("Replication table was not online", online);
 

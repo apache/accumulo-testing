@@ -35,7 +35,6 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
-import org.apache.accumulo.core.clientImpl.TabletServerBatchWriter;
 import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.data.ConstraintViolationSummary;
 import org.apache.accumulo.core.data.Key;
@@ -184,7 +183,8 @@ public class TestIngest {
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
 
       if (opts.debug)
-        Logger.getLogger(TabletServerBatchWriter.class.getName()).setLevel(Level.TRACE);
+        Logger.getLogger("org.apache.accumulo.core.clientImpl.TabletServerBatchWriter")
+            .setLevel(Level.TRACE);
 
       // test batch update
 
