@@ -32,8 +32,6 @@ import org.apache.accumulo.core.data.PartialKey;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-// import org.apache.accumulo.core.trace.DistributedTrace;
-// import org.apache.accumulo.core.trace.Trace;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,19 +59,7 @@ public class VerifyIngest {
     Opts opts = new Opts();
     opts.parseArgs(VerifyIngest.class.getName(), args);
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
-      if (opts.trace) {
-        /*
-         * String name = VerifyIngest.class.getSimpleName(); DistributedTrace.enable();
-         * Trace.on(name); Trace.data("cmdLine", Arrays.asList(args).toString());
-         */
-      }
-
       verifyIngest(client, opts);
-
-    } finally {
-      /*
-       * Trace.off(); DistributedTrace.disable();
-       */
     }
   }
 
