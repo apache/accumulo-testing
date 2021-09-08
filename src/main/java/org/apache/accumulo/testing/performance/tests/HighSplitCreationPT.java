@@ -22,6 +22,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.testing.TestProps;
 import org.apache.accumulo.testing.performance.Environment;
 import org.apache.accumulo.testing.performance.PerformanceTest;
 import org.apache.accumulo.testing.performance.Report;
@@ -35,7 +36,6 @@ public class HighSplitCreationPT implements PerformanceTest {
   private static final int ONE_SECOND = 1000;
   private static final String TABLE_NAME = "highSplitCreation";
   private static final String METADATA_TABLE_SPLITS = "123456789abcde";
-  private static final String METADATA_TABLE_NAME = "accumulo.metadata";
 
   @Override
   public SystemConfiguration getSystemConfig() {
@@ -53,7 +53,7 @@ public class HighSplitCreationPT implements PerformanceTest {
 
     AccumuloClient client = env.getClient();
     client.tableOperations().create(TABLE_NAME);
-    client.tableOperations().addSplits(METADATA_TABLE_NAME, getMetadataTableSplits());
+    client.tableOperations().addSplits(TestProps.METADATA_TABLE_NAME, getMetadataTableSplits());
 
     SortedSet<Text> splits = getTestTableSplits();
 

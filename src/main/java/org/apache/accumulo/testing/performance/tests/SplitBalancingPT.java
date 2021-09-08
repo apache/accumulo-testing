@@ -28,6 +28,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.testing.TestProps;
 import org.apache.accumulo.testing.performance.Environment;
 import org.apache.accumulo.testing.performance.PerformanceTest;
 import org.apache.accumulo.testing.performance.Report;
@@ -40,7 +41,6 @@ public class SplitBalancingPT implements PerformanceTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(SplitBalancingPT.class);
 
-  private static final String METADATA_TABLE_NAME = "accumulo.metadata";
   private static final String TABLE_NAME = "splitBalancing";
   private static final String RESERVED_PREFIX = "~";
   private static final int NUM_SPLITS = 1_000;
@@ -97,7 +97,8 @@ public class SplitBalancingPT implements PerformanceTest {
 
   private Map<String,Integer> getTablets(final AccumuloClient client) {
     Map<String,Integer> tablets = new HashMap<>();
-    try (Scanner scanner = client.createScanner(METADATA_TABLE_NAME, Authorizations.EMPTY)) {
+    try (Scanner scanner = client.createScanner(TestProps.METADATA_TABLE_NAME,
+        Authorizations.EMPTY)) {
       scanner.fetchColumnFamily(TSERVER_ASSIGNED_TABLETS_COL_FAM);
       Range range = new Range(null, false, RESERVED_PREFIX, false);
       scanner.setRange(range);
