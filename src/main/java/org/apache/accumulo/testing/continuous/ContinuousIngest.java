@@ -38,8 +38,8 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.accumulo.core.util.FastFormat;
 import org.apache.accumulo.testing.TestProps;
+import org.apache.accumulo.testing.util.FastFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

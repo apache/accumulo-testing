@@ -37,9 +37,6 @@
     <allow pkg="org.apache.accumulo.core.conf"/>
     <allow class="org.apache.accumulo.core.util.threads.ThreadPools"/>
 
-    <!-- TODO refactor code to remove the following exceptions -->
-    <allow class="org.apache.accumulo.core.util.FastFormat"/>
-    <!-- End TODO section -->
 
     <!-- disallow everything else coming from accumulo -->
     <disallow pkg="org.apache.accumulo"/>
