@@ -59,6 +59,9 @@ public class VerifyIngest {
     Opts opts = new Opts();
     opts.parseArgs(VerifyIngest.class.getName(), args);
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
+      if (opts.trace) {
+        throw new RuntimeException("Trace is enabled but not currently supported");
+      }
       verifyIngest(client, opts);
     }
   }
