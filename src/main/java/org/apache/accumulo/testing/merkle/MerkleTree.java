@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.accumulo.core.util.Pair;
+import org.apache.commons.math3.util.Pair;
 
 import com.google.common.collect.Iterables;
 

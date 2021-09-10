@@ -22,7 +22,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.metadata.MetadataTable;
+import org.apache.accumulo.testing.TestProps;
 import org.apache.accumulo.testing.performance.Environment;
 import org.apache.accumulo.testing.performance.PerformanceTest;
 import org.apache.accumulo.testing.performance.Report;
@@ -53,7 +53,7 @@ public class HighSplitCreationPT implements PerformanceTest {
 
     AccumuloClient client = env.getClient();
     client.tableOperations().create(TABLE_NAME);
-    client.tableOperations().addSplits(MetadataTable.NAME, getMetadataTableSplits());
+    client.tableOperations().addSplits(TestProps.METADATA_TABLE_NAME, getMetadataTableSplits());
 
     SortedSet<Text> splits = getTestTableSplits();
 
