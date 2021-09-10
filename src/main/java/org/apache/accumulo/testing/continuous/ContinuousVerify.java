@@ -58,9 +58,9 @@ public class ContinuousVerify extends Configured implements Tool {
   public static class CMapper extends Mapper<Key,Value,LongWritable,VLongWritable> {
 
     private static final Logger log = LoggerFactory.getLogger(CMapper.class);
-    private LongWritable row = new LongWritable();
-    private LongWritable ref = new LongWritable();
-    private VLongWritable vrow = new VLongWritable();
+    private final LongWritable row = new LongWritable();
+    private final LongWritable ref = new LongWritable();
+    private final VLongWritable vrow = new VLongWritable();
 
     private long corrupt = 0;
 
@@ -102,7 +102,7 @@ public class ContinuousVerify extends Configured implements Tool {
   }
 
   public static class CReducer extends Reducer<LongWritable,VLongWritable,Text,Text> {
-    private ArrayList<Long> refs = new ArrayList<>();
+    private final ArrayList<Long> refs = new ArrayList<>();
 
     @Override
     public void reduce(LongWritable key, Iterable<VLongWritable> values, Context context)
