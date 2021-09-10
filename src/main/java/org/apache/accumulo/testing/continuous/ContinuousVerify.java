@@ -197,19 +197,18 @@ public class ContinuousVerify extends Configured implements Tool {
 
       try {
         job.waitForCompletion(true);
-
-        // this will occur if verify is run without removing the output directory between runs
       } catch (FileAlreadyExistsException e) {
-        FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
+        // this will occur if verify is run without removing the output directory between runs
 
         // if the exception occurred from something other than the output directory already
         // existing, throw the exception
+        FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
         if (!fs.exists(outputPath)) {
           throw e;
         }
 
         String prompt = "\nOutput directory " + outputPath
-            + " already exists. Do you want to delete it and re-run verify? [y/n] : ";
+            + " already exists. Do you want to delete it and re-run verify? [y/n]: ";
         String decision = System.console().readLine(prompt);
 
         if (decision.length() == 1 && decision.toLowerCase(Locale.ENGLISH).charAt(0) == 'y') {
