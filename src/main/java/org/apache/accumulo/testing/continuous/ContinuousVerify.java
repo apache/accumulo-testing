@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -32,10 +33,12 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VLongWritable;
+import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -188,9 +191,24 @@ public class ContinuousVerify extends Configured implements Tool {
       job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
       job.getConfiguration().set("mapreduce.job.classloader", "true");
 
-      TextOutputFormat.setOutputPath(job, new Path(outputDir));
+      Path outputPath = new Path(outputDir);
 
-      job.waitForCompletion(true);
+      TextOutputFormat.setOutputPath(job, outputPath);
+
+      try {
+        job.waitForCompletion(true);
+      } catch (FileAlreadyExistsException e) {
+        String prompt = "\nOutput directory " + outputPath
+            + " already exists. Do you want to delete it and re-run verify? [y/n] : ";
+        String decision = System.console().readLine(prompt);
+
+        if (decision.length() == 1 && decision.toLowerCase(Locale.ENGLISH).charAt(0) == 'y') {
+          FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
+          System.out.println("Deleting " + outputPath + " and retrying job.");
+          fs.delete(outputPath, true);
+          job.waitForCompletion(true);
+        }
+      }
 
       if (scanOffline) {
         client.tableOperations().delete(clone);
