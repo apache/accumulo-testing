@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -38,7 +37,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.VLongWritable;
-import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -195,28 +193,11 @@ public class ContinuousVerify extends Configured implements Tool {
 
       TextOutputFormat.setOutputPath(job, outputPath);
 
-      try {
-        job.waitForCompletion(true);
-      } catch (FileAlreadyExistsException e) {
-        // this will occur if verify is run without removing the output directory between runs
+      // before starting the job, delete the output directory that may exist from previous runs
+      FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
+      fs.delete(outputPath, true);
 
-        // if the exception occurred from something other than the output directory already
-        // existing, throw the exception
-        FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
-        if (!fs.exists(outputPath)) {
-          throw e;
-        }
-
-        String prompt = "\nOutput directory " + outputPath
-            + " already exists. Do you want to delete it and re-run verify? [y/n]: ";
-        String decision = System.console().readLine(prompt);
-
-        if (decision.length() == 1 && decision.toLowerCase(Locale.ENGLISH).charAt(0) == 'y') {
-          System.out.println("Deleting " + outputPath + " and retrying job.");
-          fs.delete(outputPath, true);
-          job.waitForCompletion(true);
-        }
-      }
+      job.waitForCompletion(true);
 
       if (scanOffline) {
         client.tableOperations().delete(clone);
