@@ -20,7 +20,7 @@ package org.apache.accumulo.testing.performance.util;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.util.FastFormat;
+import org.apache.accumulo.testing.util.FastFormat;
 
 public class TestData {
 

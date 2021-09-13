@@ -80,7 +80,7 @@ public class Run {
 
     ScaleTest test = (ScaleTest) Class
         .forName(String.format("org.apache.accumulo.test.scalability.%s", opts.testId))
-        .newInstance();
+        .getDeclaredConstructor().newInstance();
 
     test.init(scaleProps, testProps, opts.numTabletServers);
 

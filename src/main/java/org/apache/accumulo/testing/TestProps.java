@@ -46,6 +46,10 @@ public class TestProps {
   public static final String YARN_CONTAINER_MEMORY_MB = COMMON + "yarn.container.memory.mb";
   // Number of cores given to each YARN container
   public static final String YARN_CONTAINER_CORES = COMMON + "yarn.container.cores";
+  // Name of metadata table
+  public static final String METADATA_TABLE_NAME = "accumulo.metadata";
+  // Name of replication table
+  public static final String REPLICATION_TABLE_NAME = "accumulo.replication";
 
   /** Continuous ingest test properties **/
   /** Common **/
