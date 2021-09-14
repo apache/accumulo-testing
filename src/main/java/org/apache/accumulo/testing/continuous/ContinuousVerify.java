@@ -52,11 +52,9 @@ import org.slf4j.LoggerFactory;
 public class ContinuousVerify extends Configured implements Tool {
   public static final VLongWritable DEF = new VLongWritable(-1);
 
-  private static final Logger log = LoggerFactory.getLogger(ContinuousVerify.class);
-
   public static class CMapper extends Mapper<Key,Value,LongWritable,VLongWritable> {
 
-    private static final Logger cMapperLogger = LoggerFactory.getLogger(CMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(CMapper.class);
     private final LongWritable row = new LongWritable();
     private final LongWritable ref = new LongWritable();
     private final VLongWritable vrow = new VLongWritable();
@@ -74,9 +72,9 @@ public class ContinuousVerify extends Configured implements Tool {
       } catch (ContinuousWalk.BadChecksumException bce) {
         context.getCounter(Counts.CORRUPT).increment(1L);
         if (corrupt < 1000) {
-          cMapperLogger.error("Bad checksum : " + key);
+          log.error("Bad checksum : " + key);
         } else if (corrupt == 1000) {
-          cMapperLogger.error("Too many bad checksums, not printing anymore!");
+          log.error("Too many bad checksums, not printing anymore!");
         }
         corrupt++;
         return;
