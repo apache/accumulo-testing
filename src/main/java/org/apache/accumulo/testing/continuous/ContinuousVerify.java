@@ -52,12 +52,14 @@ import org.slf4j.LoggerFactory;
 public class ContinuousVerify extends Configured implements Tool {
   public static final VLongWritable DEF = new VLongWritable(-1);
 
+  private static final Logger log = LoggerFactory.getLogger(ContinuousVerify.class);
+
   public static class CMapper extends Mapper<Key,Value,LongWritable,VLongWritable> {
 
-    private static final Logger log = LoggerFactory.getLogger(CMapper.class);
-    private LongWritable row = new LongWritable();
-    private LongWritable ref = new LongWritable();
-    private VLongWritable vrow = new VLongWritable();
+    private static final Logger cMapperLogger = LoggerFactory.getLogger(CMapper.class);
+    private final LongWritable row = new LongWritable();
+    private final LongWritable ref = new LongWritable();
+    private final VLongWritable vrow = new VLongWritable();
 
     private long corrupt = 0;
 
@@ -72,9 +74,9 @@ public class ContinuousVerify extends Configured implements Tool {
       } catch (ContinuousWalk.BadChecksumException bce) {
         context.getCounter(Counts.CORRUPT).increment(1L);
         if (corrupt < 1000) {
-          log.error("Bad checksum : " + key);
+          cMapperLogger.error("Bad checksum : " + key);
         } else if (corrupt == 1000) {
-          log.error("Too many bad checksums, not printing anymore!");
+          cMapperLogger.error("Too many bad checksums, not printing anymore!");
         }
         corrupt++;
         return;
@@ -99,7 +101,7 @@ public class ContinuousVerify extends Configured implements Tool {
   }
 
   public static class CReducer extends Reducer<LongWritable,VLongWritable,Text,Text> {
-    private ArrayList<Long> refs = new ArrayList<>();
+    private final ArrayList<Long> refs = new ArrayList<>();
 
     @Override
     public void reduce(LongWritable key, Iterable<VLongWritable> values, Context context)
@@ -188,7 +190,9 @@ public class ContinuousVerify extends Configured implements Tool {
       job.getConfiguration().setBoolean("mapred.map.tasks.speculative.execution", scanOffline);
       job.getConfiguration().set("mapreduce.job.classloader", "true");
 
-      TextOutputFormat.setOutputPath(job, new Path(outputDir));
+      Path outputPath = new Path(outputDir + "/" + job.getJobName());
+      TextOutputFormat.setOutputPath(job, outputPath);
+      log.info("Results from this run will be stored in {}", outputPath);
 
       job.waitForCompletion(true);
 
