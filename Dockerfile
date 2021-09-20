@@ -28,7 +28,7 @@ ENV HADOOP_RUNTIME_JAR /opt/at/hadoop-client-runtime.jar
 ENV TEST_JAR_PATH /opt/at/accumulo-testing-shaded.jar
 ENV ACCUMULO_CLIENT_PROPS /opt/at/conf/accumulo-client.properties
 ENV TEST_PROPS /opt/at/conf/accumulo-testing.properties
-ENV TEST_LOG4J /opt/at/conf/log4j.properties
+ENV TEST_LOG4J /opt/at/conf/log4j2.properties
 
 RUN mkdir /opt/at
 RUN mkdir /opt/at/bin
