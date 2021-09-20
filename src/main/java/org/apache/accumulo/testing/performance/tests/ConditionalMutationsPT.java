@@ -101,7 +101,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 19)),
         "ConditionalMutationsTest: average rate (conditions/sec) to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -150,7 +150,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
+    double nanosPerSec = (double) TimeUnit.SECONDS.toNanos(1);
+    // return number of conditions per second
+    return 10000.0 / ((t2 - t1) / nanosPerSec);
   }
 
   private static void runRandomizeConditionalMutationsTest(Environment env, String tableName,
@@ -173,7 +175,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 19)),
         "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -233,7 +235,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
+    double nanosPerSec = (double) TimeUnit.SECONDS.toNanos(1);
+    // return number of conditions per second
+    return 10000.0 / ((t2 - t1) / nanosPerSec);
   }
 
   private static void runRandomizeBatchScanAndWriteTest(Environment env, String tableName,
@@ -257,7 +261,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     reportBuilder.result("avgRate: 1-19",
-        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
+        Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 19)),
         "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
@@ -305,7 +309,9 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
+    double nanosPerSec = (double) TimeUnit.SECONDS.toNanos(1);
+    // return number of conditions per second
+    return 10000.0 / ((t2 - t1) / nanosPerSec);
   }
 
   private static void runSetBlockSizeTest(Environment env, String tableName,
@@ -456,6 +462,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     long t2 = System.nanoTime();
 
-    return 30000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
+    double nanosPerSec = (double) TimeUnit.SECONDS.toNanos(1);
+    // return number of conditions per second
+    return 30000.0 / ((t2 - t1) / nanosPerSec);
   }
 }
