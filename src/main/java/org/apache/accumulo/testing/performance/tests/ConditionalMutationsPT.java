@@ -134,7 +134,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
       cmuts.add(cm);
     }
 
-    long t1 = System.nanoTime();
+    long startTime = System.nanoTime();
 
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
@@ -151,10 +151,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
       throw new RuntimeException();
     }
 
-    long t2 = System.nanoTime();
+    long stopTime = System.nanoTime();
 
     // return number of conditions per second
-    return numOfConditions / nanosToSecs(t2 - t1);
+    return numOfConditions / nanosToSecs(stopTime - startTime);
   }
 
   private static void runRandomizeConditionalMutationsTest(Environment env, String tableName,
@@ -221,7 +221,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
     cmuts.add(cm);
 
-    long t1 = System.nanoTime();
+    long startTime = System.nanoTime();
 
     int count = 0;
     Iterator<ConditionalWriter.Result> results = cw.write(cmuts.iterator());
@@ -238,10 +238,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
       throw new RuntimeException();
     }
 
-    long t2 = System.nanoTime();
+    long stopTime = System.nanoTime();
 
     // return number of conditions per second
-    return numOfConditions / nanosToSecs(t2 - t1);
+    return numOfConditions / nanosToSecs(stopTime - startTime);
   }
 
   private static void runRandomizeBatchScanAndWriteTest(Environment env, String tableName,
@@ -305,7 +305,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     bw.addMutation(cm);
     bw.flush();
 
-    long t1 = System.nanoTime();
+    long startTime = System.nanoTime();
 
     bs.setRanges(ranges);
 
@@ -314,10 +314,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
       throw new RuntimeException("count = " + count);
     }
 
-    long t2 = System.nanoTime();
+    long stopTime = System.nanoTime();
 
     // return number of conditions per second
-    return numOfConditions / nanosToSecs(t2 - t1);
+    return numOfConditions / nanosToSecs(stopTime - startTime);
   }
 
   private static void runSetBlockSizeTest(Environment env, String tableName,
@@ -452,7 +452,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
       cmuts.add(cm);
     }
 
-    long t1 = System.nanoTime();
+    long startTime = System.nanoTime();
 
     int count = 0;
 
@@ -470,10 +470,10 @@ public class ConditionalMutationsPT implements PerformanceTest {
       throw new RuntimeException();
     }
 
-    long t2 = System.nanoTime();
+    long stopTime = System.nanoTime();
 
     // return number of conditions per second
-    return numOfConditions / nanosToSecs(t2 - t1);
+    return numOfConditions / nanosToSecs(stopTime - startTime);
   }
 
   // Convert nanoseconds to seconds
