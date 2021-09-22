@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -118,14 +119,19 @@ public class ScanExecutorPT implements PerformanceTest {
     Report.Builder builder = Report.builder();
 
     builder.id("sexec").description(TEST_DESC);
-    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "Data write rate entries/sec ");
-    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "Compact rate entries/sec ");
-    builder.info("short_times1", shortStats1, "Times in ms for each short scan.  First run.");
-    builder.info("short_times2", shortStats2, "Times in ms for each short scan. Second run.");
-    builder.result("short", shortStats2.getAverage(),
+    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
+        "Data write rate entries/sec");
+    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
+        "Compact rate entries/sec");
+    builder.info("short_times1", shortStats1, TimeUnit.MILLISECONDS.toString(),
+        "Times in ms for each short scan.  First run.");
+    builder.info("short_times2", shortStats2, TimeUnit.MILLISECONDS.toString(),
+        "Times in ms for each short scan. Second run.");
+    builder.result("short", shortStats2.getAverage(), TimeUnit.MILLISECONDS.toString(),
         "Average times in ms for short scans from 2nd run.");
-    builder.info("long_counts", longStats, "Entries read by each long scan threads");
-    builder.info("long", longStats.getSum(), (t4 - t3),
+    builder.info("long_counts", longStats, "entries read",
+        "Entries read by each long scan threads");
+    builder.info("long", longStats.getSum(), (t4 - t3), "entries/sec",
         "Combined rate in entries/second of all long scans");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,

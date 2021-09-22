@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -112,17 +113,17 @@ public class TableDeletionDuringSplitPT implements PerformanceTest {
 
     List<Runnable> queued = pool.shutdownNow();
 
-    reportBuilder.result("remaining_pending_tasks", countRemaining(iter),
+    reportBuilder.result("remaining_pending_tasks", countRemaining(iter), "task count",
         "The number of remaining pending tasks.");
-    reportBuilder.result("remaining_submitted_tasks", queued.size(),
+    reportBuilder.result("remaining_submitted_tasks", queued.size(), "task count",
         "The number of remaining submitted tasks.");
 
     long totalRemainingTables = Arrays.stream(tableNames)
         .filter((name) -> client.tableOperations().exists(name)).count();
-    reportBuilder.result("total_remaining_tables", totalRemainingTables,
+    reportBuilder.result("total_remaining_tables", totalRemainingTables, "table count",
         "The total number of unsuccessfully deleted tables.");
     Long deletionTime = deletionTimes.sum() / deletedTables.get();
-    reportBuilder.result("avg_deletion_time", deletionTime,
+    reportBuilder.result("avg_deletion_time", deletionTime, TimeUnit.NANOSECONDS.toString(),
         "The average deletion time (in ms) to delete a table.");
   }
 

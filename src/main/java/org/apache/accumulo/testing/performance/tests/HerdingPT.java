@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -86,7 +87,8 @@ public class HerdingPT implements PerformanceTest {
     final AccumuloClient client = env.getClient();
     initTable(client);
     long herdTime = getHerdingDuration(client);
-    reportBuilder.result("herd_time", herdTime, "The time (in ms) it took herding to complete.");
+    reportBuilder.result("herd_time", herdTime, TimeUnit.MILLISECONDS.toString(),
+        "The time (in ms) it took herding to complete.");
 
     return reportBuilder.build();
   }

@@ -55,35 +55,37 @@ public class Report {
       return this;
     }
 
-    public Builder result(String id, LongSummaryStatistics stats, String description) {
+    public Builder result(String id, LongSummaryStatistics stats, String units,
+        String description) {
       results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(),
-          stats.getAverage(), stats.getCount()), description, Purpose.COMPARISON));
+          stats.getAverage(), stats.getCount()), units, description, Purpose.COMPARISON));
       return this;
     }
 
-    public Builder result(String id, Number data, String description) {
-      results.add(new Result(id, data, description, Purpose.COMPARISON));
+    public Builder result(String id, Number data, String units, String description) {
+      results.add(new Result(id, data, units, description, Purpose.COMPARISON));
       return this;
     }
 
-    public Builder result(String id, long amount, long time, String description) {
-      results.add(new Result(id, amount / (time / 1000.0), description, Purpose.COMPARISON));
+    public Builder result(String id, long amount, long time, String units, String description) {
+      results.add(new Result(id, amount / (time / 1000.0), units, description, Purpose.COMPARISON));
       return this;
     }
 
-    public Builder info(String id, LongSummaryStatistics stats, String description) {
+    public Builder info(String id, LongSummaryStatistics stats, String units, String description) {
       results.add(new Result(id, new Stats(stats.getMin(), stats.getMax(), stats.getSum(),
-          stats.getAverage(), stats.getCount()), description, Purpose.INFORMATIONAL));
+          stats.getAverage(), stats.getCount()), units, description, Purpose.INFORMATIONAL));
       return this;
     }
 
-    public Builder info(String id, long amount, long time, String description) {
-      results.add(new Result(id, amount / (time / 1000.0), description, Purpose.INFORMATIONAL));
+    public Builder info(String id, long amount, long time, String units, String description) {
+      results
+          .add(new Result(id, amount / (time / 1000.0), units, description, Purpose.INFORMATIONAL));
       return this;
     }
 
-    public Builder info(String id, Number data, String description) {
-      results.add(new Result(id, data, description, Purpose.INFORMATIONAL));
+    public Builder info(String id, Number data, String units, String description) {
+      results.add(new Result(id, data, units, description, Purpose.INFORMATIONAL));
       return this;
     }
 

@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.LongSummaryStatistics;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
@@ -69,16 +70,18 @@ public class ScanFewFamiliesPT implements PerformanceTest {
     for (int numFams : new int[] {1, 2, 4, 8, 16}) {
       LongSummaryStatistics stats = runScans(env, tableName, numFams);
       String fams = Strings.padStart(numFams + "", 2, '0');
-      builder.info("f" + fams + "_stats", stats,
+      builder.info("f" + fams + "_stats", stats, TimeUnit.MILLISECONDS.toString(),
           "Times in ms to fetch " + numFams + " families from all rows");
-      builder.result("f" + fams, stats.getAverage(),
+      builder.result("f" + fams, stats.getAverage(), TimeUnit.MILLISECONDS.toString(),
           "Average time in ms to fetch " + numFams + " families from all rows");
     }
 
     builder.id("sfewfam");
     builder.description(DESC);
-    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "Data write rate entries/sec ");
-    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "Compact rate entries/sec ");
+    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
+        "Data write rate entries/sec");
+    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
+        "Compact rate entries/sec");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
     builder.parameter("familes", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
