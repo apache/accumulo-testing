@@ -123,16 +123,18 @@ public class YieldingScanExecutorPT implements PerformanceTest {
 
     Report.Builder builder = Report.builder();
 
+    final String ms = TimeUnit.MILLISECONDS.toString();
+
     builder.id("yfexec").description(TEST_DESC);
     builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
         "Data write rate entries/sec");
     builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
         "Compact rate entries/sec");
-    builder.info("short_times1", shortStats1, TimeUnit.MILLISECONDS.toString(),
+    builder.info("short_times1", shortStats1, ms,
         "Times in ms for each short scan.  First run.");
-    builder.info("short_times2", shortStats2, TimeUnit.MILLISECONDS.toString(),
+    builder.info("short_times2", shortStats2, ms,
         "Times in ms for each short scan. Second run.");
-    builder.result("short", shortStats2.getAverage(), TimeUnit.MILLISECONDS.toString(),
+    builder.result("short", shortStats2.getAverage(), ms,
         "Average times in ms for short scans from 2nd run.");
     builder.info("long_counts", longStats, "entry count",
         "Entries read by each of the filter threads");
@@ -150,7 +152,7 @@ public class YieldingScanExecutorPT implements PerformanceTest {
 
     builder.parameter("filter_probabilities", FILTER_PROBABILITIES,
         "The chances that one of the long "
-            + "filter scans will return any key it sees. The probabilites are cycled through when "
+            + "filter scans will return any key it sees. The probabilities are cycled through when "
             + "starting long scans.");
     builder.parameter("filter_yield_time", FILTER_YIELD_TIME,
         "The time in ms after which one of " + "the long filter scans will yield.");

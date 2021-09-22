@@ -67,12 +67,14 @@ public class ScanFewFamiliesPT implements PerformanceTest {
 
     Report.Builder builder = Report.builder();
 
+    final String ms = TimeUnit.MILLISECONDS.toString();
+
     for (int numFams : new int[] {1, 2, 4, 8, 16}) {
       LongSummaryStatistics stats = runScans(env, tableName, numFams);
       String fams = Strings.padStart(numFams + "", 2, '0');
-      builder.info("f" + fams + "_stats", stats, TimeUnit.MILLISECONDS.toString(),
+      builder.info("f" + fams + "_stats", stats, ms,
           "Times in ms to fetch " + numFams + " families from all rows");
-      builder.result("f" + fams, stats.getAverage(), TimeUnit.MILLISECONDS.toString(),
+      builder.result("f" + fams, stats.getAverage(), ms,
           "Average time in ms to fetch " + numFams + " families from all rows");
     }
 
