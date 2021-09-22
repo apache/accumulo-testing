@@ -31,7 +31,7 @@ on your machine as well as an Accumulo instance to use for testing.
         git clone git@github.com:apache/accumulo-testing.git
         cd accumulo-testing
 
-2. All configuation files for the test suite are in `conf/`. Only the `accumulo-testing.properties`
+2. All configuration files for the test suite are in `conf/`. Only the `accumulo-testing.properties`
    configuration file needs to be edited as all other configuration files are optional.
    In `accumulo-testing.properites`, review the properties with `test.common.*` prefix as these are
    used by all tests.
@@ -156,8 +156,8 @@ table. This MapReduce job will write out an entry for every entry in the table (
 created by the MapReduce job itself). Stop ingest before running this MapReduce job. Do not run more
 than one instance of this MapReduce job concurrently against a table.
 
-Check out [ingest-test.md](docs/ingest-test.md) for pointers on running a long
-running ingest and verification test.
+Check out [ingest-test.md](docs/ingest-test.md) for pointers on running a long-running ingest and
+verification test.
 
 ## Garbage Collection Simulator
 
@@ -244,15 +244,20 @@ function stop_cluster {
 }
 ```
 
-An example script for [Uno] is provided.  To use this do the following and set
+An example script for [Uno] is provided.  To use this, do the following and set
 `UNO_HOME` after copying.
 
     cp conf/cluster-control.sh.uno conf/cluster-control.sh
 
-After the cluster control script is setup, the following will run performance
-test and produce json result files.
+After the cluster control script is set up, the following will run performance
+test and produce a json result files in the provided output directory.
 
     ./bin/performance run <output dir>
+
+The example above will run all performance tests in order. To run a single test, a filter can be 
+applied. The example below will run just the DurabilityWriteSpeedPT.
+
+    ./bin/performance run <output dir> DurabilityWriteSpeedPT
 
 There are some utilities for working with the json result files, run the `performance` script
 with no options to see them.
