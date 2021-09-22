@@ -149,8 +149,6 @@ public class ConditionalMutationsPT implements PerformanceTest {
     }
 
     long t2 = System.nanoTime();
-    System.out.println("T1: " + t1 + " T2: " + t2);
-    System.out.println("To seconds: " + TimeUnit.NANOSECONDS.toSeconds(t2 - t1));
 
     return 10000.0 / TimeUnit.NANOSECONDS.toSeconds(t2 - t1);
   }
