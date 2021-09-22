@@ -125,10 +125,8 @@ public class ScanExecutorPT implements PerformanceTest {
         "Data write rate entries/sec");
     builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
         "Compact rate entries/sec");
-    builder.info("short_times1", shortStats1, ms,
-        "Times in ms for each short scan.  First run.");
-    builder.info("short_times2", shortStats2, ms,
-        "Times in ms for each short scan. Second run.");
+    builder.info("short_times1", shortStats1, ms, "Times in ms for each short scan.  First run.");
+    builder.info("short_times2", shortStats2, ms, "Times in ms for each short scan. Second run.");
     builder.result("short", shortStats2.getAverage(), ms,
         "Average times in ms for short scans from 2nd run.");
     builder.info("long_counts", longStats, "entries read",

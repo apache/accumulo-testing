@@ -114,20 +114,20 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     reportBuilder.info("lookups_128", 128 * NUM_LOOKUPS_PER_THREAD, d128, lookupPerSec,
         "Random lookup per sec rate for 128 threads");
 
-    reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 1 thread");
-    reportBuilder.result("avg_4", d4 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 4 threads");
-    reportBuilder.result("avg_8", d8 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 8 threads");
-    reportBuilder.result("avg_16", d16 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 16 threads");
-    reportBuilder.result("avg_32", d32 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 32 threads");
-    reportBuilder.result("avg_64", d64 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 64 threads");
-    reportBuilder.result("avg_128", d128 / (double) NUM_LOOKUPS_PER_THREAD,
-        ms, "Average milliseconds per lookup for 128 threads");
+    reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 1 thread");
+    reportBuilder.result("avg_4", d4 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 4 threads");
+    reportBuilder.result("avg_8", d8 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 8 threads");
+    reportBuilder.result("avg_16", d16 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 16 threads");
+    reportBuilder.result("avg_32", d32 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 32 threads");
+    reportBuilder.result("avg_64", d64 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 64 threads");
+    reportBuilder.result("avg_128", d128 / (double) NUM_LOOKUPS_PER_THREAD, ms,
+        "Average milliseconds per lookup for 128 threads");
 
     return reportBuilder.build();
   }
@@ -201,10 +201,8 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     long t6 = System.currentTimeMillis();
 
-    reportBuilder.info("create", t2 - t1, ms,
-        "Time to create table in ms");
-    reportBuilder.info("split", t3 - t2, ms,
-        "Time to split table in ms");
+    reportBuilder.info("create", t2 - t1, ms, "Time to create table in ms");
+    reportBuilder.info("split", t3 - t2, ms, "Time to split table in ms");
     reportBuilder.info("write", 4 * numRows, t4 - t3, "entries/sec",
         "Rate to write data in entries/sec");
     reportBuilder.info("compact", 4 * numRows, t5 - t4, "entries/sec",
