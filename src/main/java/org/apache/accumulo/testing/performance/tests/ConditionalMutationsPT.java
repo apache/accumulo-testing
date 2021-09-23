@@ -276,7 +276,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
       rateSum += randomizeBatchWriteAndScanTime(bw, bs, i);
     }
 
-    reportBuilder.result("avgRate: 21-41",
+    reportBuilder.result("avgRate: 21-40",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)),
         "RandomizeBatchScanAndWriteTest: average rate (conditions/sec) to write and scan sequence 21-40 post flush");
   }
