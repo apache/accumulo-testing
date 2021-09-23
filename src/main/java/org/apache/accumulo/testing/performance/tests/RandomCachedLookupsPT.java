@@ -100,19 +100,19 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     reportBuilder.info("warmup", 32 * NUM_LOOKUPS_PER_THREAD, warmup, lookupPerSec,
         "Random lookup rate for 32 threads");
     reportBuilder.info("lookups_1", NUM_LOOKUPS_PER_THREAD, d1, lookupPerSec,
-        "Random lookup rate rate for 1 thread");
+        "Random lookup rate for 1 thread");
     reportBuilder.info("lookups_4", 4 * NUM_LOOKUPS_PER_THREAD, d4, lookupPerSec,
-        "Random lookup rate rate for 4 threads");
+        "Random lookup rate for 4 threads");
     reportBuilder.info("lookups_8", 8 * NUM_LOOKUPS_PER_THREAD, d8, lookupPerSec,
-        "Random lookup rate rate for 8 threads");
+        "Random lookup rate for 8 threads");
     reportBuilder.info("lookups_16", 16 * NUM_LOOKUPS_PER_THREAD, d16, lookupPerSec,
-        "Random lookup rate rate for 16 threads");
+        "Random lookup rate for 16 threads");
     reportBuilder.info("lookups_32", 32 * NUM_LOOKUPS_PER_THREAD, d32, lookupPerSec,
-        "Random lookup rate rate for 32 threads");
+        "Random lookup rate for 32 threads");
     reportBuilder.info("lookups_64", 64 * NUM_LOOKUPS_PER_THREAD, d64, lookupPerSec,
-        "Random lookup rate rate for 64 threads");
+        "Random lookup rate for 64 threads");
     reportBuilder.info("lookups_128", 128 * NUM_LOOKUPS_PER_THREAD, d128, lookupPerSec,
-        "Random lookup rate rate for 128 threads");
+        "Random lookup rate for 128 threads");
 
     reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD, ms,
         "Average duration per lookup for 1 thread");

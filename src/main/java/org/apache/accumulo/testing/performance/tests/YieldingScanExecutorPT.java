@@ -130,23 +130,23 @@ public class YieldingScanExecutorPT implements PerformanceTest {
         "Data write rate");
     builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
         "Compact rate");
-    builder.info("short_times1", shortStats1, ms, "Duration of each short scan.  First run.");
-    builder.info("short_times2", shortStats2, ms, "Duration of each short scan. Second run.");
+    builder.info("short_times1", shortStats1, ms, "Duration of each short scan from first run.");
+    builder.info("short_times2", shortStats2, ms, "Duration of each short scan from second run.");
     builder.result("short", shortStats2.getAverage(), ms,
-        "Average duration of short scans from 2nd run.");
+        "Average duration of short scans from second run.");
     builder.info("long_counts", longStats, "entry count",
         "Entries read by each of the filter threads");
     builder.info("long", longStats.getSum(), (t4 - t3), "entries/sec",
         "Combined rate of all long scans. This should be low but non-zero.");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,
-        "Threads running long fileter scans.  Each thread repeatedly scans entire table for "
+        "Threads running long filter scans.  Each thread repeatedly scans entire table for "
             + "duration of test randomly returning a few of the keys.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
     builder.parameter("families", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
     builder.parameter("server_scan_threads", SCAN_EXECUTOR_THREADS,
-        "Server side scan handler threads that each executor has.  There are 2 executors.");
+        "Server side scan handler threads that each executor has. There are 2 executors.");
 
     builder.parameter("filter_probabilities", FILTER_PROBABILITIES,
         "The chances that one of the long "
