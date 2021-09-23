@@ -250,7 +250,7 @@ An example script for [Uno] is provided.  To use this, do the following and set
     cp conf/cluster-control.sh.uno conf/cluster-control.sh
 
 After the cluster control script is set up, the following will run performance
-test and produce a json result files in the provided output directory.
+test and produce JSON result files in the provided output directory.
 
     ./bin/performance run <output dir>
 
@@ -259,7 +259,7 @@ applied. The example below will run just the DurabilityWriteSpeedPT.
 
     ./bin/performance run <output dir> DurabilityWriteSpeedPT
 
-There are some utilities for working with the json result files, run the `performance` script
+There are some utilities for working with the JSON result files, run the `performance` script
 with no options to see them.
 
 ## Availability Monitor 
