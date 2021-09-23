@@ -97,7 +97,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     conditionalMutationsTime(cw, 0);
 
     double rateSum = 0.0;
-    for (long i = 1; i < 21; i++) {
+    for (long i = 1; i <= 20; i++) {
       rateSum += conditionalMutationsTime(cw, i);
     }
 
@@ -108,7 +108,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0.0;
-    for (long i = 21; i < 41; i++) {
+    for (long i = 21; i <= 40; i++) {
       rateSum += conditionalMutationsTime(cw, i);
     }
 
@@ -173,7 +173,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     randomizeConditionalMutationsTime(cw, 0);
 
     double rateSum = 0;
-    for (long i = 1; i < 21; i++) {
+    for (long i = 1; i <= 20; i++) {
       rateSum += randomizeConditionalMutationsTime(cw, i);
     }
 
@@ -184,7 +184,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0;
-    for (long i = 21; i < 41; i++) {
+    for (long i = 21; i <= 40; i++) {
       rateSum += randomizeConditionalMutationsTime(cw, i);
     }
 
@@ -261,7 +261,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     double rateSum = 0;
 
-    for (long i = 1; i < 21; i++) {
+    for (long i = 1; i <= 20; i++) {
       rateSum += randomizeBatchWriteAndScanTime(bw, bs, i);
     }
 
@@ -272,7 +272,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
     rateSum = 0;
-    for (long i = 21; i < 41; i++) {
+    for (long i = 21; i <= 40; i++) {
       rateSum += randomizeBatchWriteAndScanTime(bw, bs, i);
     }
 
