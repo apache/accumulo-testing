@@ -87,13 +87,11 @@ public class RollWALPT implements PerformanceTest {
     AccumuloClient client = env.getClient();
     final long smallWALTime = evalSmallWAL(client);
     reportBuilder.result("small_wal_write_time", smallWALTime, TimeUnit.NANOSECONDS.toString(),
-        "The time (in ns) it took to write entries to the table with a small WAL of "
-            + SIZE_SMALL_WAL);
+        "The time taken to write entries to the table with a small WAL of " + SIZE_SMALL_WAL);
 
     final long largeWALTime = evalLargeWAL(client);
     reportBuilder.result("large_wal_write_time", largeWALTime, TimeUnit.NANOSECONDS.toString(),
-        "The time (in ns) it took to write entries to the table with a large WAL of "
-            + SIZE_LARGE_WAL);
+        "The time taken to write entries to the table with a large WAL of " + SIZE_LARGE_WAL);
     return reportBuilder.build();
   }
 

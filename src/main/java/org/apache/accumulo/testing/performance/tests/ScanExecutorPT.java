@@ -122,22 +122,22 @@ public class ScanExecutorPT implements PerformanceTest {
 
     builder.id("sexec").description(TEST_DESC);
     builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
-        "Data write rate entries/sec");
+        "Data write rate");
     builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
-        "Compact rate entries/sec");
-    builder.info("short_times1", shortStats1, ms, "Times in ms for each short scan.  First run.");
-    builder.info("short_times2", shortStats2, ms, "Times in ms for each short scan. Second run.");
+        "Compact rate");
+    builder.info("short_times1", shortStats1, ms, "Duration of each short scan from First run.");
+    builder.info("short_times2", shortStats2, ms, "Duration of each short scan from Second run.");
     builder.result("short", shortStats2.getAverage(), ms,
-        "Average times in ms for short scans from 2nd run.");
+        "Average duration of short scans from 2nd run.");
     builder.info("long_counts", longStats, "entries read",
         "Entries read by each long scan threads");
     builder.info("long", longStats.getSum(), (t4 - t3), "entries/sec",
-        "Combined rate in entries/second of all long scans");
+        "Combined rate of all long scans");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,
         "Threads running long scans.  Each thread repeatedly scans entire table for duration of test.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
-    builder.parameter("familes", NUM_FAMS, "Families per row in test table");
+    builder.parameter("families", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
     builder.parameter("server_scan_threads", SCAN_EXECUTOR_THREADS,
         "Server side scan handler threads");

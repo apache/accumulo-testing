@@ -88,7 +88,7 @@ public class HerdingPT implements PerformanceTest {
     initTable(client);
     long herdTime = getHerdingDuration(client);
     reportBuilder.result("herd_time", herdTime, TimeUnit.MILLISECONDS.toString(),
-        "The time (in ms) it took herding to complete.");
+        "The time it took herding to complete.");
 
     return reportBuilder.build();
   }
@@ -113,10 +113,10 @@ public class HerdingPT implements PerformanceTest {
     byte[] row = toZeroPaddedString(rowNum, 8);
     Mutation mutation = new Mutation(row);
     for (int col = 0; col < NUM_COLS; col++) {
-      byte[] qualifer = toZeroPaddedString(col, 4);
+      byte[] qualifier = toZeroPaddedString(col, 4);
       byte[] value = new byte[32];
       random.nextBytes(value);
-      mutation.put(COL_FAM, qualifer, value);
+      mutation.put(COL_FAM, qualifier, value);
     }
     return mutation;
   }

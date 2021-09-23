@@ -83,7 +83,7 @@ public class DurabilityWriteSpeedPT implements PerformanceTest {
       }
       attempts[attempt] = System.currentTimeMillis() - now;
       reportBuilder.info(durabilityLevel + " attempt " + attempt, System.currentTimeMillis() - now,
-          TimeUnit.MILLISECONDS.toString(), "Times for each attempt in ms");
+          TimeUnit.MILLISECONDS.toString(), "Times for each attempt");
     }
     Arrays.sort(attempts);
     // Return the median duration

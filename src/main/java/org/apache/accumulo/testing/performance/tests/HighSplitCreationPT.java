@@ -63,7 +63,7 @@ public class HighSplitCreationPT implements PerformanceTest {
     double splitsPerSecond = NUM_SPLITS / (totalTime / ONE_SECOND);
 
     reportBuilder.result("splits_per_second", splitsPerSecond, "splits/sec",
-        "The average number of splits created per second.");
+        "The average rate of splits.");
 
     return reportBuilder.build();
   }

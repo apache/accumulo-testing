@@ -39,7 +39,7 @@ import com.google.common.collect.Iterables;
 
 public class ScanFewFamiliesPT implements PerformanceTest {
 
-  private static final String DESC = "This test times fetching a few column famlies when rows have many column families.";
+  private static final String DESC = "This test times fetching a few column families when rows have many column families.";
 
   private static final int NUM_ROWS = 500;
   private static final int NUM_FAMS = 10000;
@@ -73,19 +73,19 @@ public class ScanFewFamiliesPT implements PerformanceTest {
       LongSummaryStatistics stats = runScans(env, tableName, numFams);
       String fams = Strings.padStart(numFams + "", 2, '0');
       builder.info("f" + fams + "_stats", stats, ms,
-          "Times in ms to fetch " + numFams + " families from all rows");
+          "Time to fetch " + numFams + " families from all rows");
       builder.result("f" + fams, stats.getAverage(), ms,
-          "Average time in ms to fetch " + numFams + " families from all rows");
+          "Average time to fetch " + numFams + " families from all rows");
     }
 
     builder.id("sfewfam");
     builder.description(DESC);
     builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
-        "Data write rate entries/sec");
+        "Data write rate");
     builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
-        "Compact rate entries/sec");
+        "Compact rate");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
-    builder.parameter("familes", NUM_FAMS, "Families per row in test table");
+    builder.parameter("families", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
 
     return builder.build();

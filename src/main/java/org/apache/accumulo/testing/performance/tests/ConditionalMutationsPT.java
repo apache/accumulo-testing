@@ -104,7 +104,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 1-19",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "ConditionalMutationsTest: average rate (conditions/sec) to run sequence 1-19");
+        "ConditionalMutationsTest: average rate to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
@@ -115,7 +115,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 20-39",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "ConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
+        "ConditionalMutationsTest: average rate to run sequence 20-39");
   }
 
   public static double conditionalMutationsTime(ConditionalWriter cw, long seq) throws Exception {
@@ -176,7 +176,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 1-19",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 1-19");
+        "RandomizeConditionalMutationsTest: average rate to run sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
@@ -187,7 +187,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 20-39",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "RandomizeConditionalMutationsTest: average rate (conditions/sec)  to run sequence 20-39");
+        "RandomizeConditionalMutationsTest: average rate to run sequence 20-39");
   }
 
   private static double randomizeConditionalMutationsTime(ConditionalWriter cw, long seq)
@@ -260,7 +260,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 1-19",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 1-19");
+        "RandomizeBatchScanAndWriteTest: average rate to write and scan sequence 1-19");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
@@ -271,7 +271,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate: 20-39",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "RandomizeBatchScanAndWriteTest: average rate (conditions/sec)  to write and scan sequence 20-39 post flush");
+        "RandomizeBatchScanAndWriteTest: average rate to write and scan sequence 20-39 post flush");
   }
 
   private static double randomizeBatchWriteAndScanTime(BatchWriter bw, BatchScanner bs, long seq)
@@ -340,7 +340,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate1",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / numTest)), conditionsPerSec,
-        "SetBlockSizeTest: average rate in conditions/sec");
+        "SetBlockSizeTest: average rate");
 
     env.getClient().tableOperations().flush(tableName, null, null, true);
 
@@ -351,7 +351,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate2",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / numTest)), conditionsPerSec,
-        "SetBlockSizeTest: average rate in conditions/sec post flush");
+        "SetBlockSizeTest: average rate post flush");
 
     env.getClient().tableOperations().compact(tableName, null, null, true, true);
 
@@ -362,7 +362,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     reportBuilder.result("avgRate3",
         Double.parseDouble(new DecimalFormat("#0.00").format(rateSum / 20)), conditionsPerSec,
-        "SetBlockSizeTest: average rate in conditions/sec post compaction");
+        "SetBlockSizeTest: average rate post compaction");
     reportBuilder.parameter("numRows", numRows, "SetBlockSizeTest: The number of rows");
     reportBuilder.parameter("numCols", numCols, "SetBlockSizeTest: The number of columns");
     reportBuilder.parameter("numTest", numTest,

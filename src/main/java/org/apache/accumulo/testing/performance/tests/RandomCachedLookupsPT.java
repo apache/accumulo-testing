@@ -98,36 +98,36 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     reportBuilder.description(
         "Runs multiple threads each doing lots of small random scans.  For this test data and index cache are enabled.");
     reportBuilder.info("warmup", 32 * NUM_LOOKUPS_PER_THREAD, warmup, lookupPerSec,
-        "Random lookup per sec for 32 threads");
+        "Random lookup rate for 32 threads");
     reportBuilder.info("lookups_1", NUM_LOOKUPS_PER_THREAD, d1, lookupPerSec,
-        "Random lookup per sec rate for 1 thread");
+        "Random lookup rate rate for 1 thread");
     reportBuilder.info("lookups_4", 4 * NUM_LOOKUPS_PER_THREAD, d4, lookupPerSec,
-        "Random lookup per sec rate for 4 threads");
+        "Random lookup rate rate for 4 threads");
     reportBuilder.info("lookups_8", 8 * NUM_LOOKUPS_PER_THREAD, d8, lookupPerSec,
-        "Random lookup per sec rate for 8 threads");
+        "Random lookup rate rate for 8 threads");
     reportBuilder.info("lookups_16", 16 * NUM_LOOKUPS_PER_THREAD, d16, lookupPerSec,
-        "Random lookup per sec rate for 16 threads");
+        "Random lookup rate rate for 16 threads");
     reportBuilder.info("lookups_32", 32 * NUM_LOOKUPS_PER_THREAD, d32, lookupPerSec,
-        "Random lookup per sec rate for 32 threads");
+        "Random lookup rate rate for 32 threads");
     reportBuilder.info("lookups_64", 64 * NUM_LOOKUPS_PER_THREAD, d64, lookupPerSec,
-        "Random lookup per sec rate for 64 threads");
+        "Random lookup rate rate for 64 threads");
     reportBuilder.info("lookups_128", 128 * NUM_LOOKUPS_PER_THREAD, d128, lookupPerSec,
-        "Random lookup per sec rate for 128 threads");
+        "Random lookup rate rate for 128 threads");
 
     reportBuilder.result("avg_1", d1 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 1 thread");
+        "Average duration per lookup for 1 thread");
     reportBuilder.result("avg_4", d4 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 4 threads");
+        "Average duration per lookup for 4 threads");
     reportBuilder.result("avg_8", d8 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 8 threads");
+        "Average duration per lookup for 8 threads");
     reportBuilder.result("avg_16", d16 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 16 threads");
+        "Average duration per lookup for 16 threads");
     reportBuilder.result("avg_32", d32 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 32 threads");
+        "Average duration per lookup for 32 threads");
     reportBuilder.result("avg_64", d64 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 64 threads");
+        "Average duration per lookup for 64 threads");
     reportBuilder.result("avg_128", d128 / (double) NUM_LOOKUPS_PER_THREAD, ms,
-        "Average milliseconds per lookup for 128 threads");
+        "Average duration per lookup for 128 threads");
 
     return reportBuilder.build();
   }
@@ -201,14 +201,14 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     long t6 = System.currentTimeMillis();
 
-    reportBuilder.info("create", t2 - t1, ms, "Time to create table in ms");
-    reportBuilder.info("split", t3 - t2, ms, "Time to split table in ms");
+    reportBuilder.info("create", t2 - t1, ms, "Time to create table");
+    reportBuilder.info("split", t3 - t2, ms, "Time to split table");
     reportBuilder.info("write", 4 * numRows, t4 - t3, "entries/sec",
-        "Rate to write data in entries/sec");
+        "Rate at which data are written");
     reportBuilder.info("compact", 4 * numRows, t5 - t4, "entries/sec",
-        "Rate to compact table in entries/sec");
+        "Rate at which tables are compacted");
     reportBuilder.info("fullScan", 4 * numRows, t6 - t5, "entries/sec",
-        "Rate to do full table scan in entries/sec");
+        "Rate at which full table scans take place");
   }
 
   private static long doLookups(AccumuloClient client, int numThreads, int numScansPerThread)

@@ -124,7 +124,7 @@ public class TableDeletionDuringSplitPT implements PerformanceTest {
         "The total number of unsuccessfully deleted tables.");
     Long deletionTime = deletionTimes.sum() / deletedTables.get();
     reportBuilder.result("avg_deletion_time", deletionTime, TimeUnit.NANOSECONDS.toString(),
-        "The average deletion time (in ms) to delete a table.");
+        "The average time taken to delete a table.");
   }
 
   private List<Runnable> getTasks(final String[] tableNames, final AccumuloClient client,
