@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -91,7 +92,7 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     String tableName = "scept";
 
     Map<String,String> props = new HashMap<>();
-    // set up a scan dispatcher that send long runnning scans (> 500ms) to the second executor
+    // set up a scan dispatcher that send long-running scans (> 500ms) to the second executor
     props.put(Property.TABLE_SCAN_DISPATCHER.getKey(), TimedScanDispatcher.class.getName());
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "quick.executor", "se1");
     props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "quick.time.ms", QUICK_SCAN_TIME);
@@ -122,29 +123,34 @@ public class YieldingScanExecutorPT implements PerformanceTest {
 
     Report.Builder builder = Report.builder();
 
+    final String ms = TimeUnit.MILLISECONDS.toString();
+
     builder.id("yfexec").description(TEST_DESC);
-    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "Data write rate entries/sec ");
-    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "Compact rate entries/sec ");
-    builder.info("short_times1", shortStats1, "Times in ms for each short scan.  First run.");
-    builder.info("short_times2", shortStats2, "Times in ms for each short scan. Second run.");
-    builder.result("short", shortStats2.getAverage(),
-        "Average times in ms for short scans from 2nd run.");
-    builder.info("long_counts", longStats, "Entries read by each of the filter threads");
-    builder.info("long", longStats.getSum(), (t4 - t3),
-        "Combined rate in entries/second of all long scans.  This should be low but non-zero.");
+    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
+        "Data write rate");
+    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
+        "Compact rate");
+    builder.info("short_times1", shortStats1, ms, "Duration of each short scan from first run.");
+    builder.info("short_times2", shortStats2, ms, "Duration of each short scan from second run.");
+    builder.result("short", shortStats2.getAverage(), ms,
+        "Average duration of short scans from second run.");
+    builder.info("long_counts", longStats, "entry count",
+        "Entries read by each of the filter threads");
+    builder.info("long", longStats.getSum(), (t4 - t3), "entries/sec",
+        "Combined rate of all long scans. This should be low but non-zero.");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,
-        "Threads running long fileter scans.  Each thread repeatedly scans entire table for "
+        "Threads running long filter scans.  Each thread repeatedly scans entire table for "
             + "duration of test randomly returning a few of the keys.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
-    builder.parameter("familes", NUM_FAMS, "Families per row in test table");
+    builder.parameter("families", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
     builder.parameter("server_scan_threads", SCAN_EXECUTOR_THREADS,
-        "Server side scan handler threads that each executor has.  There are 2 executors.");
+        "Server side scan handler threads that each executor has. There are 2 executors.");
 
     builder.parameter("filter_probabilities", FILTER_PROBABILITIES,
         "The chances that one of the long "
-            + "filter scans will return any key it sees. The probabilites are cycled through when "
+            + "filter scans will return any key it sees. The probabilities are cycled through when "
             + "starting long scans.");
     builder.parameter("filter_yield_time", FILTER_YIELD_TIME,
         "The time in ms after which one of " + "the long filter scans will yield.");

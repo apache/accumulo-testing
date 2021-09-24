@@ -222,11 +222,11 @@ public class GroupCommitPT implements PerformanceTest {
 
     env.getClient().tableOperations().delete(tableName);
     if (warmup) {
-      report.info("warmup_rate_" + numThreads, NUM_MUTATIONS, t2 - t1, "The warmup rate at which "
-          + numThreads + " threads wrote data. The rate is mutations per second.");
+      report.info("warmup_rate_" + numThreads, NUM_MUTATIONS, t2 - t1, "mutations/sec",
+          "The warmup rate at which " + numThreads + " threads wrote data.");
     } else {
-      report.result("rate_" + numThreads, NUM_MUTATIONS, t2 - t1, "The rate at which " + numThreads
-          + " threads wrote data. The rate is mutations per second.");
+      report.result("rate_" + numThreads, NUM_MUTATIONS, t2 - t1, "mutations/sec",
+          "The rate at which " + numThreads + " threads wrote data.");
     }
   }
 

@@ -19,6 +19,7 @@ package org.apache.accumulo.testing.performance.tests;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -56,7 +57,7 @@ public class DurabilityWriteSpeedPT implements PerformanceTest {
         createTable(client, tableName, durability);
         long median = writeSome(reportBuilder, client, tableName, N, durability);
         tableOps.delete(tableName);
-        reportBuilder.result(durability + " Median", median,
+        reportBuilder.result(durability + " Median", median, TimeUnit.MILLISECONDS.toString(),
             "Median time result for " + durability);
       }
     }
@@ -82,7 +83,7 @@ public class DurabilityWriteSpeedPT implements PerformanceTest {
       }
       attempts[attempt] = System.currentTimeMillis() - now;
       reportBuilder.info(durabilityLevel + " attempt " + attempt, System.currentTimeMillis() - now,
-          "Times for each attempt in ms");
+          TimeUnit.MILLISECONDS.toString(), "Times for each attempt");
     }
     Arrays.sort(attempts);
     // Return the median duration

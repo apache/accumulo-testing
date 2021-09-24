@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -85,14 +86,12 @@ public class RollWALPT implements PerformanceTest {
 
     AccumuloClient client = env.getClient();
     final long smallWALTime = evalSmallWAL(client);
-    reportBuilder.result("small_wal_write_time", smallWALTime,
-        "The time (in ns) it took to write entries to the table with a small WAL of "
-            + SIZE_SMALL_WAL);
+    reportBuilder.result("small_wal_write_time", smallWALTime, TimeUnit.NANOSECONDS.toString(),
+        "The time taken to write entries to the table with a small WAL of " + SIZE_SMALL_WAL);
 
     final long largeWALTime = evalLargeWAL(client);
-    reportBuilder.result("large_wal_write_time", largeWALTime,
-        "The time (in ns) it took to write entries to the table with a large WAL of "
-            + SIZE_LARGE_WAL);
+    reportBuilder.result("large_wal_write_time", largeWALTime, TimeUnit.NANOSECONDS.toString(),
+        "The time taken to write entries to the table with a large WAL of " + SIZE_LARGE_WAL);
     return reportBuilder.build();
   }
 
