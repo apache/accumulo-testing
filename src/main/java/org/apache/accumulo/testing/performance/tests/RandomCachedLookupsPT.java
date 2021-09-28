@@ -68,6 +68,9 @@ public class RandomCachedLookupsPT implements PerformanceTest {
     siteCfg.put(Property.TSERV_MINTHREADS.getKey(), "256");
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_DEFAULT_THREADS.getKey(), "32");
     siteCfg.put(Property.TABLE_DURABILITY.getKey(), "flush");
+
+    // Verify the size of the caches below are smaller than the java heap size given to the tserver.
+    // The heap size can be found and changed in accumulo-env.sh.
     siteCfg.put(Property.TSERV_DATACACHE_SIZE.getKey(), "2G");
     siteCfg.put(Property.TSERV_INDEXCACHE_SIZE.getKey(), "1G");
 
@@ -203,11 +206,11 @@ public class RandomCachedLookupsPT implements PerformanceTest {
 
     reportBuilder.info("create", t2 - t1, ms, "Time to create table");
     reportBuilder.info("split", t3 - t2, ms, "Time to split table");
-    reportBuilder.info("write", 4 * numRows, t4 - t3, "entries/sec",
+    reportBuilder.info("write", 4L * numRows, t4 - t3, "entries/sec",
         "Rate at which data are written");
-    reportBuilder.info("compact", 4 * numRows, t5 - t4, "entries/sec",
+    reportBuilder.info("compact", 4L * numRows, t5 - t4, "entries/sec",
         "Rate at which tables are compacted");
-    reportBuilder.info("fullScan", 4 * numRows, t6 - t5, "entries/sec",
+    reportBuilder.info("fullScan", 4L * numRows, t6 - t5, "entries/sec",
         "Rate at which full table scans take place");
   }
 
