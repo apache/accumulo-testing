@@ -259,6 +259,9 @@ applied. The example below will run just the DurabilityWriteSpeedPT.
 
     ./bin/performance run <output dir> DurabilityWriteSpeedPT
 
+Some performance tests alter the system properties of the cluster it is trying to test on. These
+may require fine-tuning in order to work on some hardware.
+
 There are some utilities for working with the JSON result files, run the `performance` script
 with no options to see them.
 
