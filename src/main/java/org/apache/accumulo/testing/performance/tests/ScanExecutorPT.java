@@ -75,16 +75,14 @@ public class ScanExecutorPT implements PerformanceTest {
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer",
         SCAN_PRIORITIZER);
     siteCfg.put(
-        Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer.opts.priority.se1p1", "1");
+        Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer.opts.priority.short", "1");
     siteCfg.put(
-        Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer.opts.priority.se1p2", "2");
+        Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se1.prioritizer.opts.priority.long", "2");
 
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.threads",
         SCAN_EXECUTOR_THREADS);
     siteCfg.put(Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer",
         SCAN_PRIORITIZER);
-    siteCfg.put(
-        Property.TSERV_SCAN_EXECUTORS_PREFIX.getKey() + "se2.prioritizer.opts.priority.se2p1", "1");
 
     return new SystemConfiguration().setAccumuloConfig(siteCfg);
   }
@@ -95,9 +93,8 @@ public class ScanExecutorPT implements PerformanceTest {
     String tableName = "scept";
 
     Map<String,String> props = new HashMap<>();
-    props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor.se1p1", "se1");
-    props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor.se1p2", "se1");
-    props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor.se2p1", "se2");
+    props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor", "se1");
+    props.put(Property.TABLE_SCAN_DISPATCHER_OPTS.getKey() + "executor.dedicated", "se2");
     props.put(Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true");
 
     env.getClient().tableOperations().create(tableName,
@@ -187,8 +184,8 @@ public class ScanExecutorPT implements PerformanceTest {
 
   private LongSummaryStatistics runShortScans(Environment env, String tableName, int numScans) {
 
-    Map<String,String> execHints = ImmutableMap.of("scan_type", "se2p1");
-    Map<String,String> prioHints = ImmutableMap.of("scan_type", "se1p1");
+    Map<String,String> dHints = ImmutableMap.of("scan_type", "dedicated");
+    Map<String,String> sHints = ImmutableMap.of("scan_type", "short");
 
     try (TestExecutor<Long> executor = new TestExecutor<>(NUM_SHORT_SCANS_THREADS)) {
       Random rand = new Random();
@@ -207,7 +204,7 @@ public class ScanExecutorPT implements PerformanceTest {
   }
 
   private TestExecutor<Long> startLongScans(Environment env, String tableName, AtomicBoolean stop) {
-    Map<String,String> hints = Map.of("scan_type", "se1p2");
+    Map<String,String> hints = Map.of("scan_type", "long");
 
     TestExecutor<Long> longScans = new TestExecutor<>(NUM_LONG_SCANS);
 
