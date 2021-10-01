@@ -57,10 +57,10 @@ public class ScanExecutorPT implements PerformanceTest {
   private static final String SCAN_EXECUTOR_THREADS = "2";
   private static final String SCAN_PRIORITIZER = "org.apache.accumulo.core.spi.scan.HintScanPrioritizer";
 
-  private static final String TEST_DESC = "Scan Executor Test.  Test running lots of short scans "
-      + "while long scans are running in the background.  Each short scan reads a random row and "
+  private static final String TEST_DESC = "Scan Executor Test. Test running lots of short scans "
+      + "while long scans are running in the background. Each short scan reads a random row and "
       + "family. Using execution hints, short scans are randomly either given a high priority or "
-      + "a dedicated executor.  If the scan prioritizer or dispatcher is not working properly, "
+      + "a dedicated executor. If the scan prioritizer or dispatcher is not working properly, "
       + "then the short scans will be orders of magnitude slower.";
 
   @Override
@@ -122,21 +122,21 @@ public class ScanExecutorPT implements PerformanceTest {
     final String ms = TimeUnit.MILLISECONDS.toString();
 
     builder.id("sexec").description(TEST_DESC);
-    builder.info("write", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
+    builder.info("write_rate", NUM_ROWS * NUM_FAMS * NUM_QUALS, t2 - t1, "entries/sec",
         "Data write rate");
-    builder.info("compact", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
+    builder.info("compact_rate", NUM_ROWS * NUM_FAMS * NUM_QUALS, t3 - t2, "entries/sec",
         "Compact rate");
     builder.info("short_times1", shortStats1, ms, "Duration of each short scan from first run.");
     builder.info("short_times2", shortStats2, ms, "Duration of each short scan from second run.");
-    builder.result("short", shortStats2.getAverage(), ms,
+    builder.result("short_average", shortStats2.getAverage(), ms,
         "Average duration of short scans from second run.");
     builder.info("long_counts", longStats, "entries read",
         "Entries read by each long scan threads");
-    builder.info("long", longStats.getSum(), (t4 - t3), "entries/sec",
+    builder.info("long_rate", longStats.getSum(), (t4 - t3), "entries/sec",
         "Combined rate of all long scans");
     builder.parameter("short_threads", NUM_SHORT_SCANS_THREADS, "Threads used to run short scans.");
     builder.parameter("long_threads", NUM_LONG_SCANS,
-        "Threads running long scans.  Each thread repeatedly scans entire table for duration of test.");
+        "Threads running long scans. Each thread repeatedly scans entire table for duration of test.");
     builder.parameter("rows", NUM_ROWS, "Rows in test table");
     builder.parameter("families", NUM_FAMS, "Families per row in test table");
     builder.parameter("qualifiers", NUM_QUALS, "Qualifiers per family in test table");
