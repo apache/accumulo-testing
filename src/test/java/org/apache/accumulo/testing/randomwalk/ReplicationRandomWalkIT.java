@@ -26,8 +26,10 @@ import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.accumulo.testing.randomwalk.concurrent.Replication;
 import org.apache.hadoop.conf.Configuration;
 import org.easymock.EasyMock;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("Replication ITs are not stable and not currently maintained")
 public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
   @Override
