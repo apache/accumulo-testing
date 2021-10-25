@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
@@ -175,19 +176,48 @@ public class ContinuousIngest {
 
         // generate subsequent sets of nodes that link to previous set of nodes
         for (int depth = 1; depth < maxDepth; depth++) {
+
+          // random chance that the entries will be deleted
+          boolean deleteLast = r.nextInt(1) == 0; // currently 100% chance for testing
+          log.info("Value of deleteLast: " + deleteLast);
+
+          // stack to hold mutations. stack ensures they are deleted in reverse order
+          Stack<Mutation> mutationStack = new Stack<>();
+
+          log.info("Creating next set of mutations");
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
             byte[] prevRow = genRow(prevRows[index]);
             prevRows[index] = rowLong;
-            Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv,
-                ingestInstanceId, count, prevRow, checksum);
+            int cfInt = r.nextInt(maxColF);
+            int cqInt = r.nextInt(maxColQ);
+            Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, count, prevRow,
+                checksum);
             count++;
             bw.addMutation(m);
+
+            // add a new delete mutation to the stack when applicable
+            if (deleteLast) {
+              Mutation mutation = new Mutation(genRow(rowLong));
+              mutation.putDelete(genCol(cfInt), genCol(cqInt));
+              mutationStack.add(mutation);
+            }
           }
 
           lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
           if (count >= numEntries)
             break out;
+
+          // delete last set of entries in reverse order
+          if (deleteLast) {
+            log.info("Deleting last set of entries.");
+            while (!mutationStack.empty()) {
+              Mutation m = mutationStack.pop();
+              count--;
+              bw.addMutation(m);
+            }
+            lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+          }
           pauseCheck(testProps, r);
         }
 
