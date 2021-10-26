@@ -66,8 +66,13 @@ public class ContinuousIngest {
   }
 
   private static boolean deletesEnabled(Properties props) {
-    String value = props.getProperty(TestProps.CI_INGEST_DELETE);
-    return Boolean.parseBoolean(value);
+    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_ENABLED);
+    return Boolean.parseBoolean(stringValue);
+  }
+
+  private static int getDeleteProbability(Properties props) {
+    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
+    return Integer.parseInt(stringValue);
   }
 
   private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
@@ -156,8 +161,9 @@ public class ContinuousIngest {
       }
 
       final boolean deletesEnabled = deletesEnabled(testProps);
+      final int deleteProbability = getDeleteProbability(testProps);
       if (deletesEnabled)
-        log.info("DELETES enabled");
+        log.info("DELETES enabled with a probability of {}%", deleteProbability);
 
       out: while (true) {
         // generate first set of nodes
@@ -187,8 +193,7 @@ public class ContinuousIngest {
         for (int depth = 1; depth < maxDepth; depth++) {
 
           // random chance that the entries will be deleted
-          // TODO: 100% chance while testing
-          boolean deletePrevious = deletesEnabled && r.nextInt(1) == 0;
+          boolean deletePrevious = deletesEnabled && r.nextInt(100) < deleteProbability;
 
           // stack to hold mutations. stack ensures they are deleted in reverse order
           Stack<Mutation> mutationStack = new Stack<>();
@@ -218,7 +223,7 @@ public class ContinuousIngest {
 
           // delete last set of entries in reverse order
           if (deletePrevious) {
-            log.info("Deleting last set of mutations.");
+            log.info("Deleting previous set of entries");
             while (!mutationStack.empty()) {
               Mutation m = mutationStack.pop();
               count--;
