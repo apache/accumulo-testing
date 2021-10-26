@@ -94,6 +94,8 @@ public class TestProps {
   public static final String CI_INGEST_PAUSE_DURATION_MAX = CI_INGEST + "pause.duration.max";
   // Amount of data to write before flushing. Pause checks are only done after flush.
   public static final String CI_INGEST_FLUSH_ENTRIES = CI_INGEST + "entries.flush";
+  // Entries will be periodically deleted during ingest if set to true
+  public static final String CI_INGEST_DELETE = CI_INGEST + "delete";
 
   /** Batch Walker **/
   // Sleep time between batch scans (in ms)

@@ -65,6 +65,11 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
+  private static boolean deletesEnabled(Properties props) {
+    String value = props.getProperty(TestProps.CI_INGEST_DELETE);
+    return Boolean.parseBoolean(value);
+  }
+
   private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
     int min = Integer.parseInt(props.getProperty(minProp));
     int max = Integer.parseInt(props.getProperty(maxProp));
@@ -150,6 +155,10 @@ public class ContinuousIngest {
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
 
+      final boolean deletesEnabled = deletesEnabled(testProps);
+      if (deletesEnabled)
+        log.info("DELETES enabled");
+
       out: while (true) {
         // generate first set of nodes
         ColumnVisibility cv = getVisibility(r);
@@ -178,13 +187,12 @@ public class ContinuousIngest {
         for (int depth = 1; depth < maxDepth; depth++) {
 
           // random chance that the entries will be deleted
-          boolean deleteLast = r.nextInt(1) == 0; // currently 100% chance for testing
-          log.info("Value of deleteLast: " + deleteLast);
+          // TODO: 100% chance while testing
+          boolean deletePrevious = deletesEnabled && r.nextInt(1) == 0;
 
           // stack to hold mutations. stack ensures they are deleted in reverse order
           Stack<Mutation> mutationStack = new Stack<>();
 
-          log.info("Creating next set of mutations");
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
             byte[] prevRow = genRow(prevRows[index]);
@@ -197,9 +205,9 @@ public class ContinuousIngest {
             bw.addMutation(m);
 
             // add a new delete mutation to the stack when applicable
-            if (deleteLast) {
+            if (deletePrevious) {
               Mutation mutation = new Mutation(genRow(rowLong));
-              mutation.putDelete(genCol(cfInt), genCol(cqInt));
+              mutation.putDelete(genCol(cfInt), genCol(cqInt), cv);
               mutationStack.add(mutation);
             }
           }
@@ -209,14 +217,15 @@ public class ContinuousIngest {
             break out;
 
           // delete last set of entries in reverse order
-          if (deleteLast) {
-            log.info("Deleting last set of entries.");
+          if (deletePrevious) {
+            log.info("Deleting last set of mutations.");
             while (!mutationStack.empty()) {
               Mutation m = mutationStack.pop();
               count--;
               bw.addMutation(m);
             }
             lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+            // client.tableOperations().compact(tableName, null, null, false, true);
           }
           pauseCheck(testProps, r);
         }
