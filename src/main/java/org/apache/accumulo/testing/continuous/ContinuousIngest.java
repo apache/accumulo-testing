@@ -70,7 +70,7 @@ public class ContinuousIngest {
     int prob = Integer.parseInt(stringValue);
     Preconditions.checkArgument(prob >= 0 && prob <= 100,
         "Delete probability should be in range [0%,100%]");
-    return Integer.parseInt(stringValue);
+    return prob;
   }
 
   private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
