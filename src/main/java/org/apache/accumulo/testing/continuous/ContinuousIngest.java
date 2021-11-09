@@ -65,13 +65,11 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
-  private static boolean deletesEnabled(Properties props) {
-    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_ENABLED);
-    return Boolean.parseBoolean(stringValue);
-  }
-
   private static int getDeleteProbability(Properties props) {
     String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
+    int prob = Integer.parseInt(stringValue);
+    Preconditions.checkArgument(prob >= 0 && prob <= 100,
+        "Delete probability should be in range [0%,100%]");
     return Integer.parseInt(stringValue);
   }
 
@@ -160,10 +158,8 @@ public class ContinuousIngest {
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
 
-      final boolean deletesEnabled = deletesEnabled(testProps);
       final int deleteProbability = getDeleteProbability(testProps);
-      if (deletesEnabled)
-        log.info("DELETES enabled with a probability of {}%", deleteProbability);
+      log.info("DELETES will occur with a probability of {}%", deleteProbability);
 
       out: while (true) {
         // generate first set of nodes
@@ -193,7 +189,7 @@ public class ContinuousIngest {
         for (int depth = 1; depth < maxDepth; depth++) {
 
           // random chance that the entries will be deleted
-          boolean deletePrevious = deletesEnabled && r.nextInt(100) < deleteProbability;
+          boolean deletePrevious = r.nextInt(100) < deleteProbability;
 
           // stack to hold mutations. stack ensures they are deleted in reverse order
           Stack<Mutation> mutationStack = new Stack<>();
