@@ -138,10 +138,8 @@ public class ContinuousIngest {
       // back to the row from insert (N - flushInterval). The array below is used to keep
       // track of this.
       long[] prevRows = new long[flushInterval];
+      MutationInfo[] firstEntries = new MutationInfo[flushInterval];
       MutationInfo[][] nodeMap = new MutationInfo[maxDepth][flushInterval];
-      long[] firstRows = new long[flushInterval];
-      int[] firstColFams = new int[flushInterval];
-      int[] firstColQuals = new int[flushInterval];
 
       long lastFlushTime = System.currentTimeMillis();
 
@@ -169,13 +167,11 @@ public class ContinuousIngest {
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
           prevRows[index] = rowLong;
-          firstRows[index] = rowLong;
 
           int cf = r.nextInt(maxColF);
           int cq = r.nextInt(maxColQ);
 
-          firstColFams[index] = cf;
-          firstColQuals[index] = cq;
+          firstEntries[index] = new MutationInfo(rowLong, cf, cq);
 
           nodeMap[0][index] = new MutationInfo(rowLong, cf, cq);
 
@@ -230,8 +226,9 @@ public class ContinuousIngest {
         } else {
           // create one big linked list, this makes all the first inserts point to something
           for (int index = 0; index < flushInterval - 1; index++) {
-            Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index],
-                cv, ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
+            MutationInfo currentNode = firstEntries[index];
+            Mutation m = genMutation(currentNode.row, currentNode.cf, currentNode.cq, cv,
+                ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
             count++;
             bw.addMutation(m);
           }
