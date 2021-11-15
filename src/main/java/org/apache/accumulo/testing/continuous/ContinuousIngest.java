@@ -188,7 +188,6 @@ public class ContinuousIngest {
 
         // generate subsequent sets of nodes that link to previous set of nodes
         for (int depth = 1; depth < maxDepth; depth++) {
-
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
             byte[] prevRow = genRow(prevRows[index]);
@@ -200,13 +199,11 @@ public class ContinuousIngest {
                 checksum);
             count++;
             bw.addMutation(m);
-
           }
 
           lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
           if (count >= numEntries)
             break out;
-
           pauseCheck(testProps, r);
         }
 

@@ -94,8 +94,6 @@ public class TestProps {
   public static final String CI_INGEST_PAUSE_DURATION_MAX = CI_INGEST + "pause.duration.max";
   // Amount of data to write before flushing. Pause checks are only done after flush.
   public static final String CI_INGEST_FLUSH_ENTRIES = CI_INGEST + "entries.flush";
-  // Entries will be periodically deleted during ingest if set to true
-  public static final String CI_INGEST_DELETE_ENABLED = CI_INGEST + "delete.enabled";
   // The probability (in percent) that a set of entries will be deleted during ingest
   public static final String CI_INGEST_DELETE_PROBABILITY = CI_INGEST + "delete.probability";
 
