@@ -64,11 +64,11 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
-  private static int getDeleteProbability(Properties props) {
+  private static float getDeleteProbability(Properties props) {
     String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
-    int prob = Integer.parseInt(stringValue);
-    Preconditions.checkArgument(prob >= 0 && prob <= 100,
-        "Delete probability should be in range [0%,100%]");
+    float prob = Float.parseFloat(stringValue);
+    Preconditions.checkArgument(prob >= 0.0 && prob <= 1.0,
+        "Delete probability should be between 0.0 and 1.0");
     return prob;
   }
 
@@ -158,12 +158,14 @@ public class ContinuousIngest {
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
 
-      final int deleteProbability = getDeleteProbability(testProps);
-      log.info("DELETES will occur with a probability of {}%", deleteProbability);
+      final float deleteProbability = getDeleteProbability(testProps);
+      log.info("DELETES will occur with a probability of {}",
+          String.format("%.02f", deleteProbability));
 
       out: while (true) {
         ColumnVisibility cv = getVisibility(r);
 
+        // generate first set of nodes
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
           prevRows[index] = rowLong;
@@ -208,7 +210,7 @@ public class ContinuousIngest {
         }
 
         // random chance that the entries will be deleted
-        boolean delete = r.nextInt(100) < deleteProbability;
+        boolean delete = r.nextFloat() < deleteProbability;
 
         // if the previously written entries are scheduled to be deleted
         if (delete) {
