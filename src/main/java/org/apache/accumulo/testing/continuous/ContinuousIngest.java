@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
@@ -139,6 +138,7 @@ public class ContinuousIngest {
       // back to the row from insert (N - flushInterval). The array below is used to keep
       // track of this.
       long[] prevRows = new long[flushInterval];
+      MutationInfo[][] nodeMap = new MutationInfo[maxDepth][flushInterval];
       long[] firstRows = new long[flushInterval];
       int[] firstColFams = new int[flushInterval];
       int[] firstColQuals = new int[flushInterval];
@@ -162,7 +162,6 @@ public class ContinuousIngest {
       log.info("DELETES will occur with a probability of {}%", deleteProbability);
 
       out: while (true) {
-        // generate first set of nodes
         ColumnVisibility cv = getVisibility(r);
 
         for (int index = 0; index < flushInterval; index++) {
@@ -176,6 +175,8 @@ public class ContinuousIngest {
           firstColFams[index] = cf;
           firstColQuals[index] = cq;
 
+          nodeMap[0][index] = new MutationInfo(rowLong, cf, cq);
+
           Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
           count++;
           bw.addMutation(m);
@@ -188,62 +189,74 @@ public class ContinuousIngest {
         // generate subsequent sets of nodes that link to previous set of nodes
         for (int depth = 1; depth < maxDepth; depth++) {
 
-          // random chance that the entries will be deleted
-          boolean deletePrevious = r.nextInt(100) < deleteProbability;
-
-          // stack to hold mutations. stack ensures they are deleted in reverse order
-          Stack<Mutation> mutationStack = new Stack<>();
-
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
             byte[] prevRow = genRow(prevRows[index]);
             prevRows[index] = rowLong;
             int cfInt = r.nextInt(maxColF);
             int cqInt = r.nextInt(maxColQ);
+            nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
             Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, count, prevRow,
                 checksum);
             count++;
             bw.addMutation(m);
 
-            // add a new delete mutation to the stack when applicable
-            if (deletePrevious) {
-              Mutation mutation = new Mutation(genRow(rowLong));
-              mutation.putDelete(genCol(cfInt), genCol(cqInt), cv);
-              mutationStack.add(mutation);
-            }
           }
 
           lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
           if (count >= numEntries)
             break out;
 
-          // delete last set of entries in reverse order
-          if (deletePrevious) {
-            log.info("Deleting previous set of entries");
-            while (!mutationStack.empty()) {
-              Mutation m = mutationStack.pop();
+          pauseCheck(testProps, r);
+        }
+
+        // random chance that the entries will be deleted
+        boolean delete = r.nextInt(100) < deleteProbability;
+
+        // if the previously written entries are scheduled to be deleted
+        if (delete) {
+          log.info("Deleting last portion of written entries");
+          // add delete mutations in the reverse order in which they were written
+          for (int depth = nodeMap.length - 1; depth >= 0; depth--) {
+            for (int index = nodeMap[0].length - 1; index >= 0; index--) {
+              MutationInfo currentNode = nodeMap[depth][index];
+              Mutation m = new Mutation(genRow(currentNode.row));
+              m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
               count--;
               bw.addMutation(m);
             }
             lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-            // client.tableOperations().compact(tableName, null, null, false, true);
+            pauseCheck(testProps, r);
           }
-          pauseCheck(testProps, r);
+        } else {
+          // create one big linked list, this makes all the first inserts point to something
+          for (int index = 0; index < flushInterval - 1; index++) {
+            Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index],
+                cv, ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
+            count++;
+            bw.addMutation(m);
+          }
+          lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         }
 
-        // create one big linked list, this makes all of the first inserts point to something
-        for (int index = 0; index < flushInterval - 1; index++) {
-          Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
-              ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
-          count++;
-          bw.addMutation(m);
-        }
-        lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         if (count >= numEntries)
           break out;
         pauseCheck(testProps, r);
       }
       bw.close();
+    }
+  }
+
+  private static class MutationInfo {
+
+    long row;
+    int cf;
+    int cq;
+
+    public MutationInfo(long row, int cf, int cq) {
+      this.row = row;
+      this.cf = cf;
+      this.cq = cq;
     }
   }
 
