@@ -64,14 +64,6 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
-  private static float getDeleteProbability(Properties props) {
-    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
-    float prob = Float.parseFloat(stringValue);
-    Preconditions.checkArgument(prob >= 0.0 && prob <= 1.0,
-        "Delete probability should be between 0.0 and 1.0");
-    return prob;
-  }
-
   private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
     int min = Integer.parseInt(props.getProperty(minProp));
     int max = Integer.parseInt(props.getProperty(maxProp));
@@ -80,6 +72,14 @@ public class ContinuousIngest {
       return min;
     }
     return (rand.nextInt(max - min) + min);
+  }
+
+  private static float getDeleteProbability(Properties props) {
+    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
+    float prob = Float.parseFloat(stringValue);
+    Preconditions.checkArgument(prob >= 0.0 && prob <= 1.0,
+        "Delete probability should be between 0.0 and 1.0");
+    return prob;
   }
 
   private static int getFlushEntries(Properties props) {
@@ -136,8 +136,7 @@ public class ContinuousIngest {
       // always want to point back to flushed data. This way the previous item should
       // always exist in accumulo when verifying data. To do this make insert N point
       // back to the row from insert (N - flushInterval). The array below is used to keep
-      // track of this.
-      // long[] prevRows = new long[flushInterval];
+      // track of all inserts.
       MutationInfo[][] nodeMap = new MutationInfo[maxDepth][flushInterval];
 
       long lastFlushTime = System.currentTimeMillis();
@@ -212,7 +211,6 @@ public class ContinuousIngest {
               MutationInfo currentNode = nodeMap[depth][index];
               Mutation m = new Mutation(genRow(currentNode.row));
               m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
-              count--;
               bw.addMutation(m);
             }
             lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
