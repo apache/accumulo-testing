@@ -137,8 +137,7 @@ public class ContinuousIngest {
       // always exist in accumulo when verifying data. To do this make insert N point
       // back to the row from insert (N - flushInterval). The array below is used to keep
       // track of this.
-      long[] prevRows = new long[flushInterval];
-      MutationInfo[] firstEntries = new MutationInfo[flushInterval];
+      // long[] prevRows = new long[flushInterval];
       MutationInfo[][] nodeMap = new MutationInfo[maxDepth][flushInterval];
 
       long lastFlushTime = System.currentTimeMillis();
@@ -166,12 +165,9 @@ public class ContinuousIngest {
         // generate first set of nodes
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
-          prevRows[index] = rowLong;
 
           int cf = r.nextInt(maxColF);
           int cq = r.nextInt(maxColQ);
-
-          firstEntries[index] = new MutationInfo(rowLong, cf, cq);
 
           nodeMap[0][index] = new MutationInfo(rowLong, cf, cq);
 
@@ -188,8 +184,7 @@ public class ContinuousIngest {
         for (int depth = 1; depth < maxDepth; depth++) {
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
-            byte[] prevRow = genRow(prevRows[index]);
-            prevRows[index] = rowLong;
+            byte[] prevRow = genRow(nodeMap[depth - 1][index].row);
             int cfInt = r.nextInt(maxColF);
             int cqInt = r.nextInt(maxColQ);
             nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
@@ -213,7 +208,7 @@ public class ContinuousIngest {
           log.info("Deleting last portion of written entries");
           // add delete mutations in the reverse order in which they were written
           for (int depth = nodeMap.length - 1; depth >= 0; depth--) {
-            for (int index = nodeMap[0].length - 1; index >= 0; index--) {
+            for (int index = nodeMap[depth].length - 1; index >= 0; index--) {
               MutationInfo currentNode = nodeMap[depth][index];
               Mutation m = new Mutation(genRow(currentNode.row));
               m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
@@ -226,9 +221,10 @@ public class ContinuousIngest {
         } else {
           // create one big linked list, this makes all the first inserts point to something
           for (int index = 0; index < flushInterval - 1; index++) {
-            MutationInfo currentNode = firstEntries[index];
-            Mutation m = genMutation(currentNode.row, currentNode.cf, currentNode.cq, cv,
-                ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
+            MutationInfo firstEntry = nodeMap[0][index];
+            MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
+            Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
+                ingestInstanceId, count, genRow(lastEntry.row), checksum);
             count++;
             bw.addMutation(m);
           }
