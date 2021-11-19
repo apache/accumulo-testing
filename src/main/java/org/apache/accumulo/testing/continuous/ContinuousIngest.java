@@ -17,8 +17,6 @@
 package org.apache.accumulo.testing.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_DURATION_MAX;
-import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_DURATION_MIN;
 import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MAX;
 import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MIN;
 
@@ -54,6 +52,9 @@ public class ContinuousIngest {
   private static List<ColumnVisibility> visibilities;
   private static long lastPauseNs;
   private static long pauseWaitSec;
+  private static boolean pauseEnabled;
+  private static int pauseMin;
+  private static int pauseMax;
 
   private static ColumnVisibility getVisibility(Random rand) {
     return visibilities.get(rand.nextInt(visibilities.size()));
@@ -64,14 +65,11 @@ public class ContinuousIngest {
     return Boolean.parseBoolean(value);
   }
 
-  private static int getPause(Properties props, Random rand, String minProp, String maxProp) {
-    int min = Integer.parseInt(props.getProperty(minProp));
-    int max = Integer.parseInt(props.getProperty(maxProp));
-    Preconditions.checkState(max >= min && min > 0);
-    if (max == min) {
-      return min;
+  private static int getPause(Random rand) {
+    if (pauseMax == pauseMin) {
+      return pauseMin;
     }
-    return (rand.nextInt(max - min) + min);
+    return (rand.nextInt(pauseMax - pauseMin) + pauseMin);
   }
 
   private static float getDeleteProbability(Properties props) {
@@ -86,17 +84,16 @@ public class ContinuousIngest {
     return Integer.parseInt(props.getProperty(TestProps.CI_INGEST_FLUSH_ENTRIES, "1000000"));
   }
 
-  private static void pauseCheck(Properties props, Random rand) throws InterruptedException {
-    if (pauseEnabled(props)) {
+  private static void pauseCheck(Random rand) throws InterruptedException {
+    if (pauseEnabled) {
       long elapsedNano = System.nanoTime() - lastPauseNs;
       if (elapsedNano > (TimeUnit.SECONDS.toNanos(pauseWaitSec))) {
-        long pauseDurationSec = getPause(props, rand, CI_INGEST_PAUSE_DURATION_MIN,
-            CI_INGEST_PAUSE_DURATION_MAX);
-        log.info("PAUSING for " + pauseDurationSec + "s");
+        long pauseDurationSec = getPause(rand);
+        log.info("PAUSING for {}s", pauseDurationSec);
         Thread.sleep(TimeUnit.SECONDS.toMillis(pauseDurationSec));
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPause(props, rand, CI_INGEST_PAUSE_WAIT_MIN, CI_INGEST_PAUSE_WAIT_MAX);
-        log.info("INGESTING for " + pauseWaitSec + "s");
+        pauseWaitSec = getPause(rand);
+        log.info("INGESTING for {}s", pauseWaitSec);
       }
     }
   }
@@ -105,10 +102,8 @@ public class ContinuousIngest {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-      visibilities = parseVisibilities(env.getTestProperty(TestProps.CI_INGEST_VISIBILITIES));
-
-      long rowMin = env.getRowMin();
-      long rowMax = env.getRowMax();
+      final long rowMin = env.getRowMin();
+      final long rowMax = env.getRowMax();
       if (rowMin < 0 || rowMax < 0 || rowMax <= rowMin) {
         throw new IllegalArgumentException("bad min and max");
       }
@@ -122,15 +117,18 @@ public class ContinuousIngest {
 
       BatchWriter bw = client.createBatchWriter(tableName);
 
-      Random r = new Random();
+      Random random = new Random();
 
       byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
 
-      log.info(String.format("UUID %d %s", System.currentTimeMillis(),
-          new String(ingestInstanceId, UTF_8)));
+      log.info("Ingest instance ID: {} current time: {}ms", new String(ingestInstanceId, UTF_8),
+          System.currentTimeMillis());
 
-      long count = 0;
-      final int flushInterval = getFlushEntries(env.getTestProperties());
+      Properties testProps = env.getTestProperties();
+
+      long entriesWritten = 0L;
+      long entriesDeleted = 0L;
+      final int flushInterval = getFlushEntries(testProps);
       final int maxDepth = 25;
 
       // always want to point back to flushed data. This way the previous item should
@@ -141,17 +139,26 @@ public class ContinuousIngest {
 
       long lastFlushTime = System.currentTimeMillis();
 
-      int maxColF = env.getMaxColF();
-      int maxColQ = env.getMaxColQ();
-      boolean checksum = Boolean.parseBoolean(env.getTestProperty(TestProps.CI_INGEST_CHECKSUM));
-      long numEntries = Long.parseLong(env.getTestProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+      final int maxColF = env.getMaxColF();
+      final int maxColQ = env.getMaxColQ();
+      final boolean checksum = Boolean
+          .parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
+      final long numEntries = Long
+          .parseLong(testProps.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
 
-      Properties testProps = env.getTestProperties();
-      if (pauseEnabled(testProps)) {
+      visibilities = parseVisibilities(testProps.getProperty(TestProps.CI_INGEST_VISIBILITIES));
+
+      pauseEnabled = pauseEnabled(testProps);
+
+      pauseMin = Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MIN));
+      pauseMax = Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MAX));
+      Preconditions.checkState(pauseMax >= pauseMin && pauseMin > 0);
+
+      if (pauseEnabled) {
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPause(testProps, r, CI_INGEST_PAUSE_WAIT_MIN, CI_INGEST_PAUSE_WAIT_MAX);
+        pauseWaitSec = getPause(random);
         log.info("PAUSING enabled");
-        log.info("INGESTING for " + pauseWaitSec + "s");
+        log.info("INGESTING for {}s", pauseWaitSec);
       }
 
       final float deleteProbability = getDeleteProbability(testProps);
@@ -159,48 +166,33 @@ public class ContinuousIngest {
           String.format("%.02f", deleteProbability));
 
       out: while (true) {
-        ColumnVisibility cv = getVisibility(r);
+        ColumnVisibility cv = getVisibility(random);
 
-        // generate first set of nodes
-        for (int index = 0; index < flushInterval; index++) {
-          long rowLong = genLong(rowMin, rowMax, r);
-
-          int cf = r.nextInt(maxColF);
-          int cq = r.nextInt(maxColQ);
-
-          nodeMap[0][index] = new MutationInfo(rowLong, cf, cq);
-
-          Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
-          count++;
-          bw.addMutation(m);
-        }
-
-        lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-        if (count >= numEntries)
-          break out;
-
-        // generate subsequent sets of nodes that link to previous set of nodes
-        for (int depth = 1; depth < maxDepth; depth++) {
+        // generate sets nodes that link to previous set of nodes
+        for (int depth = 0; depth < maxDepth; depth++) {
           for (int index = 0; index < flushInterval; index++) {
-            long rowLong = genLong(rowMin, rowMax, r);
-            byte[] prevRow = genRow(nodeMap[depth - 1][index].row);
-            int cfInt = r.nextInt(maxColF);
-            int cqInt = r.nextInt(maxColQ);
+            long rowLong = genLong(rowMin, rowMax, random);
+
+            byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
+
+            int cfInt = random.nextInt(maxColF);
+            int cqInt = random.nextInt(maxColQ);
+
             nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
-            Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, count, prevRow,
-                checksum);
-            count++;
+            Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
+                prevRow, checksum);
+            entriesWritten++;
             bw.addMutation(m);
           }
 
-          lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-          if (count >= numEntries)
+          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
+          if (entriesWritten >= numEntries)
             break out;
-          pauseCheck(testProps, r);
+          pauseCheck(random);
         }
 
         // random chance that the entries will be deleted
-        boolean delete = r.nextFloat() < deleteProbability;
+        final boolean delete = random.nextFloat() < deleteProbability;
 
         // if the previously written entries are scheduled to be deleted
         if (delete) {
@@ -211,10 +203,11 @@ public class ContinuousIngest {
               MutationInfo currentNode = nodeMap[depth][index];
               Mutation m = new Mutation(genRow(currentNode.row));
               m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
+              entriesDeleted++;
               bw.addMutation(m);
             }
-            lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
-            pauseCheck(testProps, r);
+            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
+            pauseCheck(random);
           }
         } else {
           // create one big linked list, this makes all the first inserts point to something
@@ -222,16 +215,16 @@ public class ContinuousIngest {
             MutationInfo firstEntry = nodeMap[0][index];
             MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
             Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
-                ingestInstanceId, count, genRow(lastEntry.row), checksum);
-            count++;
+                ingestInstanceId, entriesWritten, genRow(lastEntry.row), checksum);
+            entriesWritten++;
             bw.addMutation(m);
           }
-          lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
         }
 
-        if (count >= numEntries)
+        if (entriesWritten >= numEntries)
           break out;
-        pauseCheck(testProps, r);
+        pauseCheck(random);
       }
       bw.close();
     }
@@ -263,19 +256,21 @@ public class ContinuousIngest {
     return vis;
   }
 
-  private static long flush(BatchWriter bw, long count, final int flushInterval, long lastFlushTime)
-      throws MutationsRejectedException {
+  private static long flush(BatchWriter bw, long entriesWritten, long entriesDeleted,
+      final int flushInterval, long lastFlushTime) throws MutationsRejectedException {
     long t1 = System.currentTimeMillis();
     bw.flush();
     long t2 = System.currentTimeMillis();
-    log.info(String.format("FLUSH %d %d %d %d %d", t2, (t2 - lastFlushTime), (t2 - t1), count,
-        flushInterval));
+    log.info(
+        "FLUSH - current time: {}ms, time since last flush: {}ms, flush duration: {}ms, "
+            + "# of entries written: {}, # of entries deleted: {}, flush interval: {}",
+        t2, (t2 - lastFlushTime), (t2 - t1), entriesWritten, entriesDeleted, flushInterval);
     lastFlushTime = t2;
     return lastFlushTime;
   }
 
   public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
-      byte[] ingestInstanceId, long count, byte[] prevRow, boolean checksum) {
+      byte[] ingestInstanceId, long entriesWritten, byte[] prevRow, boolean checksum) {
     // Adler32 is supposed to be faster, but according to wikipedia is not
     // good for small data.... so used CRC32 instead
     CRC32 cksum = null;
@@ -295,7 +290,7 @@ public class ContinuousIngest {
 
     Mutation m = new Mutation(rowString);
 
-    m.put(cfString, cqString, cv, createValue(ingestInstanceId, count, prevRow, cksum));
+    m.put(cfString, cqString, cv, createValue(ingestInstanceId, entriesWritten, prevRow, cksum));
     return m;
   }
 
@@ -315,7 +310,7 @@ public class ContinuousIngest {
     return FastFormat.toZeroPaddedString(rowLong, 16, 16, EMPTY_BYTES);
   }
 
-  public static byte[] createValue(byte[] ingestInstanceId, long count, byte[] prevRow,
+  public static byte[] createValue(byte[] ingestInstanceId, long entriesWritten, byte[] prevRow,
       Checksum cksum) {
     int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
     if (cksum != null)
@@ -324,7 +319,7 @@ public class ContinuousIngest {
     System.arraycopy(ingestInstanceId, 0, val, 0, ingestInstanceId.length);
     int index = ingestInstanceId.length;
     val[index++] = ':';
-    int added = FastFormat.toZeroPaddedString(val, index, count, 16, 16, EMPTY_BYTES);
+    int added = FastFormat.toZeroPaddedString(val, index, entriesWritten, 16, 16, EMPTY_BYTES);
     if (added != 16)
       throw new RuntimeException(" " + added);
     index += 16;
