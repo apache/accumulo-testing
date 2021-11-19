@@ -74,6 +74,14 @@ public class ContinuousIngest {
     return (rand.nextInt(max - min) + min);
   }
 
+  private static float getDeleteProbability(Properties props) {
+    String stringValue = props.getProperty(TestProps.CI_INGEST_DELETE_PROBABILITY);
+    float prob = Float.parseFloat(stringValue);
+    Preconditions.checkArgument(prob >= 0.0 && prob <= 1.0,
+        "Delete probability should be between 0.0 and 1.0");
+    return prob;
+  }
+
   private static int getFlushEntries(Properties props) {
     return Integer.parseInt(props.getProperty(TestProps.CI_INGEST_FLUSH_ENTRIES, "1000000"));
   }
@@ -128,11 +136,8 @@ public class ContinuousIngest {
       // always want to point back to flushed data. This way the previous item should
       // always exist in accumulo when verifying data. To do this make insert N point
       // back to the row from insert (N - flushInterval). The array below is used to keep
-      // track of this.
-      long[] prevRows = new long[flushInterval];
-      long[] firstRows = new long[flushInterval];
-      int[] firstColFams = new int[flushInterval];
-      int[] firstColQuals = new int[flushInterval];
+      // track of all inserts.
+      MutationInfo[][] nodeMap = new MutationInfo[maxDepth][flushInterval];
 
       long lastFlushTime = System.currentTimeMillis();
 
@@ -149,20 +154,21 @@ public class ContinuousIngest {
         log.info("INGESTING for " + pauseWaitSec + "s");
       }
 
+      final float deleteProbability = getDeleteProbability(testProps);
+      log.info("DELETES will occur with a probability of {}",
+          String.format("%.02f", deleteProbability));
+
       out: while (true) {
-        // generate first set of nodes
         ColumnVisibility cv = getVisibility(r);
 
+        // generate first set of nodes
         for (int index = 0; index < flushInterval; index++) {
           long rowLong = genLong(rowMin, rowMax, r);
-          prevRows[index] = rowLong;
-          firstRows[index] = rowLong;
 
           int cf = r.nextInt(maxColF);
           int cq = r.nextInt(maxColQ);
 
-          firstColFams[index] = cf;
-          firstColQuals[index] = cq;
+          nodeMap[0][index] = new MutationInfo(rowLong, cf, cq);
 
           Mutation m = genMutation(rowLong, cf, cq, cv, ingestInstanceId, count, null, checksum);
           count++;
@@ -177,10 +183,12 @@ public class ContinuousIngest {
         for (int depth = 1; depth < maxDepth; depth++) {
           for (int index = 0; index < flushInterval; index++) {
             long rowLong = genLong(rowMin, rowMax, r);
-            byte[] prevRow = genRow(prevRows[index]);
-            prevRows[index] = rowLong;
-            Mutation m = genMutation(rowLong, r.nextInt(maxColF), r.nextInt(maxColQ), cv,
-                ingestInstanceId, count, prevRow, checksum);
+            byte[] prevRow = genRow(nodeMap[depth - 1][index].row);
+            int cfInt = r.nextInt(maxColF);
+            int cqInt = r.nextInt(maxColQ);
+            nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
+            Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, count, prevRow,
+                checksum);
             count++;
             bw.addMutation(m);
           }
@@ -191,19 +199,54 @@ public class ContinuousIngest {
           pauseCheck(testProps, r);
         }
 
-        // create one big linked list, this makes all of the first inserts point to something
-        for (int index = 0; index < flushInterval - 1; index++) {
-          Mutation m = genMutation(firstRows[index], firstColFams[index], firstColQuals[index], cv,
-              ingestInstanceId, count, genRow(prevRows[index + 1]), checksum);
-          count++;
-          bw.addMutation(m);
+        // random chance that the entries will be deleted
+        boolean delete = r.nextFloat() < deleteProbability;
+
+        // if the previously written entries are scheduled to be deleted
+        if (delete) {
+          log.info("Deleting last portion of written entries");
+          // add delete mutations in the reverse order in which they were written
+          for (int depth = nodeMap.length - 1; depth >= 0; depth--) {
+            for (int index = nodeMap[depth].length - 1; index >= 0; index--) {
+              MutationInfo currentNode = nodeMap[depth][index];
+              Mutation m = new Mutation(genRow(currentNode.row));
+              m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
+              bw.addMutation(m);
+            }
+            lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+            pauseCheck(testProps, r);
+          }
+        } else {
+          // create one big linked list, this makes all the first inserts point to something
+          for (int index = 0; index < flushInterval - 1; index++) {
+            MutationInfo firstEntry = nodeMap[0][index];
+            MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
+            Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
+                ingestInstanceId, count, genRow(lastEntry.row), checksum);
+            count++;
+            bw.addMutation(m);
+          }
+          lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
         }
-        lastFlushTime = flush(bw, count, flushInterval, lastFlushTime);
+
         if (count >= numEntries)
           break out;
         pauseCheck(testProps, r);
       }
       bw.close();
+    }
+  }
+
+  private static class MutationInfo {
+
+    long row;
+    int cf;
+    int cq;
+
+    public MutationInfo(long row, int cf, int cq) {
+      this.row = row;
+      this.cf = cf;
+      this.cq = cq;
     }
   }
 
