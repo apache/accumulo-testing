@@ -113,8 +113,6 @@ public class ContinuousIngest {
             "Consult the README and create the table before starting ingest.");
       }
 
-      BatchWriter bw = client.createBatchWriter(tableName);
-
       Random rand = new Random();
 
       byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
@@ -164,68 +162,69 @@ public class ContinuousIngest {
       log.info("DELETES will occur with a probability of {}",
           String.format("%.02f", deleteProbability));
 
-      out: while (true) {
-        ColumnVisibility cv = getVisibility(rand);
+      try(BatchWriter bw = client.createBatchWriter(tableName)) {
+        out: while (true) {
+          ColumnVisibility cv = getVisibility(rand);
 
-        // generate sets nodes that link to previous set of nodes
-        for (int depth = 0; depth < maxDepth; depth++) {
-          for (int index = 0; index < flushInterval; index++) {
-            long rowLong = genLong(rowMin, rowMax, rand);
+          // generate sets nodes that link to previous set of nodes
+          for (int depth = 0; depth < maxDepth; depth++) {
+            for (int index = 0; index < flushInterval; index++) {
+              long rowLong = genLong(rowMin, rowMax, rand);
 
-            byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
+              byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
 
-            int cfInt = rand.nextInt(maxColF);
-            int cqInt = rand.nextInt(maxColQ);
+              int cfInt = rand.nextInt(maxColF);
+              int cqInt = rand.nextInt(maxColQ);
 
-            nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
-            Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
-                prevRow, checksum);
-            entriesWritten++;
-            bw.addMutation(m);
+              nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
+              Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
+                      prevRow, checksum);
+              entriesWritten++;
+              bw.addMutation(m);
+            }
+
+            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
+            if (entriesWritten >= numEntries)
+              break out;
+            pauseCheck(rand);
           }
 
-          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
+          // random chance that the entries will be deleted
+          final boolean delete = rand.nextFloat() < deleteProbability;
+
+          // if the previously written entries are scheduled to be deleted
+          if (delete) {
+            log.info("Deleting last portion of written entries");
+            // add delete mutations in the reverse order in which they were written
+            for (int depth = nodeMap.length - 1; depth >= 0; depth--) {
+              for (int index = nodeMap[depth].length - 1; index >= 0; index--) {
+                MutationInfo currentNode = nodeMap[depth][index];
+                Mutation m = new Mutation(genRow(currentNode.row));
+                m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
+                entriesDeleted++;
+                bw.addMutation(m);
+              }
+              lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
+              pauseCheck(rand);
+            }
+          } else {
+            // create one big linked list, this makes all the first inserts point to something
+            for (int index = 0; index < flushInterval - 1; index++) {
+              MutationInfo firstEntry = nodeMap[0][index];
+              MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
+              Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
+                      ingestInstanceId, entriesWritten, genRow(lastEntry.row), checksum);
+              entriesWritten++;
+              bw.addMutation(m);
+            }
+            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
+          }
+
           if (entriesWritten >= numEntries)
             break out;
           pauseCheck(rand);
         }
-
-        // random chance that the entries will be deleted
-        final boolean delete = rand.nextFloat() < deleteProbability;
-
-        // if the previously written entries are scheduled to be deleted
-        if (delete) {
-          log.info("Deleting last portion of written entries");
-          // add delete mutations in the reverse order in which they were written
-          for (int depth = nodeMap.length - 1; depth >= 0; depth--) {
-            for (int index = nodeMap[depth].length - 1; index >= 0; index--) {
-              MutationInfo currentNode = nodeMap[depth][index];
-              Mutation m = new Mutation(genRow(currentNode.row));
-              m.putDelete(genCol(currentNode.cf), genCol(currentNode.cq));
-              entriesDeleted++;
-              bw.addMutation(m);
-            }
-            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
-            pauseCheck(rand);
-          }
-        } else {
-          // create one big linked list, this makes all the first inserts point to something
-          for (int index = 0; index < flushInterval - 1; index++) {
-            MutationInfo firstEntry = nodeMap[0][index];
-            MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
-            Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
-                ingestInstanceId, entriesWritten, genRow(lastEntry.row), checksum);
-            entriesWritten++;
-            bw.addMutation(m);
-          }
-          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
-        }
-
-        if (entriesWritten >= numEntries)
-          break out;
-        pauseCheck(rand);
       }
-      bw.close();
     }
   }
 
