@@ -162,7 +162,7 @@ public class ContinuousIngest {
       log.info("DELETES will occur with a probability of {}",
           String.format("%.02f", deleteProbability));
 
-      try(BatchWriter bw = client.createBatchWriter(tableName)) {
+      try (BatchWriter bw = client.createBatchWriter(tableName)) {
         out: while (true) {
           ColumnVisibility cv = getVisibility(rand);
 
@@ -178,7 +178,7 @@ public class ContinuousIngest {
 
               nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
               Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
-                      prevRow, checksum);
+                  prevRow, checksum);
               entriesWritten++;
               bw.addMutation(m);
             }
@@ -213,7 +213,7 @@ public class ContinuousIngest {
               MutationInfo firstEntry = nodeMap[0][index];
               MutationInfo lastEntry = nodeMap[maxDepth - 1][index + 1];
               Mutation m = genMutation(firstEntry.row, firstEntry.cf, firstEntry.cq, cv,
-                      ingestInstanceId, entriesWritten, genRow(lastEntry.row), checksum);
+                  ingestInstanceId, entriesWritten, genRow(lastEntry.row), checksum);
               entriesWritten++;
               bw.addMutation(m);
             }
