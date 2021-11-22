@@ -17,8 +17,6 @@
 package org.apache.accumulo.testing.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MAX;
-import static org.apache.accumulo.testing.TestProps.CI_INGEST_PAUSE_WAIT_MIN;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -100,7 +98,8 @@ public class ContinuousIngest {
 
   public static void main(String[] args) throws Exception {
 
-    try (ContinuousEnv env = new ContinuousEnv(args)) {
+    try (ContinuousEnv env = new ContinuousEnv(args);
+        AccumuloClient client = env.getAccumuloClient()) {
 
       final long rowMin = env.getRowMin();
       final long rowMax = env.getRowMax();
@@ -108,7 +107,6 @@ public class ContinuousIngest {
         throw new IllegalArgumentException("bad min and max");
       }
 
-      AccumuloClient client = env.getAccumuloClient();
       String tableName = env.getAccumuloTableName();
       if (!client.tableOperations().exists(tableName)) {
         throw new TableNotFoundException(null, tableName,
@@ -117,10 +115,9 @@ public class ContinuousIngest {
 
       BatchWriter bw = client.createBatchWriter(tableName);
 
-      Random random = new Random();
+      Random rand = new Random();
 
       byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
-
       log.info("Ingest instance ID: {} current time: {}ms", new String(ingestInstanceId, UTF_8),
           System.currentTimeMillis());
 
@@ -129,6 +126,7 @@ public class ContinuousIngest {
       long entriesWritten = 0L;
       long entriesDeleted = 0L;
       final int flushInterval = getFlushEntries(testProps);
+      log.info("A flush will occur after every {} entries written", flushInterval);
       final int maxDepth = 25;
 
       // always want to point back to flushed data. This way the previous item should
@@ -145,6 +143,7 @@ public class ContinuousIngest {
           .parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
       final long numEntries = Long
           .parseLong(testProps.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+      log.info("Total entries to be written: {}", numEntries);
 
       visibilities = parseVisibilities(testProps.getProperty(TestProps.CI_INGEST_VISIBILITIES));
 
@@ -156,7 +155,7 @@ public class ContinuousIngest {
 
       if (pauseEnabled) {
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPause(random);
+        pauseWaitSec = getPause(rand);
         log.info("PAUSING enabled");
         log.info("INGESTING for {}s", pauseWaitSec);
       }
@@ -166,17 +165,17 @@ public class ContinuousIngest {
           String.format("%.02f", deleteProbability));
 
       out: while (true) {
-        ColumnVisibility cv = getVisibility(random);
+        ColumnVisibility cv = getVisibility(rand);
 
         // generate sets nodes that link to previous set of nodes
         for (int depth = 0; depth < maxDepth; depth++) {
           for (int index = 0; index < flushInterval; index++) {
-            long rowLong = genLong(rowMin, rowMax, random);
+            long rowLong = genLong(rowMin, rowMax, rand);
 
             byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
 
-            int cfInt = random.nextInt(maxColF);
-            int cqInt = random.nextInt(maxColQ);
+            int cfInt = rand.nextInt(maxColF);
+            int cqInt = rand.nextInt(maxColQ);
 
             nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
             Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
@@ -185,14 +184,14 @@ public class ContinuousIngest {
             bw.addMutation(m);
           }
 
-          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
+          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
           if (entriesWritten >= numEntries)
             break out;
-          pauseCheck(random);
+          pauseCheck(rand);
         }
 
         // random chance that the entries will be deleted
-        final boolean delete = random.nextFloat() < deleteProbability;
+        final boolean delete = rand.nextFloat() < deleteProbability;
 
         // if the previously written entries are scheduled to be deleted
         if (delete) {
@@ -206,8 +205,8 @@ public class ContinuousIngest {
               entriesDeleted++;
               bw.addMutation(m);
             }
-            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
-            pauseCheck(random);
+            lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
+            pauseCheck(rand);
           }
         } else {
           // create one big linked list, this makes all the first inserts point to something
@@ -219,12 +218,12 @@ public class ContinuousIngest {
             entriesWritten++;
             bw.addMutation(m);
           }
-          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, flushInterval, lastFlushTime);
+          lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
         }
 
         if (entriesWritten >= numEntries)
           break out;
-        pauseCheck(random);
+        pauseCheck(rand);
       }
       bw.close();
     }
@@ -257,16 +256,13 @@ public class ContinuousIngest {
   }
 
   private static long flush(BatchWriter bw, long entriesWritten, long entriesDeleted,
-      final int flushInterval, long lastFlushTime) throws MutationsRejectedException {
+      long lastFlushTime) throws MutationsRejectedException {
     long t1 = System.currentTimeMillis();
     bw.flush();
     long t2 = System.currentTimeMillis();
-    log.info(
-        "FLUSH - current time: {}ms, time since last flush: {}ms, flush duration: {}ms, "
-            + "# of entries written: {}, # of entries deleted: {}, flush interval: {}",
-        t2, (t2 - lastFlushTime), (t2 - t1), entriesWritten, entriesDeleted, flushInterval);
-    lastFlushTime = t2;
-    return lastFlushTime;
+    log.info("FLUSH - duration: {}ms, since last flush: {}ms, total written: {}, total deleted: {}",
+        (t2 - t1), (t2 - lastFlushTime), entriesWritten, entriesDeleted);
+    return t2;
   }
 
   public static Mutation genMutation(long rowLong, int cfInt, int cqInt, ColumnVisibility cv,
