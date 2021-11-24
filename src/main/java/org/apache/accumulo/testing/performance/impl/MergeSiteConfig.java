@@ -32,7 +32,7 @@ public class MergeSiteConfig {
     Path confFile = Paths.get(args[1], "accumulo.properties");
 
     PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class)
-        .newInstance();
+        .getDeclaredConstructor().newInstance();
 
     Properties props = new Properties();
 
