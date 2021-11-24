@@ -399,7 +399,6 @@
                   <artifactSet>
                     <excludes>
                       <exclude>org.apache.accumulo:accumulo-native</exclude>
-                      <exclude>org.apache.zookeeper*</exclude>
                       <exclude>org.apache.hadoop:*</exclude>
                       <exclude>log4j:*</exclude>
                     </excludes>
