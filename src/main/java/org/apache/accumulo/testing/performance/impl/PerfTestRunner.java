@@ -41,7 +41,7 @@ public class PerfTestRunner {
     String accumuloVersion = args[2];
     String outputDir = args[3];
 
-    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class)
+    PerformanceTest perfTest = Class.forName(className).asSubclass(PerformanceTest.class).getDeclaredConstructor()
         .newInstance();
 
     AccumuloClient client = Accumulo.newClient().from(clientProps).build();
