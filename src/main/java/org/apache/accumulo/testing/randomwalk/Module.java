@@ -548,7 +548,8 @@ public class Module extends Node {
     nodelist = d.getDocumentElement().getElementsByTagName("fixture");
     if (nodelist.getLength() > 0) {
       Element fixtureEl = (Element) nodelist.item(0);
-      fixture = (Fixture) Class.forName(getFullName(fixtureEl.getAttribute("id"))).newInstance();
+      fixture = (Fixture) Class.forName(getFullName(fixtureEl.getAttribute("id")))
+          .getDeclaredConstructor().newInstance();
     }
 
     // parse initial node

@@ -72,7 +72,7 @@ public class Framework {
     if (id.endsWith(".xml")) {
       node = new Module(id);
     } else {
-      node = (Test) Class.forName(id).newInstance();
+      node = (Test) Class.forName(id).getDeclaredConstructor().newInstance();
     }
     nodes.put(id, node);
     return node;
