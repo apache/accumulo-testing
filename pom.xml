@@ -399,6 +399,7 @@
                   <artifactSet>
                     <excludes>
                       <exclude>org.apache.accumulo:accumulo-native</exclude>
+                      <exclude>org.apache.zookeeper*</exclude>
                       <exclude>org.apache.hadoop:*</exclude>
                       <exclude>log4j:*</exclude>
                     </excludes>
@@ -407,6 +408,7 @@
                     <filter>
                       <artifact>*:*</artifact>
                       <excludes>
+                        <exclude>module-info.class</exclude>
                         <exclude>META-INF/*.SF</exclude>
                         <exclude>META-INF/*.DSA</exclude>
                         <exclude>META-INF/*.RSA</exclude>
