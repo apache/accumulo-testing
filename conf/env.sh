@@ -61,7 +61,7 @@ fi
 # Versions set below will be what is included in the shaded jar
 ACCUMULO_VERSION="$("$ACCUMULO_HOME"/bin/accumulo version | grep -v 'DEBUG')"; export ACCUMULO_VERSION
 HADOOP_VERSION="$(hadoop version | head -n1 | awk '{print $2}')"; export HADOOP_VERSION
-export ZOOKEEPER_VERSION=3.7.0
+export ZOOKEEPER_VERSION=3.5.9
 # Path to shaded test jar
 at_home=$( cd "$( dirname "$conf_dir" )" && pwd )
 export TEST_JAR_PATH="${at_home}/target/accumulo-testing-shaded.jar"
