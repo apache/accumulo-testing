@@ -103,8 +103,8 @@ public class ContinuousIngest {
 
       final long rowMin = env.getRowMin();
       final long rowMax = env.getRowMax();
-      Preconditions.checkState(0 < rowMin && rowMin <= rowMax,
-              "Bad rowMin/rowMax, must conform to: 0 < rowMin <= rowMax");
+      Preconditions.checkState(0 <= rowMin && rowMin <= rowMax,
+          "Bad rowMin/rowMax, must conform to: 0 < rowMin <= rowMax");
 
       String tableName = env.getAccumuloTableName();
       if (!client.tableOperations().exists(tableName)) {
@@ -149,7 +149,7 @@ public class ContinuousIngest {
       pauseMin = Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MIN));
       pauseMax = Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_PAUSE_WAIT_MAX));
       Preconditions.checkState(0 < pauseMin && pauseMin <= pauseMax,
-          "Bad min/max, must conform to: 0 < min <= max");
+          "Bad pause wait min/max, must conform to: 0 < min <= max");
 
       if (pauseEnabled) {
         lastPauseNs = System.nanoTime();
