@@ -104,7 +104,7 @@ public class ContinuousIngest {
       final long rowMin = env.getRowMin();
       final long rowMax = env.getRowMax();
       Preconditions.checkState(0 <= rowMin && rowMin <= rowMax,
-          "Bad rowMin/rowMax, must conform to: 0 < rowMin <= rowMax");
+          "Bad rowMin/rowMax, must conform to: 0 <= rowMin <= rowMax");
 
       String tableName = env.getAccumuloTableName();
       if (!client.tableOperations().exists(tableName)) {
