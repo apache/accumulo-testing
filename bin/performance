@@ -60,7 +60,8 @@ fi
 
 source "$at_home"/conf/cluster-control.sh
 build_shade_jar
-CP="$at_home/target/accumulo-testing-shaded.jar:$(get_hadoop_client)"
+CP="$at_shaded_jar:$(get_hadoop_client)"
+export CLASSPATH="$CP"
 perf_pkg="org.apache.accumulo.testing.performance.impl"
 case "$1" in
   run)
