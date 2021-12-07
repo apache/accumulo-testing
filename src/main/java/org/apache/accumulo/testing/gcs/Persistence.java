@@ -48,9 +48,9 @@ import com.google.common.hash.Hashing;
 
 public class Persistence {
 
-  private BatchWriter writer;
-  private String table;
-  private AccumuloClient client;
+  private final BatchWriter writer;
+  private final String table;
+  private final AccumuloClient client;
 
   Persistence(GcsEnv env) {
     this.client = env.getAccumuloClient();

@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 
 public class SortTool extends Configured implements Tool {
   protected final Logger log = LoggerFactory.getLogger(this.getClass());
-  private String outputDir;
-  private String seqFile;
-  private String splitFile;
-  private Collection<Text> splits;
+  private final String outputDir;
+  private final String seqFile;
+  private final String splitFile;
+  private final Collection<Text> splits;
 
   public SortTool(String seqFile, String outputDir, String splitFile, Collection<Text> splits) {
     this.outputDir = outputDir;

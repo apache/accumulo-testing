@@ -51,10 +51,9 @@ public class BatchVerify extends Test {
     }
 
     AccumuloClient client = env.getAccumuloClient();
-    BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"),
-        new Authorizations(), 2);
 
-    try {
+    try (BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"),
+        new Authorizations(), 2)) {
       int count = 0;
       List<Range> ranges = new ArrayList<>();
       while (count < numVerify) {
@@ -109,7 +108,7 @@ public class BatchVerify extends Test {
 
           while (curKey < i) {
             log.error("extra key " + curKey);
-            if (iterator.hasNext() == false) {
+            if (!iterator.hasNext()) {
               done = true;
               break;
             }
@@ -129,8 +128,6 @@ public class BatchVerify extends Test {
       }
 
       log.debug("verify is now complete");
-    } finally {
-      scanner.close();
     }
   }
 }

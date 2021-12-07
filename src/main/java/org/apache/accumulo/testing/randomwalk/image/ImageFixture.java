@@ -86,9 +86,9 @@ public class ImageFixture extends Fixture {
       log.debug("Configured locality groups for " + imageTableName + " groups = " + groups);
     }
 
-    state.set("numWrites", Long.valueOf(0));
-    state.set("totalWrites", Long.valueOf(0));
-    state.set("verified", Integer.valueOf(0));
+    state.set("numWrites", 0L);
+    state.set("totalWrites", 0L);
+    state.set("verified", 0);
     state.set("lastIndexRow", new Text(""));
   }
 

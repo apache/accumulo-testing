@@ -319,8 +319,8 @@ public class UndefinedAnalyzer {
             if (ta == null)
               logger.debug("{} {} {} {} {}", undefinedNode.undef, undefinedNode.ref, uuid, t1, t2);
             else
-              logger.debug("{} {} {} {} {}", undefinedNode.undef, undefinedNode.ref, ta.tablet,
-                  ta.server, uuid, t1, t2);
+              logger.debug("{} {} {} {} {} {} {}", undefinedNode.undef, undefinedNode.ref,
+                  ta.tablet, ta.server, uuid, t1, t2);
 
           }
         } else {

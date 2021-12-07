@@ -43,8 +43,7 @@ public class BatchWrite extends Test {
     String tableName = state.getRandomTableName();
 
     try {
-      BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig());
-      try {
+      try (BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig())) {
         int numRows = rand.nextInt(100000);
         for (int i = 0; i < numRows; i++) {
           Mutation m = new Mutation(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl));
@@ -55,8 +54,6 @@ public class BatchWrite extends Test {
 
           bw.addMutation(m);
         }
-      } finally {
-        bw.close();
       }
 
       log.debug("Wrote to " + tableName);

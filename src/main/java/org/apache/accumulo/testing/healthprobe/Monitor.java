@@ -20,7 +20,6 @@ import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterrup
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -111,7 +110,6 @@ public class Monitor {
     int count = 0;
 
     while (rowIter.hasNext()) {
-      Iterator<Entry<Key,Value>> itr = rowIter.next();
       count++;
       if (count >= numberOfRows) {
         break;
@@ -125,20 +123,19 @@ public class Monitor {
 
     if (cacheTablets) {
       Locations locations = tops.locate(table, Collections.singleton(new Range()));
-      tablets = new ArrayList<TabletId>(locations.groupByTablet().keySet());
+      tablets = new ArrayList<>(locations.groupByTablet().keySet());
       cacheTablets = false;
     }
     int index = r.nextInt(tablets.size());
-    TabletId tabletId = tablets.get(index);
-    return tabletId;
+    return tablets.get(index);
   }
 
   /*
    * These interfaces + implementations are used to determine how many times the scanner should look
    * up a random tablet and scan it.
    */
-  static interface LoopControl {
-    public boolean keepScanning();
+  interface LoopControl {
+    boolean keepScanning();
   }
 
   // Does a finite number of iterations

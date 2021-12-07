@@ -43,7 +43,7 @@ public class MapRedVerifyTool extends Configured implements Tool {
   public static class SeqMapClass extends Mapper<Key,Value,NullWritable,IntWritable> {
     @Override
     public void map(Key row, Value data, Context output) throws IOException, InterruptedException {
-      Integer num = Integer.valueOf(row.getRow().toString());
+      int num = Integer.parseInt(row.getRow().toString());
       output.write(NullWritable.get(), new IntWritable(num));
     }
   }

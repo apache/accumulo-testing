@@ -153,8 +153,8 @@ public class TestIngest {
     return bytevals;
   }
 
-  private static byte[] ROW_PREFIX = "row_".getBytes(UTF_8);
-  private static byte[] COL_PREFIX = "col_".getBytes(UTF_8);
+  private static final byte[] ROW_PREFIX = "row_".getBytes(UTF_8);
+  private static final byte[] COL_PREFIX = "col_".getBytes(UTF_8);
 
   public static Text generateRow(int rowid, int startRow) {
     return new Text(FastFormat.toZeroPaddedString(rowid + startRow, 10, 10, ROW_PREFIX));
@@ -196,7 +196,7 @@ public class TestIngest {
 
   public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, Configuration conf)
       throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException,
-      MutationsRejectedException, TableExistsException {
+      TableExistsException {
     long stopTime;
 
     byte[][] bytevals = generateValues(opts.dataSize);
@@ -245,11 +245,7 @@ public class TestIngest {
             key.setTimestamp(startTime);
           }
 
-          if (opts.delete) {
-            key.setDeleted(true);
-          } else {
-            key.setDeleted(false);
-          }
+          key.setDeleted(opts.delete);
 
           bytesWritten += key.getSize();
 
@@ -334,9 +330,8 @@ public class TestIngest {
         elapsed);
   }
 
-  public static void ingest(AccumuloClient c, Opts opts, Configuration conf)
-      throws MutationsRejectedException, IOException, AccumuloException, AccumuloSecurityException,
-      TableNotFoundException, TableExistsException {
+  public static void ingest(AccumuloClient c, Opts opts, Configuration conf) throws IOException,
+      AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
     ingest(c, FileSystem.get(conf), opts, conf);
   }
 }

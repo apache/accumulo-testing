@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public class Framework {
 
   private static final Logger log = LoggerFactory.getLogger(Framework.class);
-  private HashMap<String,Node> nodes = new HashMap<>();
+  private final HashMap<String,Node> nodes = new HashMap<>();
   private static final Framework INSTANCE = new Framework();
 
   /**

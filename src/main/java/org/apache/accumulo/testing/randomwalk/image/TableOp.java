@@ -46,7 +46,7 @@ public class TableOp extends Test {
     // check if chosen table exists
     AccumuloClient client = env.getAccumuloClient();
     TableOperations tableOps = client.tableOperations();
-    if (tableOps.exists(tableName) == false) {
+    if (!tableOps.exists(tableName)) {
       log.error("Table " + tableName + " does not exist!");
       return;
     }

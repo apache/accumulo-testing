@@ -28,7 +28,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.FutureTask;
@@ -57,7 +56,7 @@ public class Module extends Node {
 
   private static final Logger log = LoggerFactory.getLogger(Module.class);
 
-  private class Dummy extends Node {
+  private static class Dummy extends Node {
 
     String name;
 
@@ -133,17 +132,17 @@ public class Module extends Node {
     }
   }
 
-  private HashMap<String,Node> nodes = new HashMap<>();
-  private HashMap<String,Properties> localProps = new HashMap<>();
+  private final HashMap<String,Node> nodes = new HashMap<>();
+  private final HashMap<String,Properties> localProps = new HashMap<>();
 
-  private class Edge {
+  private static class Edge {
     String nodeId;
     int weight;
   }
 
-  private class AdjList {
+  private static class AdjList {
 
-    private List<Edge> edges = new ArrayList<>();
+    private final List<Edge> edges = new ArrayList<>();
     private int totalWeight = 0;
     private Random rand = new Random();
 
@@ -184,9 +183,9 @@ public class Module extends Node {
     }
   }
 
-  private HashMap<String,String> prefixes = new HashMap<>();
-  private HashMap<String,AdjList> adjMap = new HashMap<>();
-  private HashMap<String,Set<String>> aliasMap = new HashMap<>();
+  private final HashMap<String,String> prefixes = new HashMap<>();
+  private final HashMap<String,AdjList> adjMap = new HashMap<>();
+  private final HashMap<String,Set<String>> aliasMap = new HashMap<>();
   private final String id;
   private String initNodeId;
   private Fixture fixture = null;
@@ -295,18 +294,13 @@ public class Module extends Node {
 
           // Wrap the visit of the next node in the module in a
           // callable that returns a thrown exception
-          FutureTask<Exception> task = new FutureTask<>(new Callable<Exception>() {
-
-            @Override
-            public Exception call() throws Exception {
-              try {
-                nextNode.visit(state, env, nodeProps);
-                return null;
-              } catch (Exception e) {
-                return e;
-              }
+          FutureTask<Exception> task = new FutureTask<>(() -> {
+            try {
+              nextNode.visit(state, env, nodeProps);
+              return null;
+            } catch (Exception e) {
+              return e;
             }
-
           });
 
           // Run the task (should execute immediately)
@@ -400,21 +394,18 @@ public class Module extends Node {
    */
   private void startTimer(final Node initNode) {
     runningLong.set(false);
-    timer = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          systemTime = System.currentTimeMillis();
-          Thread.sleep(time);
-        } catch (InterruptedException ie) {
-          return;
-        }
-        long timeSinceLastProgress = System.currentTimeMillis() - initNode.lastProgress();
-        if (timeSinceLastProgress > time) {
-          log.warn("Node " + initNode + " has been running for " + timeSinceLastProgress / 1000.0
-              + " seconds. You may want to look into it.");
-          runningLong.set(true);
-        }
+    timer = new Thread(() -> {
+      try {
+        systemTime = System.currentTimeMillis();
+        Thread.sleep(time);
+      } catch (InterruptedException ie) {
+        return;
+      }
+      long timeSinceLastProgress = System.currentTimeMillis() - initNode.lastProgress();
+      if (timeSinceLastProgress > time) {
+        log.warn("Node " + initNode + " has been running for " + timeSinceLastProgress / 1000.0
+            + " seconds. You may want to look into it.");
+        runningLong.set(true);
       }
     });
     initNode.makingProgress();
@@ -464,14 +455,14 @@ public class Module extends Node {
 
     // check if id indicates dummy node
     if (id.equalsIgnoreCase("END") || id.startsWith("dummy")) {
-      if (nodes.containsKey(id) == false) {
+      if (!nodes.containsKey(id)) {
         nodes.put(id, new Dummy(id));
       }
       return nodes.get(id);
     }
 
     if (id.startsWith("alias")) {
-      if (nodes.containsKey(id) == false) {
+      if (!nodes.containsKey(id)) {
         nodes.put(id, new Alias(id));
       }
       return nodes.get(id);
@@ -515,7 +506,7 @@ public class Module extends Node {
   private void loadFromXml() throws Exception {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     DocumentBuilder docbuilder;
-    Document d = null;
+    Document d;
 
     // set the schema
     SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
