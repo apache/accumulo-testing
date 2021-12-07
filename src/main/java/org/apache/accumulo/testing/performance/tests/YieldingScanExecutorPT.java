@@ -23,7 +23,6 @@ import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -187,7 +186,6 @@ public class YieldingScanExecutorPT implements PerformanceTest {
 
         scanner.addScanIterator(is);
 
-        // scanner.setExecutionHints(hints);
         for (Iterator<Entry<Key,Value>> iter = scanner.iterator(); iter.hasNext(); iter.next()) {
           count++;
           if (stop.get()) {
@@ -200,8 +198,7 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     return count;
   }
 
-  private LongSummaryStatistics runShortScans(Environment env, String tableName, int numScans)
-      throws InterruptedException, ExecutionException {
+  private LongSummaryStatistics runShortScans(Environment env, String tableName, int numScans) {
 
     try (TestExecutor<Long> executor = new TestExecutor<>(NUM_SHORT_SCANS_THREADS)) {
       Random rand = new Random();

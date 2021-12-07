@@ -101,7 +101,7 @@ public class VerifyIngest {
         Range range = new Range(startKey, startKey.followingKey(PartialKey.ROW_COLFAM_COLQUAL));
         scanner.setRange(range);
 
-        byte[] val = null; // t.get(rowKey, column);
+        byte[] val = null;
 
         Iterator<Entry<Key,Value>> iter = scanner.iterator();
 

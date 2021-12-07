@@ -88,13 +88,11 @@ public class Grep extends Test {
     bs.close();
 
     if (!documentsFoundInIndex.equals(documentsFoundByGrep)) {
-      throw new Exception(
-          "Set of documents found not equal for words " + Arrays.asList(words).toString() + " "
-              + documentsFoundInIndex + " " + documentsFoundByGrep);
+      throw new Exception("Set of documents found not equal for words " + Arrays.asList(words) + " "
+          + documentsFoundInIndex + " " + documentsFoundByGrep);
     }
 
-    log.debug("Grep and index agree " + Arrays.asList(words).toString() + " "
-        + documentsFoundInIndex.size());
+    log.debug("Grep and index agree " + Arrays.asList(words) + " " + documentsFoundInIndex.size());
 
   }
 

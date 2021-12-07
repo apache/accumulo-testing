@@ -23,7 +23,6 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -51,7 +50,7 @@ public class Verify extends Test {
   }
 
   private void verifyBank(String table, AccumuloClient client, String row, int numAccts)
-      throws TableNotFoundException, Exception {
+      throws Exception {
     log.debug("Verifying bank " + row);
 
     int count = 0;

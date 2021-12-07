@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class WalkingSecurity {
-  State state = null;
-  RandWalkEnv env = null;
+  State state;
+  RandWalkEnv env;
   private static final Logger log = LoggerFactory.getLogger(WalkingSecurity.class);
 
   private static final String tableName = "SecurityTableName";
@@ -85,9 +85,7 @@ public class WalkingSecurity {
     Long setTime = state.getLong("Auths-" + userName + '-' + "time");
     if (setTime == null)
       throw new RuntimeException("Auths-" + userName + '-' + "time is null");
-    if (System.currentTimeMillis() < (setTime + 1000))
-      return true;
-    return false;
+    return System.currentTimeMillis() < (setTime + 1000);
   }
 
   public void createUser(String principal, AuthenticationToken token)
@@ -116,8 +114,7 @@ public class WalkingSecurity {
 
   public boolean hasSystemPermission(String user, SystemPermission permission)
       throws AccumuloSecurityException {
-    boolean res = Boolean.parseBoolean(state.getString("Sys-" + user + '-' + permission.name()));
-    return res;
+    return Boolean.parseBoolean(state.getString("Sys-" + user + '-' + permission.name()));
   }
 
   public boolean hasTablePermission(String user, String table, TablePermission permission)

@@ -28,8 +28,8 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 public class TestExecutor<T> implements Iterable<T>, AutoCloseable {
-  private ExecutorService es;
-  private List<Future<T>> futures = new ArrayList<>();
+  private final ExecutorService es;
+  private final List<Future<T>> futures = new ArrayList<>();
 
   public TestExecutor(int numThreads) {
     es = Executors.newFixedThreadPool(numThreads);

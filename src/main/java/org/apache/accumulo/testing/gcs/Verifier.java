@@ -28,7 +28,7 @@ import java.util.TreeSet;
 public class Verifier {
 
   Persistence persistence;
-  private int batchSize;
+  private final int batchSize;
 
   public Verifier(GcsEnv gcsEnv) {
     this.persistence = new Persistence(gcsEnv);

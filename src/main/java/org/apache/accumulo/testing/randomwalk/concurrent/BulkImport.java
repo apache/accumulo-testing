@@ -104,9 +104,8 @@ public class BulkImport extends Test {
     fs.mkdirs(new Path(bulkDir + "_f"));
 
     try {
-      BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs,
-          bulkDir + "/file01.rf");
-      try {
+      try (BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs,
+          bulkDir + "/file01.rf")) {
         TreeSet<Long> rows = new TreeSet<>();
         int numRows = rand.nextInt(100000);
         for (int i = 0; i < numRows; i++) {
@@ -122,8 +121,6 @@ public class BulkImport extends Test {
 
           bw.addMutation(m);
         }
-      } finally {
-        bw.close();
       }
 
       client.tableOperations().importDirectory(bulkDir).to(tableName).tableTime(rand.nextBoolean())

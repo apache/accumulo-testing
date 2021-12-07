@@ -51,8 +51,8 @@ public class SequentialFixture extends Fixture {
     }
     client.tableOperations().setProperty(seqTableName, "table.scan.max.memory", "1K");
 
-    state.set("numWrites", Long.valueOf(0));
-    state.set("totalWrites", Long.valueOf(0));
+    state.set("numWrites", 0L);
+    state.set("totalWrites", 0L);
   }
 
   @Override
