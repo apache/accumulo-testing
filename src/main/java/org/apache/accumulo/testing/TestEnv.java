@@ -84,6 +84,8 @@ public class TestEnv implements AutoCloseable {
   }
 
   /**
+   * @param key
+   *          the property name
    * @return a test property value given a key
    */
   public String getTestProperty(String key) {
@@ -153,6 +155,8 @@ public class TestEnv implements AutoCloseable {
 
   /**
    * Gets an authentication token based on the configured password.
+   * 
+   * @return the AuthenticationToken
    */
   public AuthenticationToken getToken() {
     return ClientProperty.getAuthenticationToken(clientProps);
@@ -168,6 +172,8 @@ public class TestEnv implements AutoCloseable {
 
   /**
    * Gets an Accumulo client. The same client is reused after the first call.
+   * 
+   * @return the Accumulo client
    */
   public synchronized AccumuloClient getAccumuloClient() {
     if (client == null) {

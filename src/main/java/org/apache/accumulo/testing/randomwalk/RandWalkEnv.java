@@ -47,6 +47,10 @@ public class RandWalkEnv extends TestEnv {
    *           if any of the numeric batch writer configuration properties cannot be parsed
    * @throws NumberFormatException
    *           if any configuration property cannot be parsed
+   * @throws AccumuloException
+   *           if an Accumulo exception occurs
+   * @throws AccumuloSecurityException
+   *           is an Accumulo security exception occurs.
    */
   public MultiTableBatchWriter getMultiTableBatchWriter()
       throws AccumuloException, AccumuloSecurityException {

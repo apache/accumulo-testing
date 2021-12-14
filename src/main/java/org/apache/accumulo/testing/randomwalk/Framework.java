@@ -40,6 +40,12 @@ public class Framework {
    *
    * @param startName
    *          Full name of starting graph or test
+   * @param env
+   *          the test environment
+   * @param state
+   *          tRandom walk state passed between nodes
+   *
+   * @return 0 if successful, -1 if an exception is thrown during the random walk
    */
   public int run(String startName, State state, RandWalkEnv env) {
 
