@@ -251,7 +251,7 @@ public class UndefinedAnalyzer {
    * @param args
    *          the command line arguments
    * @throws Exception
-   *           is an exception occurs.
+   *           if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
