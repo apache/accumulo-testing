@@ -43,7 +43,7 @@ public class Framework {
    * @param env
    *          the test environment
    * @param state
-   *          tRandom walk state passed between nodes
+   *          Random walk state passed between nodes
    *
    * @return 0 if successful, -1 if an exception is thrown during the random walk
    */
