@@ -50,7 +50,7 @@ public class RandWalkEnv extends TestEnv {
    * @throws AccumuloException
    *           if an Accumulo exception occurs
    * @throws AccumuloSecurityException
-   *           is an Accumulo security exception occurs.
+   *           if an Accumulo security exception occurs
    */
   public MultiTableBatchWriter getMultiTableBatchWriter()
       throws AccumuloException, AccumuloSecurityException {
