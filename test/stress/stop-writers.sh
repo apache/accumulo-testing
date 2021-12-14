@@ -33,4 +33,4 @@ if [[ ! -f "${DIR}/writers" ]]; then
     echo writers file is missing
     exit 1
 fi
-pssh -h "${DIR}/writers" "pkill -f '[o]rg.apache.accumulo.test.stress.random.Write'" < /dev/null
+parallel-ssh -h "${DIR}/writers" "pkill -f '[o]rg.apache.accumulo.test.stress.random.Write'" < /dev/null

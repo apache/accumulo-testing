@@ -31,7 +31,7 @@ EOF
 }
 
 function start_agitator() {
-  hash pssh 2>/dev/null || { echo >&2 "The agitator requires pssh to be installed. Aborting."; exit 1; }
+  hash parallel-ssh 2>/dev/null || { echo >&2 "The agitator requires parallel-ssh to be installed. Aborting."; exit 1; }
 
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"

@@ -86,7 +86,7 @@ def runTest(testName, siteConfig, testDir, numNodes, fdata):
     numThreads = numNodes
     if int(numNodes) > 128:
         numThreads='128'
-    syscall('pssh -P -h %s -p %s "$ACCUMULO_HOME/bin/accumulo org.apache.accumulo.test.scalability.Run %s client %s >/tmp/scale.out 2>/tmp/scale.err &" < /dev/null' % (nodesPath, numThreads, testName, numNodes))
+    syscall('parallel-ssh -P -h %s -p %s "$ACCUMULO_HOME/bin/accumulo org.apache.accumulo.test.scalability.Run %s client %s >/tmp/scale.out 2>/tmp/scale.err &" < /dev/null' % (nodesPath, numThreads, testName, numNodes))
    
     log('Sleeping for 30 sec before checking how many clients started...')
     time.sleep(30)
