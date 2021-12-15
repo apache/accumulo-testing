@@ -48,8 +48,6 @@ import org.apache.accumulo.testing.util.FastFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import com.beust.jcommander.Parameter;
 
@@ -181,10 +179,6 @@ public class TestIngest {
     opts.parseArgs(TestIngest.class.getName(), args);
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
-
-      if (opts.debug)
-        Logger.getLogger("org.apache.accumulo.core.clientImpl.TabletServerBatchWriter")
-            .setLevel(Level.TRACE);
 
       // test batch update
 

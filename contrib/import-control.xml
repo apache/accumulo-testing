@@ -21,6 +21,7 @@
 <import-control pkg="org.apache.accumulo.testing" strategyOnMismatch="allowed">
     <!-- allow this package -->
     <allow pkg="org.apache.accumulo.testing"/>
+
     <!-- API packages -->
     <allow pkg="org.apache.accumulo.core.client"/>
     <allow pkg="org.apache.accumulo.core.data"/>
@@ -32,11 +33,10 @@
     <!-- SPI package -->
     <allow pkg="org.apache.accumulo.core.spi"/>
 
-
     <!-- exceptions for testing -->
     <allow pkg="org.apache.accumulo.core.conf"/>
     <allow class="org.apache.accumulo.core.util.threads.ThreadPools"/>
-
+    <allow class="org.apache.accumulo.core.util.cleaner.CleanerUtil"/>
 
     <!-- disallow everything else coming from accumulo -->
     <disallow pkg="org.apache.accumulo"/>

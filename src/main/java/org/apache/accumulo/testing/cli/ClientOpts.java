@@ -36,8 +36,6 @@ import org.apache.accumulo.core.conf.ClientProperty;
 import org.apache.accumulo.core.conf.ConfigurationTypeHelper;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -108,9 +106,6 @@ public class ClientOpts extends Help {
       description = "the authorizations to use when reading or writing")
   public Authorizations auths = Authorizations.EMPTY;
 
-  @Parameter(names = "--debug", description = "turn on TRACE-level log messages")
-  public boolean debug = false;
-
   @Parameter(names = {"-c", "--config-file"}, description = "Read the given client config file. "
       + "If omitted, the classpath will be searched for file named accumulo-client.properties")
   private String clientConfigFile = null;
@@ -118,11 +113,6 @@ public class ClientOpts extends Help {
   @Parameter(names = "-o", splitter = NullSplitter.class, description = "Overrides property in "
       + "accumulo-client.properties. Expected format: -o <key>=<value>")
   private List<String> overrides = new ArrayList<>();
-
-  public void startDebugLogging() {
-    if (debug)
-      Logger.getLogger("org.apache.accumulo.testing").setLevel(Level.TRACE);
-  }
 
   @Parameter(names = "--trace", description = "turn on distributed tracing")
   public boolean trace = false;
@@ -149,7 +139,6 @@ public class ClientOpts extends Help {
   @Override
   public void parseArgs(String programName, String[] args, Object... others) {
     super.parseArgs(programName, args, others);
-    startDebugLogging();
   }
 
   private Properties cachedProps = null;
