@@ -51,9 +51,6 @@ public class State {
 
   /**
    * Resets the Random object.
-   * 
-   * @param rand
-   *          a random number generator.
    */
   public void setRandom(Random rand) {
     this.random = rand;
@@ -61,8 +58,6 @@ public class State {
 
   /**
    * Gets the random object.
-   * 
-   * @return the random generator
    */
   public Random getRandom() {
     return random;
@@ -112,7 +107,7 @@ public class State {
 
   /**
    * Gets a random table name
-   * 
+   *
    * @return a random table name from the list of current table names.
    */
   public String getRandomTableName() {

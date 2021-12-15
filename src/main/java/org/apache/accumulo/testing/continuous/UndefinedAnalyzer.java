@@ -247,11 +247,6 @@ public class UndefinedAnalyzer {
   /**
    * Class to analyze undefined references and accumulo logs to isolate the time/tablet where data
    * was lost.
-   * 
-   * @param args
-   *          the command line arguments
-   * @throws Exception
-   *           if an exception occurs
    */
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
