@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -41,7 +40,7 @@ public class FrameworkTest {
   @org.junit.Test
   public void testXML()
       throws SAXException, URISyntaxException, ParserConfigurationException, IOException {
-    SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
     Schema moduleSchema = sf.newSchema(getFile("/randomwalk/module.xsd"));
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
