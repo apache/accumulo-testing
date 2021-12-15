@@ -107,6 +107,8 @@ public class State {
 
   /**
    * Gets a random table name
+   *
+   * @return a random table name from the list of current table names.
    */
   public String getRandomTableName() {
     return tables.get(random.nextInt(tables.size()));
