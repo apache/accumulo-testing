@@ -50,8 +50,9 @@ across hosts.
 The utilities are run on a normal, initialized Accumulo cluster. By default,
 they only work with a table named "stress_test".
 
-The start and stop scripts rely on parallel-ssh. Before running them, you will need
-to install parallel-ssh on the machines that will be controlled by them.
+The start and stop scripts rely on pssh/parallel-ssh. Before running them, 
+you will need to install pssh/parallel-ssh on the machines that will be 
+controlled by them. You may need to create an alias 
 
 ## Running
 

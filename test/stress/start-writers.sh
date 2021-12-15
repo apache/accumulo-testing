@@ -35,6 +35,6 @@ if [[ ! -f ${DIR}/writers ]]; then
 fi
 
 # Copy environment out
-parallel-scp -h "${DIR}/writers" "${DIR}/stress-env.sh" "${DIR}"
+$PSCP -h "${DIR}/writers" "${DIR}/stress-env.sh" "${DIR}"
 
-parallel-ssh -h "${DIR}/writers" "nohup ${DIR}/writer.sh >${DIR}/writer.out 2>${DIR}/writer.err < /dev/null &"
+$PSSH -h "${DIR}/writers" "nohup ${DIR}/writer.sh >${DIR}/writer.out 2>${DIR}/writer.err < /dev/null &"

@@ -31,7 +31,15 @@ EOF
 }
 
 function start_agitator() {
-  hash parallel-ssh 2>/dev/null || { echo >&2 "The agitator requires parallel-ssh to be installed. Aborting."; exit 1; }
+
+  ## check that pssh is installed, falling back to parallel-ssh if needed
+  if hash pssh 2>/dev/null; then
+    PSSH=pssh
+  elif hash parallel-ssh 2>/dev/null; then
+    PSSH=parallel-ssh
+  else
+    echo >&2 "The agitator requires pssh/parallel-ssh to be installed. Aborting."; exit 1;
+  fi
 
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"

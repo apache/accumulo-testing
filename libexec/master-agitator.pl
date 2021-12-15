@@ -67,11 +67,11 @@ while(1){
 		system($cmd);
 	}else{
 		print STDERR "$t Killing all masters\n";
-		$cmd = "parallel-ssh -h $accumuloConfDir/masters \"pkill -f '[ ]org.apache.accumulo.start.*master'\" < /dev/null";
+		$cmd = "$PSSH -h $accumuloConfDir/masters \"pkill -f '[ ]org.apache.accumulo.start.*master'\" < /dev/null";
 		print "$t $cmd\n";
 		system($cmd);
 
-		$cmd = "parallel-ssh -h $accumuloConfDir/$gcfile \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
+		$cmd = "$PSSH -h $accumuloConfDir/$gcfile \"pkill -f '[ ]org.apache.accumulo.start.*gc'\" < /dev/null";
 		print "$t $cmd\n";
 		system($cmd);
 	}
@@ -80,11 +80,11 @@ while(1){
 	$t = strftime "%Y%m%d %H:%M:%S", localtime;
 	print STDERR "$t Running start-all\n";
 
-	$cmd = "parallel-ssh -h $accumuloConfDir/masters \"$accumuloHome/bin/accumulo-service master start\" < /dev/null";
+	$cmd = "$PSSH -h $accumuloConfDir/masters \"$accumuloHome/bin/accumulo-service master start\" < /dev/null";
 	print "$t $cmd\n";
 	system($cmd);
 
-	$cmd = "parallel-ssh -h $accumuloConfDir/$gcfile \"$accumuloHome/bin/accumulo-service gc start\" < /dev/null";
+	$cmd = "$PSSH -h $accumuloConfDir/$gcfile \"$accumuloHome/bin/accumulo-service gc start\" < /dev/null";
 	print "$t $cmd\n";
 	system($cmd);
 }

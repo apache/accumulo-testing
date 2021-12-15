@@ -33,4 +33,4 @@ if [[ ! -f "${DIR}/readers" ]]; then
     echo readers file is missing
     exit 1
 fi
-parallel-ssh -h "${DIR}/readers" "pkill -f '[o]rg.apache.accumulo.test.stress.random.Scan'" < /dev/null
+$PSSH -h "${DIR}/readers" "pkill -f '[o]rg.apache.accumulo.test.stress.random.Scan'" < /dev/null
