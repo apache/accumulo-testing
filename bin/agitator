@@ -58,15 +58,15 @@ function start_agitator() {
     $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
   else
     echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
-    sudo -u "$AGTR_ACCUMULO_USER" "$master_cmd" > "${master_log}.out" 2> "${master_log}.err" &
-    sudo -u "$AGTR_ACCUMULO_USER" "$tserver_cmd" > "${tserver_log}.out" 2> "${tserver_log}.err" &
+    sudo --preserve-env=PSSH -u "$AGTR_ACCUMULO_USER" $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
+    sudo -u "$AGTR_ACCUMULO_USER" $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
   fi
   if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
     echo "Running datanode-agitator as $AGITATOR_USER"
     $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
   else
     echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-    sudo -u "$AGTR_HDFS_USER" "$datanode_cmd" > "${datanode_log}.out" 2> "${datanode_log}.err" &
+    sudo -u "$AGTR_HDFS_USER" $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
   fi
 
   if ${AGTR_HDFS:-false} ; then

@@ -30,6 +30,12 @@ if( defined $ENV{'ACCUMULO_HOME'} ){
   print "ERROR: ACCUMULO_HOME needs to be set!";
   exit(1);
 }
+if( defined $ENV{'PSSH'} ){
+  $PSSH = $ENV{'PSSH'};
+} else {
+  print "ERROR: PSSH needs to be set!";
+  exit(1);
+}
 
 $accumuloConfDir = $accumuloHome . '/conf';
 
