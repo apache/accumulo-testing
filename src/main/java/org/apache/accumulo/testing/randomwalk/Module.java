@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
@@ -509,7 +508,7 @@ public class Module extends Node {
     Document d;
 
     // set the schema
-    SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
     Schema moduleSchema = sf
         .newSchema(this.getClass().getClassLoader().getResource("randomwalk/module.xsd"));
     dbf.setSchema(moduleSchema);

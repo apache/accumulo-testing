@@ -52,7 +52,7 @@ public class Write {
         writeDelay = 0;
       }
 
-      DataWriter dw = new DataWriter(c.createBatchWriter(opts.tableName), new RandomMutations(
+      try (DataWriter dw = new DataWriter(c.createBatchWriter(opts.tableName), new RandomMutations(
           // rows
           new RandomByteArrays(new RandomWithinRange(opts.row_seed, opts.rowMin(), opts.rowMax())),
           // cfs
@@ -65,12 +65,12 @@ public class Write {
           // number of cells per row
           new RandomWithinRange(opts.row_width_seed, opts.rowWidthMin(), opts.rowWidthMax()),
           // max cells per mutation
-          opts.max_cells_per_mutation));
-
-      while (true) {
-        dw.next();
-        if (writeDelay > 0) {
-          Thread.sleep(writeDelay);
+          opts.max_cells_per_mutation))) {
+        while (true) {
+          dw.next();
+          if (writeDelay > 0) {
+            Thread.sleep(writeDelay);
+          }
         }
       }
     }

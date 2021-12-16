@@ -59,7 +59,7 @@ public class RollWALPT implements PerformanceTest {
     Map<String,String> config = new HashMap<>();
 
     config.put(Property.TSERV_WAL_REPLICATION.getKey(), "1");
-    config.put(Property.TSERV_WALOG_MAX_REFERENCED.getKey(), "100");
+    config.put(Property.TSERV_WAL_MAX_REFERENCED.getKey(), "100");
     config.put(Property.GC_CYCLE_START.getKey(), "1s");
     config.put(Property.GC_CYCLE_DELAY.getKey(), "1s");
 
@@ -111,7 +111,7 @@ public class RollWALPT implements PerformanceTest {
 
   private void setMaxWALSize(final String size, final AccumuloClient client)
       throws AccumuloSecurityException, AccumuloException {
-    client.instanceOperations().setProperty(Property.TSERV_WALOG_MAX_SIZE.getKey(), size);
+    client.instanceOperations().setProperty(Property.TSERV_WAL_MAX_SIZE.getKey(), size);
   }
 
   private void initTable(final String tableName, final AccumuloClient client)
