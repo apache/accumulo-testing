@@ -19,6 +19,7 @@ ACCUMULO_HOME=${ACCUMULO_HOME:-/opt/accumulo}
 if hash pssh 2>/dev/null; then
   PSSH=pssh
   PSCP=pscp
+  hash pscp.pssh 2>/dev/null && PSCP=pscp.pssh
 elif hash parallel-ssh 2>/dev/null; then
   PSSH=parallel-ssh
   PSCP=parallel-scp
