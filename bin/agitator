@@ -31,7 +31,6 @@ EOF
 }
 
 function start_agitator() {
-
   ## check that pssh is installed, falling back to parallel-ssh if needed
   if hash pssh 2>/dev/null; then
     PSSH=pssh
