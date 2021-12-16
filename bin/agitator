@@ -31,7 +31,14 @@ EOF
 }
 
 function start_agitator() {
-  hash pssh 2>/dev/null || { echo >&2 "The agitator requires pssh to be installed. Aborting."; exit 1; }
+  ## check that pssh is installed, falling back to parallel-ssh if needed
+  if hash pssh 2>/dev/null; then
+    PSSH=pssh
+  elif hash parallel-ssh 2>/dev/null; then
+    PSSH=parallel-ssh
+  else
+    echo >&2 "The agitator requires pssh/parallel-ssh to be installed. Aborting."; exit 1;
+  fi
 
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"
@@ -50,15 +57,15 @@ function start_agitator() {
     $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
   else
     echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
-    sudo -u "$AGTR_ACCUMULO_USER" "$master_cmd" > "${master_log}.out" 2> "${master_log}.err" &
-    sudo -u "$AGTR_ACCUMULO_USER" "$tserver_cmd" > "${tserver_log}.out" 2> "${tserver_log}.err" &
+    sudo --preserve-env=PSSH -u "$AGTR_ACCUMULO_USER" $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
+    sudo -u "$AGTR_ACCUMULO_USER" $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
   fi
   if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
     echo "Running datanode-agitator as $AGITATOR_USER"
     $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
   else
     echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-    sudo -u "$AGTR_HDFS_USER" "$datanode_cmd" > "${datanode_log}.out" 2> "${datanode_log}.err" &
+    sudo -u "$AGTR_HDFS_USER" $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
   fi
 
   if ${AGTR_HDFS:-false} ; then
