@@ -32,10 +32,11 @@ EOF
 
 function start_agitator() {
   ## check that pssh is installed, falling back to parallel-ssh if needed
+  ## make sure to export it, so it can be seen inside the agitator perl script
   if hash pssh 2>/dev/null; then
-    PSSH=pssh
+    export PSSH=pssh
   elif hash parallel-ssh 2>/dev/null; then
-    PSSH=parallel-ssh
+    export PSSH=parallel-ssh
   else
     echo >&2 "The agitator requires pssh/parallel-ssh to be installed. Aborting."; exit 1;
   fi
