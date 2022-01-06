@@ -34,11 +34,11 @@ function run_agitators() {
   unset APP_HOSTS
   export APP_HOSTS=$MANAGER_HOSTS
   echo "Starting manager agitation as ${1} for ${APP_HOSTS}"
-  start_app_agitator "manager" $AGTR_MASTER_KILL_SLEEP_TIME $AGTR_MASTER_RESTART_SLEEP_TIME 1 1 > "${manager_log}" 2>&1 &
+  start_app_agitator "manager" "${AGTR_MASTER_KILL_SLEEP_TIME}" "${AGTR_MASTER_RESTART_SLEEP_TIME}" 1 1 > "${manager_log}" 2>&1 &
   unset APP_HOSTS
   export APP_HOSTS=$TSERVER_HOSTS
   echo "Starting tserver agitation as ${1} for ${APP_HOSTS}"
-  start_app_agitator "tserver" $AGTR_TSERVER_KILL_SLEEP_TIME $AGTR_TSERVER_RESTART_SLEEP_TIME $AGTR_TSERVER_MIN_KILL $AGTR_TSERVER_MAX_KILL > "${tserver_log}" 2>&1 &
+  start_app_agitator "tserver" "${AGTR_TSERVER_KILL_SLEEP_TIME}" "${AGTR_TSERVER_RESTART_SLEEP_TIME}" "${AGTR_TSERVER_MIN_KILL}" "${AGTR_TSERVER_MAX_KILL}" > "${tserver_log}" 2>&1 &
 }
 
 # Starts a app specific agitator
@@ -64,7 +64,7 @@ function start_app_agitator() {
     T="$(date +'%Y%m%d %H:%M:%S')"
     numToWack=$((min_kill + RANDOM % max_kill))
     nodeToWack=$(echo "${APP_HOSTS}" | cut -d" " -f1)
-    hostsArray=($APP_HOSTS)
+    hostsArray=("${APP_HOSTS}")
     numOfHosts=${#hostsArray[@]}
     declare -a nodesToWack
 
@@ -78,13 +78,13 @@ function start_app_agitator() {
         randomHostIndex=$((1 + RANDOM % numOfHosts))
         nodeToWack=${hostsArray[randomHostIndex]}
         # only add host to the array if its not already there
-        if [[ ! " ${nodesToWack[*]} " =~ " ${nodeToWack} " ]]; then
+        if [[ ! " ${nodesToWack[*]} " =~ ${nodeToWack} ]]; then
           nodesToWack[count]=${nodeToWack}
         fi
         count=${#nodesToWack[@]}
       done
       echo "${T} Killing ${count} ${app_name} nodes"
-      for i in ${nodesToWack[@]}; do
+      for i in "${nodesToWack[@]}"; do
         ssh "${i}" "pkill -f '[ ]org.apache.accumulo.start.*${app_name}'"
       done
     fi
@@ -98,7 +98,7 @@ function start_app_agitator() {
       echo "${T} Restarting ${app_name} at ${nodeToWack}"
       ssh "${nodeToWack}" "bash -c '${ENV_VARS} ${ACCUMULO_HOME}/bin/accumulo-service ${app_name} start'"
     else
-      for i in ${nodesToWack[@]}; do
+      for i in "${nodesToWack[@]}"; do
         echo "${T} Restarting ${app_name} node at ${i}"
         ssh "${i}" "bash -c '${ENV_VARS} ${ACCUMULO_HOME}/bin/accumulo-service ${app_name} start'"
       done
@@ -126,7 +126,7 @@ function start_datanode_agitator() {
       T="$(date +'%Y%m%d %H:%M:%S')"
       numToWack=$((min_kill + RANDOM % max_kill))
       nodeToWack=$(echo "${APP_HOSTS}" | cut -d" " -f1)
-      hostsArray=($APP_HOSTS)
+      hostsArray=("${APP_HOSTS}")
       numOfHosts=${#hostsArray[@]}
       declare -a nodesToWack
 
@@ -140,13 +140,13 @@ function start_datanode_agitator() {
           randomHostIndex=$((1 + RANDOM % numOfHosts))
           nodeToWack=${hostsArray[randomHostIndex]}
           # only add host to the array if its not already there
-          if [[ ! " ${nodesToWack[*]} " =~ " ${nodeToWack} " ]]; then
+          if [[ ! " ${nodesToWack[*]} " =~ ${nodeToWack} ]]; then
             nodesToWack[count]=${nodeToWack}
           fi
           count=${#nodesToWack[@]}
         done
         echo "${T} Killing ${count} datanodes"
-        for i in ${nodesToWack[@]}; do
+        for i in "${nodesToWack[@]}"; do
           ssh "${i}" "pkill -9 -f '[p]roc_datanode'"
         done
       fi
@@ -158,11 +158,11 @@ function start_datanode_agitator() {
       T="$(date +'%Y%m%d %H:%M:%S')"
       if ((max_kill == 1)) ; then
         echo "${T} Restarting datanode at ${nodeToWack}"
-        ssh ${nodeToWack} "bash -c '${ENV_VARS} ${HADOOP_HOME}/bin/hdfs --daemon start datanode'"
+        ssh "${nodeToWack}" "bash -c '${ENV_VARS} ${HADOOP_HOME}/bin/hdfs --daemon start datanode'"
       else
-        for i in ${nodesToWack[@]}; do
+        for i in "${nodesToWack[@]}"; do
           echo "${T} Restarting datanode at ${i}"
-          ssh ${i} "bash -c '${ENV_VARS} ${HADOOP_HOME}/bin/hdfs --daemon start datanode'"
+          ssh "${i}" "bash -c '${ENV_VARS} ${HADOOP_HOME}/bin/hdfs --daemon start datanode'"
         done
       fi
     done
@@ -183,7 +183,6 @@ function start_agitator() {
 
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"
-  conf_dir="${at_home}/conf"
   manager_log="${log_base}_manager-agitator.log"
   tserver_log="${log_base}_tserver-agitator.log"
   datanode_log="${log_base}_datanode-agitator.log"
@@ -191,20 +190,17 @@ function start_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
 
   if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
-    run_agitators ${AGITATOR_USER}
+    run_agitators "${AGITATOR_USER}"
   else
     sudo -i -u "${AGTR_ACCUMULO_USER}"
-    run_agitators ${AGTR_ACCUMULO_USER}
+    run_agitators "${AGTR_ACCUMULO_USER}"
   fi
 
-  if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
-    echo "Running datanode-agitator as $AGITATOR_USER"
-    start_datanode_agitator $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL > "${datanode_log}" 2>&1 &
-  else
-    echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
+  if [[ $AGITATOR_USER != "$AGTR_HDFS_USER" ]]; then
     sudo -i -u "$AGTR_HDFS_USER"
-    start_datanode_agitator $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL > "${datanode_log}" 2>&1 &
   fi
+  echo "Running datanode-agitator as $(whoami)"
+  start_datanode_agitator "$AGTR_DATANODE_KILL_SLEEP_TIME" "$AGTR_DATANODE_RESTART_SLEEP_TIME" "$AGTR_DATANODE_MIN_KILL" "$AGTR_DATANODE_MAX_KILL" > "${datanode_log}" 2>&1 &
 
   if ${AGTR_HDFS:-false} ; then
     agitator_log=${log_base}_hdfs-agitator
