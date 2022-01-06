@@ -1,0 +1,6 @@
+**/.terraform.lock.hcl
+**/.terraform/
+aws/conf/
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.auto.tfvars.json
