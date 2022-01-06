@@ -104,5 +104,5 @@ AGTR_HDFS_USER=$(whoami); export AGTR_HDFS_USER
 export AGTR_HDFS=false
 export AGTR_HDFS_SLEEP_TIME=10
 export AGTR_HDFS_SUPERUSER=hdfs
-export AGTR_HDFS_COMMAND="${HADOOP_PREFIX:-/usr/lib/hadoop}/share/hadoop/hdfs/bin/hdfs"
+export AGTR_HDFS_COMMAND="${HADOOP_HOME}/bin/hdfs"
 AGTR_HDFS_SUDO=$(command -v sudo); export AGTR_HDFS_SUDO
