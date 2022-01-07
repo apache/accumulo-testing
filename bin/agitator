@@ -77,7 +77,7 @@ function start_app_agitator() {
     else
       # get the random nodes to kill
       count=0
-      while [ $count -lt $numToWack ]; do
+      while [[ $count -lt $numToWack ]]; do
         randomHostIndex=$((1 + RANDOM % numOfHosts))
         nodeToWack=${hostsArray[randomHostIndex]}
         # only add host to the array if its not already there
