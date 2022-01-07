@@ -94,11 +94,11 @@ This Terraform configuration:
   1. Downloads, if necessary, the Apache Maven `${maven_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/apache-maven/apache-maven-${maven_version}`
   2. Downloads, if necessary, the Apache Zookeeper `${zookeer_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/zookeeper/apache-zookeeper-${zookeeper_version}-bin`
   3. Downloads, if necessary, the Apache Hadoop `${hadoop_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/hadoop/hadoop-${hadoop_version}`
-  4. Downloads, if necessary, clones the Apache Accumulo Git repo from `${accumulo_repo}` into `${efs_mount}/sources/accumulo-repo`. It switches to the `${accumulo_branch_name}` branch and builds the software using Maven, then untars the binary tarball to `${efs_mount}/accumulo/accumulo-${accumulo_version}`
+  4. Clones, if necessary, the Apache Accumulo Git repo from `${accumulo_repo}` into `${efs_mount}/sources/accumulo-repo`. It switches to the `${accumulo_branch_name}` branch and builds the software using Maven, then untars the binary tarball to `${efs_mount}/accumulo/accumulo-${accumulo_version}`
   5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.7.1.jar`
   6. Copies the Accumulo `test` jar to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib` so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
   7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.7.4.jar`
-  8. Downloads the Accumulo Testing `main` branch source from `https://github.com/apache/accumulo-testing/archive/refs/heads/main.zip`, unzips it to `${efs_mount}/accumulo-testing/accumulo-testing-main` and builds it.
+  8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}` into `${efs_mount}/sources/accumulo-testing-repo`. It switches to the `${accumulo_testing_branch_name}` branch and builds the software using Maven.
 
 ### Supplying your own software
 
