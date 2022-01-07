@@ -45,11 +45,14 @@ function run_agitators() {
 # usage: start_app_agitator app_name kill_sleep_time restart_sleep_time min_kill max_kill
 # Requires that a list of hosts to be set in $APP_HOSTS
 function start_app_agitator() {
-  app_name=$1
-  kill_sleep_time=$2
-  restart_sleep_time=$3
-  min_kill=$4
-  max_kill=$5
+  local app_name=$1; shift
+  local agtr_user=$1; shift
+  local kill_sleep_time=$1; shift
+  local restart_sleep_time=$1; shift
+  local min_kill=$1; shift
+  local max_kill=$1; shift
+  local APP_HOSTS=("$@") # can keep this as an array
+  echo "Starting $app_name agitation as $agtr_user for ${APP_HOSTS[*]}"
   ENV_VARS="ACCUMULO_HOME=${ACCUMULO_HOME} ZOOKEEPER_HOME=${ZOOKEEPER_HOME} HADOOP_HOME=${HADOOP_HOME} JAVA_HOME=${JAVA_HOME}"
   if [[ -z $APP_HOSTS ]]; then
     echo "ERROR: No hosts were found in env for ${app_name}"
