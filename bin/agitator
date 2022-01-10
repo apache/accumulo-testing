@@ -41,8 +41,7 @@ function start_app_agitator() {
   local max_kill=$5
   local start_cmd=$6
   local kill_cmd=$7
-  local hosts_array
-  get_app_hosts "$app_name" hosts_array
+  local hosts_array; readarray -td' ' hosts_array < <(get_app_hosts "$app_name")
   local num_hosts=${#hosts_array[@]}
   local node_to_wack
   declare -a nodes_to_wack_array
