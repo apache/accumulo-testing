@@ -43,8 +43,8 @@ function start_app_agitator() {
   local kill_cmd=$7
   local hosts_array; readarray -td' ' hosts_array < <(get_app_hosts "$app_name")
   local num_hosts=${#hosts_array[@]}
-  local node_to_wack
-  declare -a nodes_to_wack_array
+  local node_to_kill
+  nodes_to_kill_array=()
   local T
   local ENV_VARS="ACCUMULO_HOME=$ACCUMULO_HOME ZOOKEEPER_HOME=$ZOOKEEPER_HOME HADOOP_HOME=$HADOOP_HOME JAVA_HOME=$JAVA_HOME"
 
@@ -65,24 +65,24 @@ function start_app_agitator() {
 
     T="$(date +'%Y%m%d %H:%M:%S')"
     if ((max_kill == 1)) ; then
-      node_to_wack=${hosts_array[0]}
-      echo "$T Killing $app_name at $node_to_wack"
-      ssh "$node_to_wack" "$kill_cmd"
+      node_to_kill=${hosts_array[0]}
+      echo "$T Killing $app_name at $node_to_kill"
+      ssh "$node_to_kill" "$kill_cmd"
     else
-      local num_to_wack=$((min_kill + RANDOM % max_kill))
+      local num_to_kill=$((min_kill + RANDOM % max_kill))
       # get the random nodes to kill
       local count=0
-      while [[ $count -lt $num_to_wack ]]; do
+      while [[ $count -lt $num_to_kill ]]; do
         randomHostIndex=$((1 + RANDOM % num_hosts))
-        node_to_wack=${hosts_array[randomHostIndex]}
+        node_to_kill=${hosts_array[randomHostIndex]}
         # only add host to the array if its not already there
-        if [[ ! " ${nodes_to_wack_array[*]} " =~ $node_to_wack ]]; then
-          nodes_to_wack_array[count]=$node_to_wack
+        if [[ ! " ${nodes_to_kill_array[*]} " =~ $node_to_kill ]]; then
+          nodes_to_kill_array[count]=$node_to_kill
         fi
-        count=${#nodes_to_wack_array[@]}
+        count=${#nodes_to_kill_array[@]}
       done
       echo "$T Killing $count $app_name nodes"
-      for i in "${nodes_to_wack_array[@]}"; do
+      for i in "${nodes_to_kill_array[@]}"; do
         ssh "$i" "$kill_cmd"
       done
     fi
@@ -93,10 +93,10 @@ function start_app_agitator() {
 
     T="$(date +'%Y%m%d %H:%M:%S')"
     if ((max_kill == 1)) ; then
-      echo "$T Restarting $app_name at $node_to_wack"
-      ssh "$node_to_wack" "bash -c '${ENV_VARS} $start_cmd'"
+      echo "$T Restarting $app_name at $node_to_kill"
+      ssh "$node_to_kill" "bash -c '${ENV_VARS} $start_cmd'"
     else
-      for i in "${nodes_to_wack_array[@]}"; do
+      for i in "${nodes_to_kill_array[@]}"; do
         echo "$T Restarting $app_name node at ${i}"
         ssh "$i" "bash -c '${ENV_VARS} $start_cmd'"
       done
@@ -183,7 +183,7 @@ function read_cluster_conf() {
   fi
 }
 
-# Given an app_name $1, set the array of hosts to the named reference passed in $2
+# Given an app_name $1, return the space separated string of hosts through echo
 function get_app_hosts() {
   case "$1" in
     manager)  echo -n "$MANAGER_HOSTS" ;;
