@@ -53,9 +53,13 @@ function start_app_agitator() {
     exit 1
   fi
   if (( max_kill > num_hosts )); then
-      echo "ERROR: Max kill $max_kill greater then number of hosts $num_hosts"
-      exit 1
-    fi
+    echo "ERROR: Max kill $max_kill is greater than number of hosts $num_hosts"
+    exit 1
+  fi
+  if (( max_kill < min_kill )); then
+    echo "ERROR: Max kill $max_kill is less than min kill $min_kill"
+    exit 1
+  fi
 
   T="$(date +'%Y%m%d %H:%M:%S')"
   echo "$T Starting $app_name agitation. Kill every $kill_sleep_time minutes, restart every $restart_sleep_time minutes."
