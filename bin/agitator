@@ -136,7 +136,7 @@ function start_agitator() {
     sudo -i -u "$AGTR_ACCUMULO_USER"
   fi
   echo "Starting manager and tserver agitation as $(whoami)"
-  start_app_agitator manager "$AGTR_MASTER_KILL_SLEEP_TIME" "$AGTR_MASTER_RESTART_SLEEP_TIME" 1 1 "$manager_start_cmd" "$manager_kill_cmd" > "$manager_log" 2>&1 &
+  start_app_agitator manager "$AGTR_MANAGER_KILL_SLEEP_TIME" "$AGTR_MANAGER_RESTART_SLEEP_TIME" 1 1 "$manager_start_cmd" "$manager_kill_cmd" > "$manager_log" 2>&1 &
   start_app_agitator tserver "$AGTR_TSERVER_KILL_SLEEP_TIME" "$AGTR_TSERVER_RESTART_SLEEP_TIME" "$AGTR_TSERVER_MIN_KILL" "$AGTR_TSERVER_MAX_KILL" "$tserver_start_cmd" "$tserver_kill_cmd" > "$tserver_log" 2>&1 &
 
   if [[ $AGITATOR_USER != "$AGTR_HDFS_USER" ]]; then

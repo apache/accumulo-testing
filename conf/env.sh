@@ -83,9 +83,9 @@ fi
 # ========
 # Accumulo user
 AGTR_ACCUMULO_USER=$(whoami); export AGTR_ACCUMULO_USER
-# Time (in minutes) between killing Accumulo masters
-export AGTR_MASTER_KILL_SLEEP_TIME=60
-export AGTR_MASTER_RESTART_SLEEP_TIME=2
+# Time (in minutes) between killing Accumulo managers
+export AGTR_MANAGER_KILL_SLEEP_TIME=60
+export AGTR_MANAGER_RESTART_SLEEP_TIME=2
 # Time (in minutes) between killing Accumulo tservers
 export AGTR_TSERVER_KILL_SLEEP_TIME=20
 export AGTR_TSERVER_RESTART_SLEEP_TIME=10
