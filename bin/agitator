@@ -59,7 +59,7 @@ function start_app_agitator() {
 
   T="$(date +'%Y%m%d %H:%M:%S')"
   echo "$T Starting $app_name agitation. Kill every $kill_sleep_time minutes, restart every $restart_sleep_time minutes."
-  echo "$T Will randomly kill $min_kill to $max_kill from the following: ${hosts_array[*]}"
+  echo "$T Will randomly kill between $min_kill and $max_kill of the following: ${hosts_array[*]}"
   while true; do
     echo "$T Sleeping for $kill_sleep_time minutes"
     sleep $((kill_sleep_time * 60))
