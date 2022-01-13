@@ -165,13 +165,13 @@ See [gcs.md](docs/gcs.md).
 
 ## Agitator
 
-The agitator will periodically kill the Accumulo master, tablet server, and Hadoop data node
+The agitator will periodically kill the Accumulo manager, tablet server, and Hadoop data node
 processes on random nodes. Before running the agitator you should create `accumulo-testing-env.sh`
-in `conf/` and review all of the agitator settings. The command below will start the agitator:
+in `conf/` and review all the agitator settings. The command below will start the agitator:
 
             ./bin/agitator start
 
-You can run this script as root and it will properly start processes as the user you configured in
+Running this script as root will properly start processes as the user you configured in
 `env.sh` (`AGTR_HDFS_USER` for the data node and `AGTR_ACCUMULO_USER` for Accumulo
 processes). If you run it as yourself and the `AGTR_HDFS_USER` and `AGTR_ACCUMULO_USER` values are
 the same as your user, the agitator will not change users. In the case where you run the agitator as
