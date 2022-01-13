@@ -157,10 +157,13 @@ function start_agitator() {
 
 function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
-  echo "Stopping all processes matching 'sleep' as $AGITATOR_USER"
-  pkill -f sleep 2>/dev/null
-  echo "Stopping all processes matching 'agitator' as $AGITATOR_USER"
-  pkill -f agitator 2>/dev/null
+  echo "Stopping all processes in the same process group as 'agitator' as $AGITATOR_USER"
+  ## get process ids of agitator processes then just keep the first
+  agitator_pid=$(pgrep -f agitator | head -1)
+  ## get the group process id of the agitator process then clear whitespace
+  group_pid=$(ps -p "${agitator_pid}" -o pgid= | xargs)
+  ## kill all processes in process group, should be all agitators and their sleep processes
+  kill -- -"${group_pid}"
 }
 
 function parse_fail() {
