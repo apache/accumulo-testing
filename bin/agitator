@@ -157,7 +157,7 @@ function start_agitator() {
 
 function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
-  echo "Stopping all processes in the same process group as 'agitator' as $AGITATOR_USER"
+  echo "Stopping all processes in the same process group as 'agitator' as user $AGITATOR_USER"
   ## get process ids of all agitator processes (return 1 if none found)
   local agitator_pids=(); agitator_pids=($(pgrep -f "agitator start")) || return 1
   ## get the group process ids of all agitator processes
