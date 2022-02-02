@@ -4,3 +4,4 @@ aws/conf/
 **/terraform.tfstate
 **/terraform.tfstate.backup
 **/*.auto.tfvars.json
+**/*.auto.tfvars
