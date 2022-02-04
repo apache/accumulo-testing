@@ -222,7 +222,7 @@ public class Module extends Node {
       fixture.setUp(state, env);
     }
 
-    ExecutorService service = ThreadPools.createFixedThreadPool(1, "RandomWalk Runner");
+    ExecutorService service = ThreadPools.createFixedThreadPool(1, "RandomWalk Runner", false);
 
     try {
       Node initNode = getNode(initNodeId);
