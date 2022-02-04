@@ -18,7 +18,8 @@ You will need to download and install the correct Terraform [CLI](https://www.te
 
 ## Shared State
 
-The `shared_state` directory contains a Terraform configuration for creating an S3 bucket and DynamoDB table. These objects only need to be created once and are used for sharing the Terraform state with a team. To read more about this see [remote state](https://www.terraform.io/docs/language/state/remote.html). I used [these](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) instructions for creating these objects. This configuration is simple, there are no variables, but you may need to change the aws region in `main.tf`. If you change the name of the S3 bucket or DynamoDB table, then you will need to update the `main.tf` file in the `aws` directory. To create the S3 bucket and DynamoDB table, run `terraform init`, followed by `terraform apply`.
+The `shared_state` directory contains Terraform configurations for creating either an AWS S3 Bucket or DynamoDB table, or an
+Azure resource group, storage account, and container. These objects only need to be created once and are used for sharing the Terraform state with a team. To read more about this see [remote state](https://www.terraform.io/docs/language/state/remote.html). I used [these](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) instructions for creating these objects. This configuration is simple, there are no variables, but you may need to change the aws region in `main.tf`. If you change the name of the S3 bucket or DynamoDB table, then you will need to update the `main.tf` file in the `aws` directory. To create the S3 bucket and DynamoDB table, run `terraform init`, followed by `terraform apply`.
 
 ## Test Cluster
 
@@ -84,25 +85,25 @@ You will need to provide values for the required variables with no default value
 This Terraform configuration creates:
 
   1. An EFS filesystem with IP addresses in the `${us_east_1b_subnet}` and `${us_east_1e_subnet}` subnets
-  2. `${instance_count}` EC2 nodes of `${instance_type}` with the latest AMI matching `${ami_name_pattern}` from the `${ami_owner}`. Each EC2 node will have a `${root_volume_gb}`GB root volume. The EFS filesystem is NFS mounted to each node at `${efs_mount}`.
+  2. `${instance_count}` EC2 nodes of `${instance_type}` with the latest AMI matching `${ami_name_pattern}` from the `${ami_owner}`. Each EC2 node will have a `${root_volume_gb}`GB root volume. The EFS filesystem is NFS mounted to each node at `${software_root}`.
   3. DNS entries in Route53 for each EC2 node.
 
 ## Software Layout
 
 This Terraform configuration:
 
-  1. Downloads, if necessary, the Apache Maven `${maven_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/apache-maven/apache-maven-${maven_version}`
-  2. Downloads, if necessary, the Apache Zookeeper `${zookeer_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/zookeeper/apache-zookeeper-${zookeeper_version}-bin`
-  3. Downloads, if necessary, the Apache Hadoop `${hadoop_version}` binary tarball to `${efs_mount}/sources`, then untars it to `${efs_mount}/hadoop/hadoop-${hadoop_version}`
-  4. Clones, if necessary, the Apache Accumulo Git repo from `${accumulo_repo}` into `${efs_mount}/sources/accumulo-repo`. It switches to the `${accumulo_branch_name}` branch and builds the software using Maven, then untars the binary tarball to `${efs_mount}/accumulo/accumulo-${accumulo_version}`
-  5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.7.1.jar`
-  6. Copies the Accumulo `test` jar to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib` so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
-  7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to `${efs_mount}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.7.4.jar`
-  8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}` into `${efs_mount}/sources/accumulo-testing-repo`. It switches to the `${accumulo_testing_branch_name}` branch and builds the software using Maven.
+  1. Downloads, if necessary, the Apache Maven `${maven_version}` binary tarball to `${software_root}/sources`, then untars it to `${software_root}/apache-maven/apache-maven-${maven_version}`
+  2. Downloads, if necessary, the Apache Zookeeper `${zookeer_version}` binary tarball to `${software_root}/sources`, then untars it to `${software_root}/zookeeper/apache-zookeeper-${zookeeper_version}-bin`
+  3. Downloads, if necessary, the Apache Hadoop `${hadoop_version}` binary tarball to `${software_root}/sources`, then untars it to `${software_root}/hadoop/hadoop-${hadoop_version}`
+  4. Clones, if necessary, the Apache Accumulo Git repo from `${accumulo_repo}` into `${software_root}/sources/accumulo-repo`. It switches to the `${accumulo_branch_name}` branch and builds the software using Maven, then untars the binary tarball to `${software_root}/accumulo/accumulo-${accumulo_version}`
+  5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.7.1.jar`
+  6. Copies the Accumulo `test` jar to `${software_root}/accumulo/accumulo-${accumulo_version}/lib` so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
+  7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.7.4.jar`
+  8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}` into `${software_root}/sources/accumulo-testing-repo`. It switches to the `${accumulo_testing_branch_name}` branch and builds the software using Maven.
 
 ### Supplying your own software
 
-If you want to supply your own Apache Maven, Apache ZooKeeper, Apache Hadoop, Apache Accumulo, or Apache Accumulo Testing binary tar files, then you can put them into a directory on your local machine and set the `${local_sources_dir}` variable to the full path to the directory. These files will be uploaded to `${efs_mount}/sources` and the installation script will use them instead of downloading them. If the version of the supplied binary tarball is different than the default version, then you will also need to override that property. Supplying your own binary tarballs does speed up the deployment. However, if you provide the Apache Accumulo binary tarball, then it will be harder to update the software on the cluster.
+If you want to supply your own Apache Maven, Apache ZooKeeper, Apache Hadoop, Apache Accumulo, or Apache Accumulo Testing binary tar files, then you can put them into a directory on your local machine and set the `${local_sources_dir}` variable to the full path to the directory. These files will be uploaded to `${software_root}/sources` and the installation script will use them instead of downloading them. If the version of the supplied binary tarball is different than the default version, then you will also need to override that property. Supplying your own binary tarballs does speed up the deployment. However, if you provide the Apache Accumulo binary tarball, then it will be harder to update the software on the cluster.
 
 **NOTE**: If you supply your own binary tarball of Accumulo, then you will need to copy the `accumulo-test-${accumulo_version}.jar` file to the `lib` directory manually as it's not part of the binary tarball.
 
@@ -111,10 +112,10 @@ If you want to supply your own Apache Maven, Apache ZooKeeper, Apache Hadoop, Ap
 If you did not provide a binary tarball, then you can update the software running on the cluster by doing the following and then restarting Accumulo:
 
 ```
-cd ${efs_mount}/sources/accumulo-repo
+cd ${software_root}/sources/accumulo-repo
 git pull
-mvn -s ${efs_mount}/apache-maven/settings.xml clean package -DskipTests -DskipITs
-tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${efs_mount}/accumulo
+mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
+tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
 ```
 
 ### Updating Apache Accumulo Testing on the cluster
@@ -122,9 +123,9 @@ tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${efs_mount}/
 If you did not provide a binary tarball, then you can update the software running on the cluster by doing the following:
 
 ```
-cd ${efs_mount}/sources/accumulo-testing-repo
+cd ${software_root}/sources/accumulo-testing-repo
 git pull
-mvn -s ${efs_mount}/apache-maven/settings.xml clean package -DskipTests -DskipITs
+mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
 ```
 
 ## Deployment Overiew

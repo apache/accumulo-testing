@@ -16,9 +16,9 @@ variable "root_volume_gb" {
   nullable = false
 }
 
-variable "efs_mount" {
-  default = "/efs"
-  description = "The full directory name of the EFS mount point"
+variable "software_root" {
+  default = "/opt/accumulo-testing"
+  description = "The full directory root where software will be installed"
   nullable = false
 }
 
