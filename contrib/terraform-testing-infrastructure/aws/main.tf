@@ -119,7 +119,10 @@ module "cloud_init_config" {
   hadoop_version       = var.hadoop_version
   accumulo_branch_name = var.accumulo_branch_name
   accumulo_version     = var.accumulo_version
-  authorized_ssh_keys  = var.authorized_ssh_keys[*]
+  authorized_ssh_keys  = local.ssh_keys[*]
+
+  optional_cloudinit_config = var.optional_cloudinit_config
+  cloudinit_merge_type      = var.cloudinit_merge_type
 }
 
 ##########################
@@ -165,8 +168,8 @@ resource "aws_instance" "accumulo-testing" {
   provisioner "remote-exec" {
     inline = [
       "echo Waiting for cloud init to complete...",
-      "cloud-init status --wait > /dev/null",
-      "cloud-init status --long"
+      "sudo cloud-init status --wait > /dev/null",
+      "sudo cloud-init status --long"
     ]
     connection {
       type = "ssh"
@@ -194,8 +197,9 @@ resource "aws_instance" "accumulo-testing" {
 #
 
 locals {
-  manager_ip = element(aws_instance.accumulo-testing.*.private_ip, 0)
-  worker_ips = var.instance_count > 1 ? slice(aws_instance.accumulo-testing.*.private_ip, 1, var.instance_count) : [element(aws_instance.accumulo-testing.*.private_ip, 0)]
+  ssh_keys   = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
+  manager_ip = aws_instance.accumulo-testing[0].private_ip
+  worker_ips = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].private_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].private_ip[*]
 }
 
 ##############################
@@ -228,6 +232,9 @@ module "config_files" {
   accumulo_branch_name         = var.accumulo_branch_name
   accumulo_testing_repo        = var.accumulo_testing_repo
   accumulo_testing_branch_name = var.accumulo_testing_branch_name
+
+  accumulo_instance_name = var.accumulo_instance_name
+  accumulo_root_password = var.accumulo_root_password
 }
 
 #
@@ -251,7 +258,9 @@ module "configure_nodes" {
   software_root = var.software_root
   manager_ip    = local.manager_ip
   worker_ips    = local.worker_ips
-  accumulo_dir  = var.accumulo_dir
+
+  accumulo_instance_name = module.config_files.accumulo_instance_name
+  accumulo_root_password = module.config_files.accumulo_root_password
 
   depends_on = [
     module.upload_software,
@@ -280,3 +289,17 @@ resource "aws_route53_record" "worker" {
   records = [local.worker_ips[count.index]]
 }
 
+##############################
+# Outputs                    #
+##############################
+output "manager_ip" {
+  value = local.manager_ip
+}
+
+output "worker_ips" {
+  value = local.worker_ips
+}
+
+output "accumulo_root_password" {
+  value = module.config_files.accumulo_root_password
+}

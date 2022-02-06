@@ -1,6 +1,6 @@
-variable local_sources_dir {}
-variable upload_dir {}
-variable upload_host {}
+variable "local_sources_dir" {}
+variable "upload_dir" {}
+variable "upload_host" {}
 
 resource "null_resource" "upload_software" {
   count = var.local_sources_dir == "" ? 0 : 1

@@ -50,18 +50,20 @@ provider "azurerm" {
 locals {
   os_type = can(regex("^.*[Uu]buntu.*$", var.vm_image.offer)) ? "ubuntu" : "centos"
 
+  ssh_keys = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
+
   # Save the public/private IP addresses of the VMs to pass to sub-modules.
   manager_ip         = azurerm_linux_virtual_machine.manager.public_ip_address
-  worker_ips         = azurerm_linux_virtual_machine.workers.*.public_ip_address
+  worker_ips         = azurerm_linux_virtual_machine.workers[*].public_ip_address
   manager_private_ip = azurerm_linux_virtual_machine.manager.private_ip_address
-  worker_private_ips = azurerm_linux_virtual_machine.workers.*.private_ip_address
+  worker_private_ips = azurerm_linux_virtual_machine.workers[*].private_ip_address
 
   # This script is run on all node to ensure a "ready" state.
   # Ready means ready to continue provisioning.
   ready_script = [
     "echo Waiting for cloud init to complete...",
-    "cloud-init status --wait > /dev/null",
-    "cloud-init status --long"
+    "sudo cloud-init status --wait > /dev/null",
+    "sudo cloud-init status --long"
   ]
 }
 
@@ -130,8 +132,11 @@ module "cloud_init_config" {
   hadoop_version       = var.hadoop_version
   accumulo_branch_name = var.accumulo_branch_name
   accumulo_version     = var.accumulo_version
-  authorized_ssh_keys  = var.authorized_ssh_keys[*]
+  authorized_ssh_keys  = local.ssh_keys[*]
   os_type              = local.os_type
+
+  optional_cloudinit_config = var.optional_cloudinit_config
+  cloudinit_merge_type      = var.cloudinit_merge_type
 }
 
 # Create a static public IP address for the manager node.
@@ -214,14 +219,18 @@ resource "azurerm_linux_virtual_machine" "manager" {
     azurerm_network_interface.manager.id,
   ]
 
-  admin_ssh_key {
-    username   = var.admin_username
-    public_key = var.authorized_ssh_keys[0]
+  dynamic "admin_ssh_key" {
+    for_each = local.ssh_keys
+    content {
+      username   = var.admin_username
+      public_key = admin_ssh_key.value
+    }
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
+    storage_account_type = var.os_disk_type
+    caching              = var.os_disk_caching
+    disk_size_gb         = var.os_disk_size_gb
   }
 
   source_image_reference {
@@ -259,14 +268,18 @@ resource "azurerm_linux_virtual_machine" "workers" {
     azurerm_network_interface.workers[count.index].id
   ]
 
-  admin_ssh_key {
-    username   = var.admin_username
-    public_key = var.authorized_ssh_keys[0]
+  dynamic "admin_ssh_key" {
+    for_each = local.ssh_keys
+    content {
+      username   = var.admin_username
+      public_key = admin_ssh_key.value
+    }
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
+    storage_account_type = var.os_disk_type
+    caching              = var.os_disk_caching
+    disk_size_gb         = var.os_disk_size_gb
   }
 
   source_image_reference {
@@ -318,6 +331,9 @@ module "config_files" {
   accumulo_branch_name         = var.accumulo_branch_name
   accumulo_testing_repo        = var.accumulo_testing_repo
   accumulo_testing_branch_name = var.accumulo_testing_branch_name
+
+  accumulo_instance_name = var.accumulo_instance_name
+  accumulo_root_password = var.accumulo_root_password
 }
 
 #
@@ -341,7 +357,9 @@ module "configure_nodes" {
   software_root = var.software_root
   manager_ip    = local.manager_ip
   worker_ips    = local.worker_ips
-  accumulo_dir  = var.accumulo_dir
+
+  accumulo_instance_name = module.config_files.accumulo_instance_name
+  accumulo_root_password = module.config_files.accumulo_root_password
 
   depends_on = [
     module.upload_software,
@@ -358,4 +376,8 @@ output "manager_ip" {
 
 output "worker_ips" {
   value = local.worker_ips
+}
+
+output "accumulo_root_password" {
+  value = module.config_files.accumulo_root_password
 }

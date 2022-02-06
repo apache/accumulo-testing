@@ -1,0 +1,7 @@
+##### BEGIN GENERATED HOSTS #####
+##### DO NOT EDIT BELOW THIS LINE #####
+${manager_ip}	manager
+%{ for idx, ip in worker_ips ~}
+${ip}	worker${idx}
+%{ endfor ~}
+##### END GENERATED HOSTS #####

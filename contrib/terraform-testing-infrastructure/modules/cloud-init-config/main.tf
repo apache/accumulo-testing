@@ -8,9 +8,18 @@ variable "hadoop_version" {}
 variable "accumulo_branch_name" {}
 variable "accumulo_version" {}
 variable "authorized_ssh_keys" {}
+variable "cloudinit_merge_type" {
+  default  = "dict(recurse_array,no_replace)+list(append)"
+  nullable = false
+}
+variable "optional_cloudinit_config" {
+  default  = ""
+  nullable = false
+}
 variable "os_type" {
-  default = "centos"
-  type    = string
+  default  = "centos"
+  type     = string
+  nullable = false
   validation {
     condition     = contains(["centos", "ubuntu"], var.os_type)
     error_message = "The value of os_type must be either 'centos' or 'ubuntu'."
@@ -29,8 +38,9 @@ resource "tls_private_key" "hadoop" {
 # Generate Cloud Init Template #
 ################################
 locals {
-  ssh_keys = concat(var.authorized_ssh_keys, [tls_private_key.hadoop.public_key_openssh])
-  cloud_init_script = templatefile("${path.module}/templates/cloud-init.tpl", {
+  ssh_keys = concat(var.authorized_ssh_keys, tls_private_key.hadoop.public_key_openssh[*])
+  cloud_init_script = templatefile("${path.module}/templates/cloud-init.tftpl", {
+    files_path           = "${path.module}/files"
     software_root        = var.software_root
     zookeeper_dir        = var.zookeeper_dir
     hadoop_dir           = var.hadoop_dir
@@ -54,6 +64,16 @@ data "cloudinit_config" "cfg" {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
     content      = local.cloud_init_script
+  }
+
+  # Allow for a user-specified cloud-init script to be passed in.
+  # This will alwsys be included, but if it's empty then cloud-init
+  # will ignore it.
+  part {
+    filename     = "userdefined.cfg"
+    content_type = "text/cloud-config"
+    merge_type   = var.cloudinit_merge_type
+    content      = var.optional_cloudinit_config
   }
 }
 

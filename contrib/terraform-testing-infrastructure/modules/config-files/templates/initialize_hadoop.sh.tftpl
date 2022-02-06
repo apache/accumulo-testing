@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+#
+# Copy local systemctl unit files into place and enable zookeeper and the namenode
+#
+sudo cp ${software_root}/conf/zookeeper.service /etc/systemd/system/zookeeper.service
+sudo cp ${software_root}/conf/hadoop-namenode.service /etc/systemd/system/hadoop-namenode.service
+sudo systemctl daemon-reload
+sudo systemctl enable zookeeper
+sudo systemctl enable hadoop-namenode
+
+#
+# Copy the datanode systemd unit file to each worker, and enable it there.
+#
+pdcp -g worker ${software_root}/conf/hadoop-datanode.service /tmp/.
+pdsh -S -g worker "sudo cp /tmp/hadoop-datanode.service /etc/systemd/system/hadoop-datanode.service && rm -f /tmp/hadoop-datanode.service"
+pdsh -S -g worker sudo systemctl daemon-reload
+pdsh -S -g worker sudo systemctl enable hadoop-datanode
+
+#
+# Startup HDFS cluster
+# 1. Start zookeeper
+# 2. Format the namenode
+# 3. Start the namenode
+# 4. Start datanodes on the worker nodes
+#
+sudo systemctl start zookeeper
+hdfs namenode -format
+sudo systemctl start hadoop-namenode
+pdsh -S -g worker 'sudo systemctl start hadoop-datanode'

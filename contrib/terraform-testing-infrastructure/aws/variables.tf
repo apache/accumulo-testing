@@ -1,131 +1,166 @@
 variable "instance_count" {
-  default = "2"
+  default     = "2"
   description = "The number of EC2 instances to create"
-  nullable = false
+  nullable    = false
 }
 
 variable "instance_type" {
-  default = "m5.2xlarge"
+  default     = "m5.2xlarge"
   description = "The type of EC2 instances to create"
-  nullable = false
+  nullable    = false
 }
 
 variable "root_volume_gb" {
-  default = "300"
+  default     = "300"
   description = "The size, in GB, of the EC2 instance root volume"
-  nullable = false
+  nullable    = false
 }
 
 variable "software_root" {
-  default = "/opt/accumulo-testing"
+  default     = "/opt/accumulo-testing"
   description = "The full directory root where software will be installed"
-  nullable = false
+  nullable    = false
 }
 
 variable "security_group" {
   description = "The Security Group to use when creating AWS objects"
-  nullable = false
+  nullable    = false
 }
 
 variable "us_east_1b_subnet" {
   description = "The AWS subnet id for the us-east-1b subnet"
-  nullable = false
+  nullable    = false
 }
 
 variable "us_east_1e_subnet" {
   description = "The AWS subnet id for the us-east-1e subnet"
-  nullable = false
+  nullable    = false
 }
 
 variable "route53_zone" {
   description = "The name of the Route53 zone in which to create DNS addresses"
-  nullable = false
+  nullable    = false
 }
 
 variable "ami_owner" {
   description = "The id of the AMI owner"
-  nullable = false
+  nullable    = false
 }
 
 variable "ami_name_pattern" {
   description = "The pattern of the name of the AMI to use"
-  nullable = false
+  nullable    = false
 }
 
 variable "authorized_ssh_keys" {
   description = "List of SSH keys for the developers that will log into the cluster"
-  type = list(string)
-  nullable = false
+  type        = list(string)
+  nullable    = false
+}
+
+variable "authorized_ssh_key_files" {
+  default     = []
+  description = "List of SSH public key files for the developers that will log into the cluster"
+  type        = list(string)
+  nullable    = false
+}
+
+variable "accumulo_instance_name" {
+  default     = "accumulo-testing"
+  type        = string
+  description = "The accumulo instance name."
+  nullable    = false
+}
+
+variable "accumulo_root_password" {
+  default     = null
+  type        = string
+  description = "The password for the accumulo root user. A randomly generated password will be used if none is specified here."
+  nullable    = true
 }
 
 variable "zookeeper_dir" {
-  default = "/data/zookeeper"
+  default     = "/data/zookeeper"
   description = "The ZooKeeper directory on each EC2 node"
-  nullable = false
+  nullable    = false
 }
 
 variable "hadoop_dir" {
-  default = "/data/hadoop"
+  default     = "/data/hadoop"
   description = "The Hadoop directory on each EC2 node"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_dir" {
-  default = "/data/accumulo"
+  default     = "/data/accumulo"
   description = "The Accumulo directory on each EC2 node"
-  nullable = false
+  nullable    = false
 }
 
 variable "maven_version" {
-  default = "3.8.4"
+  default     = "3.8.4"
   description = "The version of Maven to download and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "zookeeper_version" {
-  default = "3.5.9"
+  default     = "3.5.9"
   description = "The version of ZooKeeper to download and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "hadoop_version" {
-  default = "3.3.1"
+  default     = "3.3.1"
   description = "The version of Hadoop to download and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_version" {
-  default = "2.1.0-SNAPSHOT"
+  default     = "2.1.0-SNAPSHOT"
   description = "The branch of Accumulo to download and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_repo" {
-  default = "https://github.com/apache/accumulo.git"
+  default     = "https://github.com/apache/accumulo.git"
   description = "URL of the Accumulo git repo"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_branch_name" {
-  default = "main"
+  default     = "main"
   description = "The name of the branch to build and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_testing_repo" {
-  default = "https://github.com/apache/accumulo-testing.git"
+  default     = "https://github.com/apache/accumulo-testing.git"
   description = "URL of the Accumulo Testing git repo"
-  nullable = false
+  nullable    = false
 }
 
 variable "accumulo_testing_branch_name" {
-  default = "main"
+  default     = "main"
   description = "The name of the branch to build and install"
-  nullable = false
+  nullable    = false
 }
 
 variable "local_sources_dir" {
-  default = ""
+  default     = ""
   description = "Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball"
-  nullable = true
+  nullable    = true
+}
+
+variable "optional_cloudinit_config" {
+  default     = null
+  type        = string
+  description = "An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit_merge_type to handle merging with the default script as you need."
+  nullable    = true
+}
+
+variable "cloudinit_merge_type" {
+  default     = null
+  type        = string
+  description = "Describes the merge behavior for overlapping config blocks in cloud-init."
+  nullable    = true
 }

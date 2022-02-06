@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 export JAVA_HOME=${java_home}
 
 SOURCES_DIR="${software_root}/sources"
@@ -73,10 +75,11 @@ else
   git clone ${accumulo_repo} accumulo-repo
   cd accumulo-repo
   git checkout ${accumulo_branch_name}
-  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
+  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -s ${software_root}/apache-maven/settings.xml -ntp clean package -DskipTests -DskipITs
   mkdir -p ${software_root}/accumulo
   tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
 fi
+${software_root}/accumulo/accumulo-${accumulo_version}/bin/accumulo-util build-native
 
 #
 # OpenTelemetry dependencies
@@ -115,7 +118,7 @@ else
   git clone ${accumulo_testing_repo} accumulo-testing-repo
   cd accumulo-testing-repo
   git checkout ${accumulo_testing_branch_name}
-  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
+  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -s ${software_root}/apache-maven/settings.xml -ntp clean package -DskipTests -DskipITs
 fi
 
 #
@@ -126,13 +129,26 @@ cp ${software_root}/conf/hdfs-site.xml ${software_root}/hadoop/hadoop-${hadoop_v
 cp ${software_root}/conf/core-site.xml ${software_root}/hadoop/hadoop-${hadoop_version}/etc/hadoop/core-site.xml
 cp ${software_root}/conf/cluster.yaml ${software_root}/accumulo/accumulo-${accumulo_version}/conf/cluster.yaml
 cp ${software_root}/conf/accumulo.properties ${software_root}/accumulo/accumulo-${accumulo_version}/conf/accumulo.properties
+cp ${software_root}/conf/accumulo-client.properties ${software_root}/accumulo/accumulo-${accumulo_version}/conf/accumulo-client.properties
 mkdir -p ${software_root}/telegraf/conf
 cp ${software_root}/conf/telegraf.conf ${software_root}/telegraf/conf/.
 
+#
+# Make directories that will be needed for metrics collection
+#
+sudo mkdir -p /data/metrics/influxdb
+sudo mkdir -p /data/metrics/grafana
+sudo chown -R hadoop.hadoop /data/metrics
+sudo chmod 777 /data/metrics/influxdb
+
 # Sync the software root dir to all of the worker nodes, but exclude accumulo source, maven, and conf dirs.
 echo "Sycing ${software_root} to worker nodes..."
-pdsh -R exec -g worker rsync -az \
-  --exclude=${software_root}/conf/*** \
-  --exclude=${software_root}/apache-maven/*** \
-  --exclude=${software_root}/accumulo_repo/*** \
-  ${software_root}/ %h:${software_root}/
+tar cf /tmp/accumulo-testing.tar -C ${software_root} \
+  --exclude=./conf \
+  --exclude=./apache-maven \
+  --exclude=./accumulo_repo \
+  --exclude=./sources .
+pdcp -g worker /tmp/accumulo-testing.tar /tmp/.
+pdsh -S -g worker tar xf /tmp/accumulo-testing.tar -C ${software_root}
+rm -f /tmp/accumulo-testing.tar
+pdsh -S -g worker rm -f /tmp/accumulo-testing.tar
