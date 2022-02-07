@@ -294,12 +294,15 @@ resource "aws_route53_record" "worker" {
 ##############################
 output "manager_ip" {
   value = local.manager_ip
+  description = "The IP address of the manager instance."
 }
 
 output "worker_ips" {
   value = local.worker_ips
+  description = "The IP addresses of the worker instances."
 }
 
 output "accumulo_root_password" {
   value = module.config_files.accumulo_root_password
+  description = "The supplied, or automatically generated Accumulo root user password."
 }

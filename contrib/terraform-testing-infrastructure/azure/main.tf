@@ -372,12 +372,15 @@ module "configure_nodes" {
 ##############################
 output "manager_ip" {
   value = local.manager_ip
+  description = "The public IP address of the manager VM."
 }
 
 output "worker_ips" {
   value = local.worker_ips
+  description = "The public IP addresses of the worker VMs."
 }
 
 output "accumulo_root_password" {
   value = module.config_files.accumulo_root_password
+  description = "The user-supplied or automatically generated Accumulo root user password."
 }
