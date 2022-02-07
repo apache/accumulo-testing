@@ -190,7 +190,7 @@ resource "aws_instance" "accumulo-testing" {
 
 locals {
   ssh_keys           = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
-  manager_host       = aws_instance.accumulo-testing[0].public_ip
+  manager_ip         = aws_instance.accumulo-testing[0].public_ip
   worker_ips         = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].public_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].public_ip[*]
   manager_private_ip = aws_instance.accumulo-testing[0].private_ip
   worker_private_ips = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].private_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].private_ip[*]
