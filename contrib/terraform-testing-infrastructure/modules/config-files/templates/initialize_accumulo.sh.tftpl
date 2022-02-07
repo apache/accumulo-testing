@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+
+if [ $# -ne 2 ]; then
+  echo "usage: $0 instance_name root_password" >&2
+  exit 1
+fi
+
+#
+# Initialize Accumulo with the supplied instance name and root user password
+#
+accumulo init --instance-name "$1" --password "$2"
+
+#
+# Launch jaegertracing and telegraf containers
+#
+docker run -d --name jaeger \
+    --restart always \
+    -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \
+    -p 5775:5775/udp -p 6831:6831/udp \
+    -p 6832:6832/udp -p 5778:5778 \
+    -p 16686:16686 -p 14268:14268 \
+    -p 14250:14250 -p 9411:9411 \
+    jaegertracing/all-in-one:1.29
+
+docker run --ulimit nofile=66000:66000 -d \
+    --restart always \
+    --name tig-stack \
+    -p 3003:3003 \
+    -p 3004:8888 \
+    -p 8086:8086 \
+    -p 22022:22 \
+    -p 8125:8125/udp \
+    -v /data/metrics/influxdb:/var/lib/influxdb \
+    -v /data/metrics/grafana:/var/lib/grafana \
+    -v ${software_root}/telegraf/conf:/etc/telegraf \
+    -v ${software_root}/grafana/dashboards:/etc/grafana/provisioning/dashboards \
+    artlov/docker-telegraf-influxdb-grafana:latest
+
+#
+# Start the Accumulo cluster
+# accumulo-cluster start doesn't return a proper error code, so make it true here so the script doesn't fail.
+#
+accumulo-cluster start || true

@@ -1,0 +1,155 @@
+#cloud-config
+#
+# Don't log key information
+#
+no_ssh_fingerprints: true
+# Create the hadoop and docker groups
+groups:
+  - hadoop
+  - docker
+# Add default auto created user to docker group
+system_info:
+  default_user:
+    groups: [docker]
+# Create users
+users:
+  - default
+  - name: hadoop
+    homedir: /home/hadoop
+    no_create_home: false
+    primary_group: hadoop
+    groups: docker
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    #
+    # NOTE: The ssh_authorized_keys section of the hadoop user configuration should contain
+    #       the public key for every developer that is going to log into the nodes. This
+    #       allows the developer to log into the nodes using the command: ssh hadoop@<ip>
+    #
+    ssh_authorized_keys:
+%{ for key in authorized_ssh_keys ~}
+      - ${key}
+%{ endfor ~}
+
+%{ if os_type == "centos" ~}
+yum_repos:
+  docker:
+    name: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+%{ endif ~}
+%{ if os_type == "ubuntu" ~}
+apt:
+  sources:
+    docker.list:
+      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+%{ endif ~}
+
+#
+# yum/apt install the following packages
+#
+packages:
+%{ if os_type == "centos" ~}
+  - epel-release
+  - yum-utils
+  - gcc-c++
+  - java-11-openjdk-devel
+  - git
+%{ endif ~}
+%{ if os_type == "ubuntu" ~}
+  - net-tools
+  - g++
+  - openjdk-11-jdk-headless
+  - pdsh
+  - make
+%{ endif ~}
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - wget
+
+#
+# Make directories on each node
+#
+runcmd:
+  - mkdir -p ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
+  - chown hadoop.hadoop ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
+  - systemctl enable docker
+  - systemctl start docker
+%{ if os_type == "ubuntu" ~}
+  # Use bash instead of dash for the default shell
+  - ln -s bash /bin/sh.bash
+  - mv /bin/sh.bash /bin/sh
+%{ endif ~}
+%{ if os_type == "centos" ~}
+  # This has to be done here vs in the packages section because
+  # we install the epel-release package there and can't update
+  # the yum repo in the middle to make it know about pdsh-mod-genders
+  - yum -y update
+  - yum -y install pdsh-mod-genders
+%{ endif ~}
+  - sysctl -w vm.swappiness=0
+  - sysctl -p
+  # Move Hadoop ssh files in place. We couldn't do this directly in write_files
+  # because some distros with cloud-init have the write_files module run before
+  # the users are created.
+  - mv /run/hadoop_ssh/* /home/hadoop/.ssh
+  - rm -rf /run/hadoop_ssh
+  - chown -R hadoop:hadoop /home/hadoop/.ssh
+
+#
+# Write files to the filesystem, will be copied into place
+# or invoked later
+#
+write_files:
+# Set up PDSH to skip strict host key checking. Also, on ubuntu, we need
+# to set ssh as the default method for the rcmd module.
+%{ if os_type == "ubuntu" ~}
+  - path: /etc/pdsh/rcmd_default
+    permissions: '0644'
+    content: |
+      ssh
+%{ endif ~}
+  - path: /etc/profile.d/pdsh.sh
+    permissions: '0755'
+    content: |
+      export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no"
+  # Increase open files limits for the Hadoop user
+  - path: /etc/security/limits.conf
+    append: true
+    content: |
+      hadoop           soft    nofile          4096
+      hadoop           hard    nofile         65535
+  # Set up files for Hadoop's home. Due to a cloud-init issue with some
+  # cloud provider images, the write_files module will run before users
+  # are created, so we cannot change ownership to hadoop here. We must
+  # do that as a runcmd, which we know runs later.
+  - path: /run/hadoop_ssh/config
+    defer: true
+    permissions: '0600'
+    content: |
+      Host *
+        Compression yes
+        StrictHostKeyChecking no
+  - path: /run/hadoop_ssh/id_rsa
+    defer: true
+    permissions: '0600'
+    content: |
+      ${hadoop_private_key}
+  - path: /run/hadoop_ssh/id_rsa.pub
+    defer: true
+    permissions: '0644'
+    content: |
+      ${hadoop_public_key}
+  # Install some utility scripts 
+  - path: /usr/local/bin/update-genders.sh
+    permissions: '0755'
+    content: |
+      ${indent(6, file("${files_path}/update-genders.sh"))}
+  - path: /usr/local/bin/update-hosts.sh
+    permissions: '0755'
+    content: |
+      ${indent(6, file("${files_path}/update-hosts.sh"))}
