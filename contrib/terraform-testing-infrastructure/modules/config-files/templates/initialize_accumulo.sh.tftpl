@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
 if [ $# -ne 2 ]; then
   echo "usage: $0 instance_name root_password" >&2
