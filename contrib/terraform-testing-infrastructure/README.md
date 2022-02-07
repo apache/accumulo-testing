@@ -45,9 +45,35 @@ about this see [remote state](https://www.terraform.io/docs/language/state/remot
 shared state instructions are based on
 [this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). This
 configuration is simple, there are no variables, but you may need to change the aws region in
-`main.tf`. If you change the name of the S3 bucket or DynamoDB table, then you will need to update
-the `main.tf` file in the `aws` directory. To create the S3 bucket and DynamoDB table, run
-`terraform init`, followed by `terraform apply`.
+`main.tf`. 
+
+To generate the storage, run `terraform init` followed by `terraform apply`.
+
+If you change any of the backend storage configuration parameters over their defaults, you will
+need to override them when you initialize terraform for the `aws` or `azure` configuration
+below. For example, if you change the region where the S3 bucket is deployed from `us-east-1` to
+`us-west-2`, then you would need to run `terraform init` in the `aws` directory (not the
+shared_state initialization, but the main `aws` dir initializtion) with:
+```bash
+terraform init -backend-config=region=us-west-2
+```
+
+The following backend configuration can be overridden from with `-backend-config=<name>=<value>`
+options to `terraform init`. This prevents the need to modify the `backend` sections in
+[aws/main.tf](./aws/main.tf) or [azure/main.tf](./azure/main.tf).
+
+For AWS:
+* `-backend-config=bucket=<bucket_name>`: Override the S3 bucket name
+* `-backend-config=key=<key_name>`: Override the key in the S3 bucket
+* `-backend-config=region=<region>`: Override AWS region
+* `-backend-config=dynamodb_table=<dynamodb_table_name>`: Override the DynamoDB table name
+
+For Azure:
+* `-backend-config=resource_group_name=<resource_group_name>`: Override the resource group where the storage account is located
+* `-backend-config=storage_account_name=<storage_account_name>`: Override the name of the Azure storage account holding Terraform state
+* `-backend-config=container_name=<container_name>`: Override the name of the container within the storage account that is holding Terraform state
+* `-backend-config=key=<blob_name>`: Override the name of the blob within the container that will be used to hold Terraform state
+
 
 ## Test Cluster
 
@@ -202,13 +228,40 @@ files whose name ends in `.auto.tfvars` or `.auto.tfvars.json` are automatically
 }
 ```
 
+#### Cloud-Init Customization
+
+The cloud-init template can be found in [cloud-init.tftpl](./modules/cloud-init-config/templates/cloud-init.tftpl).
+If you need to customize this configuration, one method is to use the Terraform variable
+`optional_cloudinit_config` to supply your own additional configuration. For example, some CentOS 7
+images are out of date, and will need software packages to be updated before the rest of the
+software download/install will work. This can be accomplished by adding the following to your
+`.auto.tfvars` file:
+
+```hcl
+optional_cloudinit_config = <<-EOT
+  package_upgrade: true
+EOT
+```
+
+You can add any other cloud-init configuration that you wish here. One factor to consider here is
+the cloud-init [merging behavior](https://cloudinit.readthedocs.io/en/latest/topics/merging.html)
+with sections in the default template. The merging behavior can be controlled by setting the
+`cloudinit_merge_type` variable to your desired merge algorithm. The default is set to
+`dict(recurse_array,no_replace)+list(append)` which will attempt to keep all lists from the default
+configuration, rather than new ones overwriting them.
+
+Another factor to consider is the size of the generated cloud-init template. Cloud providers place
+a limit on the size of this file. AWS limits this content to 16KB, before Base64 encoding, and
+Azure limits it to 64KB after Base64 encoding.
+
 ## AWS Resources
 
 This Terraform configuration creates:
 
-  1. An EFS filesystem with IP addresses in the `${us_east_1b_subnet}` and `${us_east_1e_subnet}` subnets
-  2. `${instance_count}` EC2 nodes of `${instance_type}` with the latest AMI matching `${ami_name_pattern}` from the `${ami_owner}`. Each EC2 node will have a `${root_volume_gb}`GB root volume. The EFS filesystem is NFS mounted to each node at `${software_root}`.
-  3. DNS entries in Route53 for each EC2 node.
+  1. `${instance_count}` EC2 nodes of `${instance_type}` with the latest AMI matching
+    `${ami_name_pattern}` from the `${ami_owner}`. Each EC2 node will have a `${root_volume_gb}`GB
+    root volume. The EFS filesystem is NFS mounted to each node at `${software_root}`.
+  2. DNS entries in Route53 for each EC2 node.
 
 ## Software Layout
 
@@ -315,7 +368,14 @@ recommended that the public IP addresses be used instead.
 ## Instructions
 
   1. Once you have created a `.auto.tfvars.json` file, or set the properties some other way, run
-     `terraform init`.
+     `terraform init`. If you have modified shared_state backend configuration over the default,
+     you can override the values here. For example, the following configuration updates the
+     `resource_group_name` and `storage_account_name` for the `azurerm` backend:
+     ```bash
+     terraform init -backend-config=resource_group_name=my-tfstate-resource-group -backend-config=storage_account_name=mystorageaccountname
+     ```
+     Once values are supplied to `terraform init`, they are stored in the local state and it is not
+     necessary to supply these overrides to the `terraform apply` or `terraform destroy` commands.
   2. Run `terraform apply` to create the AWS/Azure resources.
   3. Run `terraform destroy` to tear down the AWS/Azure resources.
 

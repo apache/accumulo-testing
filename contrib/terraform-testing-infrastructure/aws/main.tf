@@ -12,20 +12,14 @@
 #
 # This Terraform configuration does the following:
 #
-# 1. Creates an EFS filesystem in AWS (think NFS). On this filesystem we
-#    are going to install Maven, ZooKeeper, Hadoop, Accumulo, and Accumulo Testing
-#
-# 2. Creates IP addresses for the EFS filesystem in each AWS availability zone that
-#    we use. The IP address allows us to mount the EFS filesystem to the EC2 nodes.
-#
-# 3. Creates one or more EC2 nodes for running the different components. Currently
+# 1. Creates one or more EC2 nodes for running the different components. Currently
 #    the configuration uses the m5.2xlarge instance type which provides 8 vCPUs, 32GB RAM,
 #    and an EBS backed root volume. 
 #
-# 4. Runs commands on the EC2 nodes after they are started (5 minutes according
+# 2. Runs commands on the EC2 nodes after they are started (5 minutes according
 #    to the docs) to install software and configure them.
 #
-# 5. Creates DNS entries for the manager (the first node created) and the workers (the remaining nodes).
+# 3. Creates DNS entries for the manager (the first node created) and the workers (the remaining nodes).
 #
 #
 # PRICING:
@@ -34,7 +28,6 @@
 #
 #   Each m5.2xlarge costs $0.384 per hour
 #   A 300GB EBS volume running for 40 hours per month is $1.50
-#   3GB of EFS storage will cost $0.90 per month
 #
 #   Currently the storage used is about 2.5GB with Maven, ZooKeeper, Hadoop,
 #   Accumulo, and Accumulo-Testing installed and built.
@@ -142,7 +135,6 @@ module "cloud_init_config" {
 #    - creates the hadoop group and user
 #    - installs packages via yum
 #    - creates some files on the filesystem to use later
-# 8. A provisioner which will connect to the EC2 node once created and mount EFS
 #
 resource "aws_instance" "accumulo-testing" {
   ami                    = data.aws_ami.centos_ami.id
