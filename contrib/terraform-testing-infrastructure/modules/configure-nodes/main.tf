@@ -1,12 +1,7 @@
 variable "software_root" {}
-variable "manager_ip" {}
-variable "worker_ips" {}
+variable "upload_host" {}
 variable "accumulo_instance_name" {}
 variable "accumulo_root_password" {}
-
-locals {
-  all_ips = concat(var.manager_ip[*], var.worker_ips)
-}
 
 #####################################################
 # Run the install software script on the first node #
@@ -18,7 +13,7 @@ locals {
 resource "null_resource" "configure_manager_node" {
   connection {
     type = "ssh"
-    host = var.manager_ip
+    host = var.upload_host
     user = "hadoop"
   }
   provisioner "remote-exec" {

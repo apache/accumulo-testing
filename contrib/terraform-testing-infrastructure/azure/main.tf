@@ -314,7 +314,7 @@ module "config_files" {
   os_type = local.os_type
 
   software_root = var.software_root
-  upload_ip     = local.manager_ip
+  upload_host   = local.manager_ip
   manager_ip    = local.manager_private_ip
   worker_ips    = local.worker_private_ips
 
@@ -355,8 +355,7 @@ module "configure_nodes" {
   source = "../modules/configure-nodes"
 
   software_root = var.software_root
-  manager_ip    = local.manager_ip
-  worker_ips    = local.worker_ips
+  upload_host   = local.manager_ip
 
   accumulo_instance_name = module.config_files.accumulo_instance_name
   accumulo_root_password = module.config_files.accumulo_root_password
@@ -371,16 +370,16 @@ module "configure_nodes" {
 # Outputs                    #
 ##############################
 output "manager_ip" {
-  value = local.manager_ip
+  value       = local.manager_ip
   description = "The public IP address of the manager VM."
 }
 
 output "worker_ips" {
-  value = local.worker_ips
+  value       = local.worker_ips
   description = "The public IP addresses of the worker VMs."
 }
 
 output "accumulo_root_password" {
-  value = module.config_files.accumulo_root_password
+  value       = module.config_files.accumulo_root_password
   description = "The user-supplied or automatically generated Accumulo root user password."
 }
