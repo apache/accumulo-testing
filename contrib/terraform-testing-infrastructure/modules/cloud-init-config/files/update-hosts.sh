@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
 if [ $# -ne 1 ]; then
   echo  "usage: $0 additional_host_file" >&2
@@ -9,6 +9,9 @@ fi
 
 HOSTS_ADDITIONS=$1
 TMPFILE=/tmp/hosts$$
-pdcp -a $HOSTS_ADDITIONS $TMPFILE
-pdsh -S -a 'sudo sed -ri '"'"'/^#+ BEGIN GENERATED HOSTS #+$/,/^#+ END GENERATED HOSTS #+$/d'"'"' /etc/hosts'
-pdsh -S -a 'cat '$TMPFILE' | sudo tee -a /etc/hosts > /dev/null && rm -f $TMPFILE'
+sudo sed -ri '/^#+ BEGIN GENERATED HOSTS #+$/,/^#+ END GENERATED HOSTS #+$/d' /etc/hosts
+cat $1 | sudo tee -a /etc/hosts > /dev/null
+
+pdcp -g worker $HOSTS_ADDITIONS $TMPFILE
+pdsh -S -g worker 'sudo sed -ri '"'"'/^#+ BEGIN GENERATED HOSTS #+$/,/^#+ END GENERATED HOSTS #+$/d'"'"' /etc/hosts'
+pdsh -S -g worker 'cat '$TMPFILE' | sudo tee -a /etc/hosts > /dev/null && rm -f $TMPFILE'
