@@ -118,6 +118,7 @@ The table below lists the variables and their default values that are used in th
 | authorized\_ssh\_key\_files | List of SSH public key files for the developers that will log into the cluster | `list(string)` | `[]` | no |
 | authorized\_ssh\_keys | List of SSH keys for the developers that will log into the cluster | `list(string)` | n/a | yes |
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
+| create\_route53\_records | Indicates whether or not route53 records will be created | `boolean` | `false` | no |
 | hadoop\_dir | The Hadoop directory on each EC2 node | `string` | `"/data/hadoop"` | no |
 | hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
@@ -125,6 +126,7 @@ The table below lists the variables and their default values that are used in th
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
+| private\_network | Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `boolean` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
 | route53\_zone | The name of the Route53 zone in which to create DNS addresses | `any` | n/a | yes |
 | security\_group | The Security Group to use when creating AWS objects | `any` | n/a | yes |
@@ -133,7 +135,6 @@ The table below lists the variables and their default values that are used in th
 | us\_east\_1e\_subnet | The AWS subnet id for the us-east-1e subnet | `any` | n/a | yes |
 | zookeeper\_dir | The ZooKeeper directory on each EC2 node | `string` | `"/data/zookeeper"` | no |
 | zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.5.9"` | no |
-
 The following outputs are returned by the `aws` Terraform configuration.
 
 | Name | Description |
@@ -307,11 +308,13 @@ the binary tarball.
 If you did not provide a binary tarball, then you can update the software running on the cluster by
 doing the following and then restarting Accumulo:
 
-```
+```bash
 cd ${software_root}/sources/accumulo-repo
 git pull
 mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
 tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
+# Sync the Accumulo changes with the worker nodes
+pdsh -R exec -g worker rsync -az ${software_root}/accumulo/ %h:${software_root}/accumulo/
 ```
 
 ### Updating Apache Accumulo Testing on the cluster
@@ -319,7 +322,7 @@ tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_ro
 If you did not provide a binary tarball, then you can update the software running on the cluster by
 doing the following:
 
-```
+```bash
 cd ${software_root}/sources/accumulo-testing-repo
 git pull
 mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs

@@ -2,7 +2,7 @@ variable "os_type" {
   default = "centos"
 }
 variable "software_root" {}
-variable "upload_ip" {}
+variable "upload_host" {}
 variable "manager_ip" {}
 variable "worker_ips" {}
 
@@ -57,12 +57,17 @@ locals {
     zookeeper_dir                = var.zookeeper_dir
     zookeeper_version            = var.zookeeper_version
     accumulo_instance_name       = var.accumulo_instance_name
-    accumulo_root_password       = local.accumulo_root_pw
-
+    accumulo_root_password       = local.accumulo_root_pw,
+    accumulo_instance_secret     = random_string.accumulo_instance_secret.result
   }
 }
 
 resource "random_string" "accumulo_root_password" {
+  length  = 12
+  special = false
+}
+
+resource "random_string" "accumulo_instance_secret" {
   length  = 12
   special = false
 }
@@ -191,7 +196,7 @@ resource "null_resource" "upload_config_files" {
   ]
   connection {
     type = "ssh"
-    host = var.upload_ip
+    host = var.upload_host
     user = "hadoop"
   }
   provisioner "remote-exec" {

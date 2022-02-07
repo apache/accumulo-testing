@@ -42,6 +42,20 @@ variable "route53_zone" {
   nullable    = false
 }
 
+variable "create_route53_records" {
+  default     = false
+  description = "Indicates whether or not route53 records will be created"
+  type        = boolean
+  nullable    = false
+}
+
+variable "private_network" {
+  default     = false
+  description = "Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones."
+  type        = boolean
+  nullable    = false
+}
+
 variable "ami_owner" {
   description = "The id of the AMI owner"
   nullable    = false

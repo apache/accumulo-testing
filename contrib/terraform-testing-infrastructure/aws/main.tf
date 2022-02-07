@@ -189,9 +189,11 @@ resource "aws_instance" "accumulo-testing" {
 #
 
 locals {
-  ssh_keys   = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
-  manager_ip = aws_instance.accumulo-testing[0].private_ip
-  worker_ips = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].private_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].private_ip[*]
+  ssh_keys           = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
+  manager_ip         = aws_instance.accumulo-testing[0].public_ip
+  worker_ips         = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].public_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].public_ip[*]
+  manager_private_ip = aws_instance.accumulo-testing[0].private_ip
+  worker_private_ips = var.instance_count > 1 ? slice(aws_instance.accumulo-testing[*].private_ip, 1, var.instance_count) : aws_instance.accumulo-testing[0].private_ip[*]
 }
 
 ##############################
@@ -207,7 +209,7 @@ module "config_files" {
   source = "../modules/config-files"
 
   software_root = var.software_root
-  upload_ip     = local.manager_private_ip
+  upload_host   = var.private_network ? local.manager_private_ip : local.manager_ip
   manager_ip    = local.manager_private_ip
   worker_ips    = local.worker_private_ips
 
@@ -238,7 +240,7 @@ module "upload_software" {
 
   local_sources_dir = var.local_sources_dir
   upload_dir        = var.software_root
-  upload_host       = local.manager_ip
+  upload_host       = var.private_network ? local.manager_private_ip : local.manager_ip
 }
 
 #
@@ -248,8 +250,7 @@ module "configure_nodes" {
   source = "../modules/configure-nodes"
 
   software_root = var.software_root
-  manager_ip    = local.manager_ip
-  worker_ips    = local.worker_ips
+  upload_host   = var.private_network ? local.manager_private_ip : local.manager_ip
 
   accumulo_instance_name = module.config_files.accumulo_instance_name
   accumulo_root_password = module.config_files.accumulo_root_password
@@ -265,36 +266,37 @@ module "configure_nodes" {
 ####################################################
 
 resource "aws_route53_record" "manager" {
+  count   = var.create_route53_records ? 1 : 0
   zone_id = data.aws_route53_zone.private_zone.zone_id
   name    = "manager-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone.name}"
   type    = "A"
   ttl     = "300"
-  records = [local.manager_ip]
+  records = [var.private_network ? local.manager_private_ip : local.manager_ip]
 }
 
 resource "aws_route53_record" "worker" {
-  count   = length(local.worker_ips)
+  count   = var.create_route53_records ? length(local.worker_ips) : 0
   zone_id = data.aws_route53_zone.private_zone.zone_id
   name    = "worker${count.index}-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone.name}"
   type    = "A"
   ttl     = "300"
-  records = [local.worker_ips[count.index]]
+  records = [var.private_network ? local.worker_private_ips[count.index] : local.worker_ips[count.index]]
 }
 
 ##############################
 # Outputs                    #
 ##############################
 output "manager_ip" {
-  value = local.manager_ip
+  value       = var.private_network ? local.manager_private_ip : local.manager_ip
   description = "The IP address of the manager instance."
 }
 
 output "worker_ips" {
-  value = local.worker_ips
+  value       = var.private_network ? local.worker_private_ips : local.worker_ips
   description = "The IP addresses of the worker instances."
 }
 
 output "accumulo_root_password" {
-  value = module.config_files.accumulo_root_password
+  value       = module.config_files.accumulo_root_password
   description = "The supplied, or automatically generated Accumulo root user password."
 }
