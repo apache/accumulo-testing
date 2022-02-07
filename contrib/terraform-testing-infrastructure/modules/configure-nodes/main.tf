@@ -18,15 +18,17 @@ resource "null_resource" "configure_manager_node" {
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
+      set -eo pipefail
+
       # Put local bashrc/bash_profile in place and source it before doing anything else.
       cp ${var.software_root}/conf/hadoop_bash_profile /home/hadoop/.bash_profile
       cp ${var.software_root}/conf/hadoop_bashrc /home/hadoop/.bashrc
       source /home/hadoop/.bash_profile
 
-      # Put the genders file in place across the cluster. Then use pdcp/pdsh to
-      # update the hosts file on each machine and also copy out the hadoop bashrc/bash_profile.
-      /usr/local/bin/update-genders.sh ${var.software_root}/conf/genders
-      /usr/local/bin/update-hosts.sh ${var.software_root}/conf/hosts
+      # Update the hosts and genders files across the cluster. This applies changes
+      # locally first, then uses pdcp/pdsh to apply them across the cluster.
+      /usr/local/bin/update-hosts-genders.sh ${var.software_root}/conf/hosts ${var.software_root}/conf/genders
+      # Now that genders is set up properly, we can use it to copy the hadoop .bashrc and .bash_profile out.
       pdcp -g worker /home/hadoop/.bashrc /home/hadoop/.bash_profile /home/hadoop/.
 
       bash ${var.software_root}/conf/install_sw.sh

@@ -145,11 +145,7 @@ write_files:
     content: |
       ${hadoop_public_key}
   # Install some utility scripts 
-  - path: /usr/local/bin/update-genders.sh
+  - path: /usr/local/bin/update-hosts-genders.sh
     permissions: '0755'
     content: |
-      ${indent(6, file("${files_path}/update-genders.sh"))}
-  - path: /usr/local/bin/update-hosts.sh
-    permissions: '0755'
-    content: |
-      ${indent(6, file("${files_path}/update-hosts.sh"))}
+      ${indent(6, file("${files_path}/update-hosts-genders.sh"))}
