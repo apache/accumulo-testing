@@ -30,6 +30,85 @@ Possible commands:
 EOF
 }
 
+# Starts a app specific agitator
+# usage: start_app_agitator app_name kill_sleep_time restart_sleep_time min_kill max_kill start_cmd kill_cmd
+# Requires that a list of hosts to be set in $APP_HOSTS
+function start_app_agitator() {
+  local app_name=$1
+  local kill_sleep_time=$2
+  local restart_sleep_time=$3
+  local min_kill=$4
+  local max_kill=$5
+  local start_cmd=$6
+  local kill_cmd=$7
+  local hosts_array; readarray -td' ' hosts_array < <(get_app_hosts "$app_name")
+  local num_hosts=${#hosts_array[@]}
+  local node_to_kill
+  nodes_to_kill_array=()
+  local T
+  local ENV_VARS="ACCUMULO_HOME=$ACCUMULO_HOME ZOOKEEPER_HOME=$ZOOKEEPER_HOME HADOOP_HOME=$HADOOP_HOME JAVA_HOME=$JAVA_HOME"
+
+  if (( num_hosts == 0 )); then
+    echo "ERROR: No hosts were found in env for $app_name"
+    exit 1
+  fi
+  if (( max_kill > num_hosts )); then
+    echo "ERROR: Max kill $max_kill is greater than number of hosts $num_hosts"
+    exit 1
+  fi
+  if (( max_kill < min_kill )); then
+    echo "ERROR: Max kill $max_kill is less than min kill $min_kill"
+    exit 1
+  fi
+
+  T="$(date +'%Y%m%d %H:%M:%S')"
+  echo "$T Starting $app_name agitation. Kill every $kill_sleep_time minutes, restart every $restart_sleep_time minutes."
+  echo "$T Will randomly kill between $min_kill and $max_kill of the following: ${hosts_array[*]}"
+  while true; do
+    echo "$T Sleeping for $kill_sleep_time minutes"
+    sleep $((kill_sleep_time * 60))
+
+    T="$(date +'%Y%m%d %H:%M:%S')"
+    if ((max_kill == 1)) ; then
+      node_to_kill=${hosts_array[0]}
+      echo "$T Killing $app_name at $node_to_kill"
+      ssh "$node_to_kill" "$kill_cmd"
+    else
+      local num_to_kill=$((min_kill + RANDOM % max_kill))
+      # get the random nodes to kill
+      local count=0
+      while [[ $count -lt $num_to_kill ]]; do
+        randomHostIndex=$((1 + RANDOM % num_hosts))
+        node_to_kill=${hosts_array[randomHostIndex]}
+        # only add host to the array if its not already there
+        if [[ ! " ${nodes_to_kill_array[*]} " =~ $node_to_kill ]]; then
+          nodes_to_kill_array[count]=$node_to_kill
+        fi
+        count=${#nodes_to_kill_array[@]}
+      done
+      echo "$T Killing $count $app_name nodes"
+      for i in "${nodes_to_kill_array[@]}"; do
+        ssh "$i" "$kill_cmd"
+      done
+    fi
+
+    T="$(date +'%Y%m%d %H:%M:%S')"
+    echo "$T Sleeping for $restart_sleep_time minutes."
+    sleep $((restart_sleep_time * 60))
+
+    T="$(date +'%Y%m%d %H:%M:%S')"
+    if ((max_kill == 1)) ; then
+      echo "$T Restarting $app_name at $node_to_kill"
+      ssh "$node_to_kill" "bash -c '${ENV_VARS} $start_cmd'"
+    else
+      for i in "${nodes_to_kill_array[@]}"; do
+        echo "$T Restarting $app_name node at ${i}"
+        ssh "$i" "bash -c '${ENV_VARS} $start_cmd'"
+      done
+    fi
+  done
+}
+
 function start_agitator() {
   ## check that pssh is installed, falling back to parallel-ssh if needed
   ## make sure to export it, so it can be seen inside the agitator perl script
@@ -40,58 +119,85 @@ function start_agitator() {
   else
     echo >&2 "The agitator requires pssh/parallel-ssh to be installed. Aborting."; exit 1;
   fi
+  ## read configuration into env variables
+  read_cluster_conf
 
   mkdir -p "${at_home}/logs"
   log_base="${at_home}/logs/$(date +%Y%m%d%H%M%S)_$(hostname)"
-  libexec="${at_home}/libexec"
-  master_log="${log_base}_master-agitator"
-  tserver_log="${log_base}_tserver-agitator"
-  datanode_log="${log_base}_datanode-agitator"
-  master_cmd="nohup ${libexec}/master-agitator.pl $AGTR_MASTER_KILL_SLEEP_TIME $AGTR_MASTER_RESTART_SLEEP_TIME"
-  tserver_cmd="nohup ${libexec}/tserver-agitator.pl $AGTR_TSERVER_KILL_SLEEP_TIME $AGTR_TSERVER_RESTART_SLEEP_TIME $AGTR_TSERVER_MIN_KILL $AGTR_TSERVER_MAX_KILL"
-  datanode_cmd="nohup ${libexec}/datanode-agitator.pl $AGTR_DATANODE_KILL_SLEEP_TIME $AGTR_DATANODE_RESTART_SLEEP_TIME $HADOOP_HOME $AGTR_DATANODE_MIN_KILL $AGTR_DATANODE_MAX_KILL"
+  manager_log="${log_base}_manager-agitator.log"
+  tserver_log="${log_base}_tserver-agitator.log"
+  datanode_log="${log_base}_datanode-agitator.log"
+  datanode_kill_cmd="pkill -9 -f '[p]roc_datanode'"
+  datanode_start_cmd="$HADOOP_HOME/bin/hdfs --daemon start datanode"
+  manager_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main manager'"
+  manager_start_cmd="$ACCUMULO_HOME/bin/accumulo-service manager start"
+  tserver_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main tserver'"
+  tserver_start_cmd="$ACCUMULO_HOME/bin/accumulo-service tserver start"
+
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
 
-  if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]]; then
-    echo "Running master-agitator and tserver-agitator as $AGITATOR_USER"
-    $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
-    $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
-  else
-    echo "Running master-agitator and tserver-agitator as $AGTR_ACCUMULO_USER using sudo."
-    sudo --preserve-env=PSSH -u "$AGTR_ACCUMULO_USER" $master_cmd > "${master_log}.out" 2> "${master_log}.err" &
-    sudo -u "$AGTR_ACCUMULO_USER" $tserver_cmd > "${tserver_log}.out" 2> "${tserver_log}.err" &
+  if [[ $AGITATOR_USER != "$AGTR_ACCUMULO_USER" ]]; then
+    sudo -i -u "$AGTR_ACCUMULO_USER"
   fi
-  if [[ $AGITATOR_USER == "$AGTR_HDFS_USER" ]]; then
-    echo "Running datanode-agitator as $AGITATOR_USER"
-    $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
-  else
-    echo "Running datanode-agitator as $AGTR_HDFS_USER using sudo."
-    sudo -u "$AGTR_HDFS_USER" $datanode_cmd > "${datanode_log}.out" 2> "${datanode_log}.err" &
+  echo "Starting manager and tserver agitation as $(whoami)"
+  start_app_agitator manager "$AGTR_MANAGER_KILL_SLEEP_TIME" "$AGTR_MANAGER_RESTART_SLEEP_TIME" 1 1 "$manager_start_cmd" "$manager_kill_cmd" > "$manager_log" 2>&1 &
+  start_app_agitator tserver "$AGTR_TSERVER_KILL_SLEEP_TIME" "$AGTR_TSERVER_RESTART_SLEEP_TIME" "$AGTR_TSERVER_MIN_KILL" "$AGTR_TSERVER_MAX_KILL" "$tserver_start_cmd" "$tserver_kill_cmd" > "$tserver_log" 2>&1 &
+
+  if [[ $AGITATOR_USER != "$AGTR_HDFS_USER" ]]; then
+    sudo -i -u "$AGTR_HDFS_USER"
   fi
+  echo "Running datanode agitator as $(whoami)"
+  start_app_agitator datanode "$AGTR_DATANODE_KILL_SLEEP_TIME" "$AGTR_DATANODE_RESTART_SLEEP_TIME" "$AGTR_DATANODE_MIN_KILL" "$AGTR_DATANODE_MAX_KILL" "$datanode_start_cmd" "$datanode_kill_cmd" > "${datanode_log}" 2>&1 &
 
   if ${AGTR_HDFS:-false} ; then
     agitator_log=${log_base}_hdfs-agitator
-    sudo -u "$AGTR_HDFS_SUPERUSER" nohup "${libexec}/hdfs-agitator.pl" --sleep "${AGTR_HDFS_SLEEP_TIME}" --hdfs-cmd "${AGTR_HDFS_COMMAND}" --superuser "${AGTR_HDFS_SUPERUSER}" >"${agitator_log}.out" 2>"${agitator_log}.err" &
+    sudo -u "$AGTR_HDFS_SUPERUSER" nohup "${at_home}/libexec/hdfs-agitator.pl" --sleep "${AGTR_HDFS_SLEEP_TIME}" --hdfs-cmd "${AGTR_HDFS_COMMAND}" --superuser "${AGTR_HDFS_SUPERUSER}" >"${agitator_log}.out" 2>"${agitator_log}.err" &
   fi
 }
 
 function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
-  if [[ $AGITATOR_USER == "$AGTR_ACCUMULO_USER" ]];  then
-    echo "Stopping all processes matching 'datanode-agitator.pl' as $AGTR_HDFS_USER"
-    sudo -u "$AGTR_HDFS_USER" pkill -f datanode-agitator.pl 2>/dev/null
-    echo "Stopping all processes matching 'hdfs-agitator.pl' as $AGTR_HDFS_USER"
-    sudo -u "$AGTR_HDFS_USER" pkill -f hdfs-agitator.pl 2>/dev/null
-    echo "Stopping all processes matching 'agitator.pl' as $AGITATOR_USER"
-    pkill -f agitator.pl 2>/dev/null 2>/dev/null
-  else
-    echo "Stopping all processes matching 'datanode-agitator.pl' as $AGTR_HDFS_USER"
-    sudo -u "$AGTR_HDFS_USER" pkill -f datanode-agitator.pl 2>/dev/null
-    echo "Stopping all processes matching 'hdfs-agitator.pl' as $AGTR_HDFS_USER"
-    sudo -u "$AGTR_HDFS_USER" pkill -f hdfs-agitator.pl 2>/dev/null
-    echo "Stopping all processes matching 'agitator.pl' as $AGTR_ACCUMULO_USER"
-    sudo -u "$AGTR_ACCUMULO_USER" pkill -f agitator.pl 2>/dev/null
+  echo "Stopping all processes in the same process group as 'agitator' as user $AGITATOR_USER"
+  ## get process ids of all agitator processes (return 1 if none found)
+  local agitator_pids=(); agitator_pids=($(pgrep -f "agitator start")) || return 1
+  ## get the group process ids of all agitator processes
+  local group_pids=(); group_pids=($(ps -o pgid= -p "${agitator_pids[@]}"))
+  ## kill all processes in the process groups (should include agitators and their sleep processes)
+  kill -- "${group_pids[@]/#/-}"
+}
+
+function parse_fail() {
+  echo "Failed to parse ${conf}/cluster.yaml"
+  exit 1
+}
+
+# Read the configuration from cluster.yaml - expects at least the manager and tservers
+function read_cluster_conf() {
+  conf="${ACCUMULO_HOME}/conf"
+  echo "Reading cluster config from ${conf}/cluster.yaml"
+  trap 'rm -f "$CONFIG_FILE"' EXIT
+  CONFIG_FILE=$(mktemp) || exit 1
+  accumulo org.apache.accumulo.core.conf.cluster.ClusterConfigParser "${conf}"/cluster.yaml > "$CONFIG_FILE" || parse_fail
+  . "$CONFIG_FILE"
+  rm -f "$CONFIG_FILE"
+
+  if [[ -z $MANAGER_HOSTS ]]; then
+    echo "ERROR: managers not found in ${conf}/cluster.yaml"
+    exit 1
   fi
+  if [[ -z $TSERVER_HOSTS ]]; then
+    echo "ERROR: tservers not found in ${conf}/cluster.yaml"
+    exit 1
+  fi
+}
+
+# Given an app_name $1, return the space separated string of hosts through echo
+function get_app_hosts() {
+  case "$1" in
+    manager)  echo -n "$MANAGER_HOSTS" ;;
+    tserver|datanode) echo -n "$TSERVER_HOSTS" ;;
+    *) return 1 ;;
+  esac
 }
 
 case "$1" in
