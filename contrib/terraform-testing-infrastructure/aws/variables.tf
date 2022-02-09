@@ -68,7 +68,7 @@ variable "create_route53_records" {
 
 variable "private_network" {
   default     = false
-  description = "Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones."
+  description = "Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones."
   type        = bool
   nullable    = false
 }
