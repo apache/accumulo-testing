@@ -119,6 +119,12 @@ resource "local_file" "hadoop-hdfs-config" {
   content         = templatefile("${local.templates_dir}/hdfs-site.xml.tftpl", local.template_vars)
 }
 
+resource "local_file" "hadoop-yarn-config" {
+  filename        = "${local.conf_dir}/yarn-site.xml"
+  file_permission = "644"
+  content         = templatefile("${local.templates_dir}/yarn-site.xml.tftpl", local.template_vars)
+}
+
 resource "local_file" "accumulo-cluster-config" {
   filename        = "${local.conf_dir}/cluster.yaml"
   file_permission = "644"
@@ -153,6 +159,18 @@ resource "local_file" "datanode-systemd" {
   filename        = "${local.conf_dir}/hadoop-datanode.service"
   file_permission = "644"
   content         = templatefile("${local.templates_dir}/hadoop-datanode.service.tftpl", local.template_vars)
+}
+
+resource "local_file" "resourcemanager-systemd" {
+  filename        = "${local.conf_dir}/yarn-resourcemanager.service"
+  file_permission = "644"
+  content         = templatefile("${local.templates_dir}/yarn-resourcemanager.service.tftpl", local.template_vars)
+}
+
+resource "local_file" "nodemanager-systemd" {
+  filename        = "${local.conf_dir}/yarn-nodemanager.service"
+  file_permission = "644"
+  content         = templatefile("${local.templates_dir}/yarn-nodemanager.service.tftpl", local.template_vars)
 }
 
 resource "local_file" "zookeeper-systemd" {
@@ -198,12 +216,15 @@ resource "null_resource" "upload_config_files" {
     local_file.zookeeper-config,
     local_file.hadoop-core-config,
     local_file.hadoop-hdfs-config,
+    local_file.hadoop-yarn-config,
     local_file.accumulo-cluster-config,
     local_file.accumulo-properties-config,
     local_file.accumulo-client-properties-config,
     local_file.telegraf-config,
     local_file.namenode-systemd,
     local_file.datanode-systemd,
+    local_file.resourcemanager-systemd,
+    local_file.nodemanager-systemd,
     local_file.zookeeper-systemd,
     local_file.hadoop-bash-profile,
     local_file.hadoop-bashrc,

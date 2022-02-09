@@ -112,6 +112,7 @@ data "aws_ami" "centos_ami" {
 # Lookup the AWS private zone
 #
 data "aws_route53_zone" "private_zone" {
+  count        = var.create_route53_records ? 1 : 0
   name         = var.route53_zone
   private_zone = true
 }
@@ -182,7 +183,7 @@ resource "aws_instance" "accumulo-testing" {
     ]
     connection {
       type = "ssh"
-      host = self.private_ip
+      host = var.private_network ? self.private_ip : self.public_ip
       user = "hadoop"
     }
   }
@@ -284,8 +285,8 @@ module "configure_nodes" {
 
 resource "aws_route53_record" "manager" {
   count   = var.create_route53_records ? 1 : 0
-  zone_id = data.aws_route53_zone.private_zone.zone_id
-  name    = "manager-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone.name}"
+  zone_id = data.aws_route53_zone.private_zone[0].zone_id
+  name    = "manager-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone[0].name}"
   type    = "A"
   ttl     = "300"
   records = [var.private_network ? local.manager_private_ip : local.manager_ip]
@@ -293,8 +294,8 @@ resource "aws_route53_record" "manager" {
 
 resource "aws_route53_record" "worker" {
   count   = var.create_route53_records ? length(local.worker_ips) : 0
-  zone_id = data.aws_route53_zone.private_zone.zone_id
-  name    = "worker${count.index}-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone.name}"
+  zone_id = data.aws_route53_zone.private_zone[0].zone_id
+  name    = "worker${count.index}-${var.accumulo_branch_name}-${terraform.workspace}.${data.aws_route53_zone.private_zone[0].name}"
   type    = "A"
   ttl     = "300"
   records = [var.private_network ? local.worker_private_ips[count.index] : local.worker_ips[count.index]]

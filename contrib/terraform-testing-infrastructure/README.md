@@ -352,6 +352,7 @@ following components will run on the `manager` node:
 
 - Apache ZooKeeper
 - Apache Hadoop NameNode
+- Apache Hadoop Yarn ResourceManager
 - Apache Accumulo Manager
 - Apache Accumulo Monitor
 - Apache Accumulo GarbageCollector
@@ -363,6 +364,7 @@ following components will run on the `manager` node:
 The following components will run on the `worker` nodes:
 
 - Apache Hadoop DataNode
+- Apache Hadoop Yarn NodeManager
 - Apache Accumulo TabletServer
 - Apache Accumulo Compactor(s)
 
@@ -406,14 +408,18 @@ Short Term access keys in your environment
 
 For an `aws` cluster, you can access the software configuration/management web pages here:
 - Hadoop NameNode: http://manager-main-default.${route53_zone}:9870
+- Yarn ResourceManager: http://manager-main-default.${route53_zone}:8088
 - Hadoop DataNode: http://worker#-main-default.${route53_zone}:9864
+- Yarn NodeManager: http://worker#-main-default.${route53_zone}:8042
 - Accumulo Monitor: http://manager-main-default.${route53_zone}:9995
 - Jaeger Tracing UI: http://manager-main-default.${route53_zone}:16686
 - Grafana: http://manager-main-default.${route53_zone}:3003
 
 For an `azure` cluster, you can access the software configuration/management web pages here:
 - Hadoop NameNode: http://manager-public-ip-address:9870
+- Yarn ResourceManager: http://manager-public-ip-address:8088
 - Hadoop DataNode: http://worker#-public-ip-address:9864
+- Yarn NodeManager: http://worker#-public-ip-address:8042
 - Accumulo Monitor: http://manager-public-ip-address:9995
 - Jaeger Tracing UI: http://manager-public-ip-address:16686
 - Grafana: http://manager-public-ip-address:3003
