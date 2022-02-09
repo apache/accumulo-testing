@@ -22,7 +22,7 @@
 
 2. Create the Shared State
 
-  NOTE: You only need to do this once. Iif you are sharing the cluster with a team,
+  NOTE: You only need to do this once. If you are sharing the cluster with a team,
         then only one person needs to do it and they need to share the bucket with
         the other team members.
 
@@ -57,7 +57,7 @@ authorized_ssh_keys = [
 
   cd aws
 
-  create the configuration section of the README. For example you can create
+  Create the configuration section of the README. For example you can create
     Example in HCL syntax:
 
   terraform init --backend-config=bucket=<bucket-name-goes-here>
@@ -69,5 +69,6 @@ authorized_ssh_keys = [
   resources that were created. If created correctly, you should be able to
   ssh to the nodes using "ssh hadoop@ip". If you created DNS addresses for
   the nodes, then you should be able to ssh using those addresses also. You
-  should also be able to access the web pages (see the README for ports)
+  should also be able to access the web pages (see the "Accessing Web
+  Pages" section of the README for ports)
 

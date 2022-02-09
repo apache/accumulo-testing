@@ -84,7 +84,7 @@ data "cloudinit_config" "cfg" {
   }
 
   # Allow for a user-specified cloud-init script to be passed in.
-  # This will alwsys be included, but if it's empty then cloud-init
+  # This will always be included, but if it's empty then cloud-init
   # will ignore it.
   part {
     filename     = "userdefined.cfg"

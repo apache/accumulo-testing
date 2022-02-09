@@ -321,7 +321,7 @@ resource "azurerm_linux_virtual_machine" "workers" {
 ##############################
 
 #
-# This section creates the ZooKeeper, Hadoop, and Accumulo confguration files
+# This section creates the ZooKeeper, Hadoop, and Accumulo configuration files
 # using templates in the templates directory and IP addresses from the EC2
 # nodes that we created above and variables.
 #
@@ -354,7 +354,7 @@ module "config_files" {
 }
 
 #
-# This module updloads any local tarballs to the manager VM and
+# This module uploads any local tarballs to the manager VM and
 # stores them on the NFS share.
 #
 module "upload_software" {

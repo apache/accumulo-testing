@@ -31,7 +31,7 @@ This Git repository contains several [Terraform](https://www.terraform.io/) conf
     - `shared_state/azure` creates an Azure resource group and storage account that are a
       prerequisite for the Terraform configuration in `azure`.
   - `aws` creates the following AWS resources:
-    1. Creates one or more EC2 nodes for running the different components. Currently the
+    1. Creates one or more EC2 nodes for running the different components. Currently, the
        configuration uses the m5.2xlarge instance type which provides 8 vCPUs, 32GB RAM, and an EBS
        backed root volume.
     2. Runs commands on the EC2 nodes after they are started (5 minutes according to the docs) to
@@ -78,7 +78,7 @@ EOF
 ```
 
 Assuming the bucket variable is not overridden, the generated S3 bucket name will appear in the
-terraform apply output, like the following example:
+`terraform` apply output, like the following example:
 ```
 Outputs:
 
@@ -94,7 +94,7 @@ If you change any of the backend storage configuration parameters over their def
 need to override them when you initialize terraform for the `aws` or `azure` configuration
 below. For example, if you change the region where the S3 bucket is deployed from `us-east-1` to
 `us-west-2`, then you would need to run `terraform init` in the `aws` directory (not the
-shared_state initialization, but the main `aws` dir initializtion) with:
+shared_state initialization, but the main `aws` directory initialization) with:
 ```bash
 terraform init -backend-config=region=us-west-2
 ```
@@ -131,7 +131,7 @@ the following directories/files:
       [Cloud Init](https://cloudinit.readthedocs.org/) configuration to configure AWS instances or
       Azure VMs with necessary Linux packages, user accounts, etc.
     - `config-files` - contains template configuration files for various components of the cluster
-      (e.g., HDFS, Accumulo, Grafana, etc) as well as helper scripts to install the software
+      (e.g., HDFS, Accumulo, Grafana, etc.) as well as helper scripts to install the software
       components that cannot be installed via cloud-init.
     - `upload-software` - if pre-built binaries for downloaded software components (Hadoop, Accumulo,
       Zookeeper, Maven) are included, this module uploads them to the cluster
@@ -167,7 +167,7 @@ The table below lists the variables and their default values that are used in th
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
-| private\_network | Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
+| private\_network | Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
 | route53\_zone | The name of the Route53 zone in which to create DNS addresses | `any` | n/a | yes |
 | security\_group | The Security Group to use when creating AWS objects | `any` | n/a | yes |
@@ -370,7 +370,7 @@ git pull
 mvn -s ${software_root}/apache-maven/settings.xml clean package -DskipTests -DskipITs
 ```
 
-## Deployment Overiew
+## Deployment Overview
 
 The first node that is created is called the `manager`, the others are `worker` nodes. The
 following components will run on the `manager` node:
@@ -484,9 +484,9 @@ Then, when the cluster is created, you can log in to a node with
 ### SSH'ing to other nodes
 
 The `/etc/hosts` file on each node has been updated with the names (manager, worker0, worker1,
-etc..) and IP addresses of the nodes. `pdsh` has been installed and `/etc/genders` has been
+etc.) and IP addresses of the nodes. `pdsh` has been installed and `/etc/genders` has been
 configured. You should be able to `ssh` to any node as the `hadoop` user without a password.
-Likewise you should be able to `pdsh` commands to groups of nodes as the hadoop user. The pdsh
+Likewise, you should be able to `pdsh` commands to groups of nodes as the hadoop user. The `pdsh`
 genders group `manager` specifies the manager node, and the `worker` group will specify all
 worker nodes.
 
