@@ -43,11 +43,33 @@ or DynamoDB table, or an Azure resource group, storage account, and container. T
 need to be created once and are used for sharing the Terraform state with a team. To read more
 about this see [remote state](https://www.terraform.io/docs/language/state/remote.html). The AWS
 shared state instructions are based on
-[this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). This
-configuration is simple, there are no variables, but you may need to change the aws region in
-`main.tf`. 
+[this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). 
 
 To generate the storage, run `terraform init` followed by `terraform apply`.
+
+The default AWS configuration generates the S3 bucket name when `terraform apply` is run. This
+ensures that a globally unique S3 bucket name is used. It is not required to set any variables for
+the shared state. However, if you wish to override any variable values, this can be done by
+creating an `aws.auto.tfvars` file in the `shared_state/aws` directory. For example:
+```bash
+cd shared_state/aws
+cat > aws.auto.tfvars << EOF
+bucket_force_destroy = true
+EOF
+```
+
+Assuming the bucket variable is not overridden, the generated S3 bucket name will appear in the
+terraform apply output, like the following example:
+```
+Outputs:
+
+bucket_name = "terraform-20220209131315353700000001"
+```
+This value should be supplied to `terraform init` in the [aws](./aws) directory as described below.
+Using the example above, the init command for the aws directory would be:
+```bash
+terraform init -backend-config=bucket=terraform-20220209131315353700000001
+```
 
 If you change any of the backend storage configuration parameters over their defaults, you will
 need to override them when you initialize terraform for the `aws` or `azure` configuration
@@ -118,7 +140,7 @@ The table below lists the variables and their default values that are used in th
 | authorized\_ssh\_key\_files | List of SSH public key files for the developers that will log into the cluster | `list(string)` | `[]` | no |
 | authorized\_ssh\_keys | List of SSH keys for the developers that will log into the cluster | `list(string)` | n/a | yes |
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
-| create\_route53\_records | Indicates whether or not route53 records will be created | `boolean` | `false` | no |
+| create\_route53\_records | Indicates whether or not route53 records will be created | `bool` | `false` | no |
 | hadoop\_dir | The Hadoop directory on each EC2 node | `string` | `"/data/hadoop"` | no |
 | hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
@@ -126,7 +148,7 @@ The table below lists the variables and their default values that are used in th
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
-| private\_network | Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `boolean` | `false` | no |
+| private\_network | Indicates wether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
 | route53\_zone | The name of the Route53 zone in which to create DNS addresses | `any` | n/a | yes |
 | security\_group | The Security Group to use when creating AWS objects | `any` | n/a | yes |
@@ -135,6 +157,7 @@ The table below lists the variables and their default values that are used in th
 | us\_east\_1e\_subnet | The AWS subnet id for the us-east-1e subnet | `any` | n/a | yes |
 | zookeeper\_dir | The ZooKeeper directory on each EC2 node | `string` | `"/data/zookeeper"` | no |
 | zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.5.9"` | no |
+
 The following outputs are returned by the `aws` Terraform configuration.
 
 | Name | Description |
@@ -398,14 +421,27 @@ For an `aws` cluster, you can access the software configuration/management web p
 - Jaeger Tracing UI: http://manager-main-default.${route53_zone}:16686
 - Grafana: http://manager-main-default.${route53_zone}:3003
 
-For an `azure` cluster, you can access the software configuration/management web pages here:
-- Hadoop NameNode: http://manager-public-ip-address:9870
-- Yarn ResourceManager: http://manager-public-ip-address:8088
-- Hadoop DataNode: http://worker#-public-ip-address:9864
-- Yarn NodeManager: http://worker#-public-ip-address:8042
-- Accumulo Monitor: http://manager-public-ip-address:9995
-- Jaeger Tracing UI: http://manager-public-ip-address:16686
-- Grafana: http://manager-public-ip-address:3003
+The `azure` cluster creates a network security group that limits public access to port 22 (SSH).
+Therefore, to access configuration/management web pages, you should create a SOCKS proxy and use
+a browser plugin such as
+[FoxyProxy Standard](https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp)
+to point the browser to the SOCKS proxy. Create the proxy with
+```bash
+ssh -C2qTnNf -D 9876 hadoop@<manager-public-ip-address>
+```
+Configure FoxyProxy (or your browser directly) to connect to the proxy on localhost port 9876
+(change the port specified in the `-D` option above to use a different proxy port). If you
+configure FoxyProxy with a SOCKS 5 proxy to match the URL regex patterns `https?://manager:.*` and
+`https?://worker[0-9]+:.*`, then you can leave FoxyProxy set to
+"Use proxies based on their pre-defined patterns and priorities" and access the web pages through
+the proxy while other web pages will not use the proxy.
+- Hadoop NameNode: http://manager:9870
+- Yarn ResourceManager: http://manager:8088
+- Hadoop DataNode: http://worker#:9864
+- Yarn NodeManager: http://worker#:8042
+- Accumulo Monitor: http://manager:9995
+- Jaeger Tracing UI: http://manager:16686
+- Grafana: http://manager:3003
 
 
 ## Accessing the cluster nodes
