@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -eo pipefail
+
+#
+# Copy local systemctl unit files into place and enable zookeeper, the namenode, and the resourcemanager
+#
+sudo cp ${software_root}/conf/zookeeper.service /etc/systemd/system/zookeeper.service
+sudo cp ${software_root}/conf/hadoop-namenode.service /etc/systemd/system/hadoop-namenode.service
+sudo cp ${software_root}/conf/yarn-resourcemanager.service /etc/systemd/system/yarn-resourcemanager.service
+sudo systemctl daemon-reload
+sudo systemctl enable zookeeper
+sudo systemctl enable hadoop-namenode
+sudo systemctl enable yarn-resourcemanager
+
+#
+# Copy the datanode and nodemanager systemd unit file to each worker, and enable them there.
+#
+pdcp -g worker ${software_root}/conf/hadoop-datanode.service ${software_root}/conf/yarn-nodemanager.service /tmp/.
+pdsh -S -g worker "sudo cp /tmp/{hadoop-datanode,yarn-nodemanager}.service /etc/systemd/system/. && rm -f /tmp/{hadoop-datanode,yarn-nodemanager}.service"
+pdsh -S -g worker sudo systemctl daemon-reload
+pdsh -S -g worker sudo systemctl enable hadoop-datanode yarn-nodemanager
+
+#
+# Startup HDFS cluster
+# 1. Start zookeeper
+# 2. Format the namenode
+# 3. Start the namenode
+# 4. Start the resource manager
+# 5. Start datanodes and nodemanagers on the worker nodes
+#
+sudo systemctl start zookeeper
+hdfs namenode -format
+sudo systemctl start hadoop-namenode
+sudo systemctl start yarn-resourcemanager
+pdsh -S -g worker 'sudo systemctl start hadoop-datanode yarn-nodemanager'

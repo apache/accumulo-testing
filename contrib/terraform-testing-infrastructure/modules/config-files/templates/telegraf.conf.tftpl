@@ -1,0 +1,301 @@
+# Telegraf Configuration
+#
+# Telegraf is entirely plugin driven. All metrics are gathered from the
+# declared inputs, and sent to the declared outputs.
+#
+# Plugins must be declared in here to be active.
+# To deactivate a plugin, comment out the name and any variables.
+#
+# Use 'telegraf -config telegraf.conf -test' to see what metrics a config
+# file would generate.
+#
+
+
+# Global tags can be specified here in key="value" format.
+[global_tags]
+  # dc = "us-east-1" # will tag all metrics with dc=us-east-1
+  # rack = "1a"
+  ## Environment variables can be used as tags, and throughout the config file
+  # user = "$USER"
+
+
+# Configuration for telegraf agent
+[agent]
+  ## Default data collection interval for all inputs
+  interval = "10s"
+  ## Rounds collection interval to 'interval'
+  ## ie, if interval="10s" then always collect on :00, :10, :20, etc.
+  round_interval = true
+
+  ## Telegraf will send metrics to outputs in batches of at most
+  ## metric_batch_size metrics.
+  ## This controls the size of writes that Telegraf sends to output plugins.
+  metric_batch_size = 1000
+
+  ## Maximum number of unwritten metrics per output.  Increasing this value
+  ## allows for longer periods of output downtime without dropping metrics at the
+  ## cost of higher maximum memory usage.
+  metric_buffer_limit = 100000
+
+  ## Collection jitter is used to jitter the collection by a random amount.
+  ## Each plugin will sleep for a random time within jitter before collecting.
+  ## This can be used to avoid many plugins querying things like sysfs at the
+  ## same time, which can have a measurable effect on the system.
+  collection_jitter = "0s"
+
+  ## Default flushing interval for all outputs. Maximum flush_interval will be
+  ## flush_interval + flush_jitter
+  flush_interval = "5s"
+
+  ## Jitter the flush interval by a random amount. This is primarily to avoid
+  ## large write spikes for users running a large number of telegraf instances.
+  ## ie, a jitter of 5s and interval 10s means flushes will happen every 10-15s
+  flush_jitter = "0s"
+
+  ## By default or when set to "0s", precision will be set to the same
+  ## timestamp order as the collection interval, with the maximum being 1s.
+  ##   ie, when interval = "10s", precision will be "1s"
+  ##       when interval = "250ms", precision will be "1ms"
+  ## Precision will NOT be used for service inputs. It is up to each individual
+  ## service input to set the timestamp at the appropriate precision.
+  ## Valid time units are "ns", "us" (or "µs"), "ms", "s".
+  precision = ""
+
+  ## Log at debug level.
+  # debug = false
+  ## Log only error level messages.
+  # quiet = false
+
+  ## Log target controls the destination for logs and can be one of "file",
+  ## "stderr" or, on Windows, "eventlog".  When set to "file", the output file
+  ## is determined by the "logfile" setting.
+  # logtarget = "file"
+
+  ## Name of the file to be logged to when using the "file" logtarget.  If set to
+  ## the empty string then logs are written to stderr.
+  # logfile = ""
+
+  ## The logfile will be rotated after the time interval specified.  When set
+  ## to 0 no time based rotation is performed.  Logs are rotated only when
+  ## written to, if there is no log activity rotation may be delayed.
+  # logfile_rotation_interval = "0d"
+
+  ## The logfile will be rotated when it becomes larger than the specified
+  ## size.  When set to 0 no size based rotation is performed.
+  # logfile_rotation_max_size = "0MB"
+
+  ## Maximum number of rotated archives to keep, any older logs are deleted.
+  ## If set to -1, no archives are removed.
+  # logfile_rotation_max_archives = 5
+
+  ## Override default hostname, if empty use os.Hostname()
+  hostname = ""
+  ## If set to true, do no set the "host" tag in the telegraf agent.
+  omit_hostname = false
+
+
+###############################################################################
+#                            OUTPUT PLUGINS                                   #
+###############################################################################
+
+
+# Configuration for sending metrics to InfluxDB
+[[outputs.influxdb]]
+  ## The full HTTP or UDP URL for your InfluxDB instance.
+  ##
+  ## Multiple URLs can be specified for a single cluster, only ONE of the
+  ## urls will be written to each interval.
+  # urls = ["unix:///var/run/influxdb.sock"]
+  # urls = ["udp://127.0.0.1:8089"]
+  # urls = ["http://127.0.0.1:8086"]
+  urls = ["http://${manager_ip}:8086"]
+  
+  ## The target database for metrics; will be created as needed.
+  ## For UDP url endpoint database needs to be configured on server side.
+  database = "telegraf"
+
+  ## The value of this tag will be used to determine the database.  If this
+  ## tag is not set the 'database' option is used as the default.
+  # database_tag = ""
+
+  ## If true, the 'database_tag' will not be included in the written metric.
+  # exclude_database_tag = false
+
+  ## If true, no CREATE DATABASE queries will be sent.  Set to true when using
+  ## Telegraf with a user without permissions to create databases or when the
+  ## database already exists.
+  # skip_database_creation = false
+
+  ## Name of existing retention policy to write to.  Empty string writes to
+  ## the default retention policy.  Only takes effect when using HTTP.
+  # retention_policy = ""
+
+  ## The value of this tag will be used to determine the retention policy.  If this
+  ## tag is not set the 'retention_policy' option is used as the default.
+  # retention_policy_tag = ""
+
+  ## If true, the 'retention_policy_tag' will not be included in the written metric.
+  # exclude_retention_policy_tag = false
+
+  ## Write consistency (clusters only), can be: "any", "one", "quorum", "all".
+  ## Only takes effect when using HTTP.
+  # write_consistency = "any"
+
+  ## Timeout for HTTP messages.
+  # timeout = "5s"
+
+  ## HTTP Basic Auth
+  username = "telegraf"
+  password = "telegraf"
+
+  ## HTTP User-Agent
+  # user_agent = "telegraf"
+
+  ## UDP payload size is the maximum packet size to send.
+  # udp_payload = "512B"
+
+  ## Optional TLS Config for use on HTTP connections.
+  # tls_ca = "/etc/telegraf/ca.pem"
+  # tls_cert = "/etc/telegraf/cert.pem"
+  # tls_key = "/etc/telegraf/key.pem"
+  ## Use TLS but skip chain & host verification
+  # insecure_skip_verify = false
+
+  ## HTTP Proxy override, if unset values the standard proxy environment
+  ## variables are consulted to determine which proxy, if any, should be used.
+  # http_proxy = "http://corporate.proxy:3128"
+
+  ## Additional HTTP headers
+  # http_headers = {"X-Special-Header" = "Special-Value"}
+
+  ## HTTP Content-Encoding for write request body, can be set to "gzip" to
+  ## compress body or "identity" to apply no encoding.
+  # content_encoding = "identity"
+
+  ## When true, Telegraf will output unsigned integers as unsigned values,
+  ## i.e.: "42u".  You will need a version of InfluxDB supporting unsigned
+  ## integer values.  Enabling this option will result in field type errors if
+  ## existing data has been written.
+  # influx_uint_support = false
+
+
+###############################################################################
+#                            INPUT PLUGINS                                    #
+###############################################################################
+
+
+# Read metrics about cpu usage
+[[inputs.cpu]]
+  ## Whether to report per-cpu stats or not
+  percpu = true
+  ## Whether to report total system cpu stats or not
+  totalcpu = true
+  ## If true, collect raw CPU time metrics.
+  collect_cpu_time = false
+  ## If true, compute and report the sum of all non-idle CPU states.
+  report_active = false
+
+
+# Read metrics about disk usage by mount point
+[[inputs.disk]]
+  ## By default stats will be gathered for all mount points.
+  ## Set mount_points will restrict the stats to only the specified mount points.
+  # mount_points = ["/"]
+
+  ## Ignore mount points by filesystem type.
+  ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+
+
+# Read metrics about disk IO by device
+[[inputs.diskio]]
+  # no configuration
+
+# Get kernel statistics from /proc/stat
+[[inputs.kernel]]
+  # no configuration
+
+
+# Read metrics about memory usage
+[[inputs.mem]]
+  # no configuration
+
+
+# Get the number of processes and group them by status
+[[inputs.processes]]
+  # no configuration
+
+
+# Read metrics about swap memory usage
+[[inputs.swap]]
+  # no configuration
+
+
+# Read metrics about system load & uptime
+[[inputs.system]]
+  ## Uncomment to remove deprecated metrics.
+  # fielddrop = ["uptime_format"]
+
+
+###############################################################################
+#                            SERVICE INPUT PLUGINS                            #
+###############################################################################
+
+
+# Statsd UDP/TCP Server
+[[inputs.statsd]]
+  ## Protocol, must be "tcp", "udp", "udp4" or "udp6" (default=udp)
+  protocol = "udp"
+
+  ## MaxTCPConnection - applicable when protocol is set to tcp (default=250)
+  max_tcp_connections = 250
+
+  ## Enable TCP keep alive probes (default=false)
+  tcp_keep_alive = false
+
+  ## Specifies the keep-alive period for an active network connection.
+  ## Only applies to TCP sockets and will be ignored if tcp_keep_alive is false.
+  ## Defaults to the OS configuration.
+  # tcp_keep_alive_period = "2h"
+
+  ## Address and port to host UDP listener on
+  service_address = ":8125"
+
+  ## The following configuration options control when telegraf clears it's cache
+  ## of previous values. If set to false, then telegraf will only clear it's
+  ## cache when the daemon is restarted.
+  ## Reset gauges every interval (default=true)
+  delete_gauges = false
+  ## Reset counters every interval (default=true)
+  delete_counters = false
+  ## Reset sets every interval (default=true)
+  delete_sets = true
+  ## Reset timings & histograms every interval (default=true)
+  delete_timings = true
+
+  ## Percentiles to calculate for timing & histogram stats
+  percentiles = [50.0, 90.0, 99.0, 99.9, 99.95, 100.0]
+
+  ## separator to use between elements of a statsd metric
+  metric_separator = "_"
+
+  ## Parses tags in the datadog statsd format
+  ## http://docs.datadoghq.com/guides/dogstatsd/
+  parse_data_dog_tags = true
+
+  ## Parses datadog extensions to the statsd format
+  datadog_extensions = true
+
+  ## Statsd data translation templates, more info can be read here:
+  ## https://github.com/influxdata/telegraf/blob/master/docs/TEMPLATE_PATTERN.md
+  # templates = [
+  #     "cpu.* measurement*"
+  # ]
+
+  ## Number of UDP messages allowed to queue up, once filled,
+  ## the statsd server will start dropping packets
+  allowed_pending_messages = 1000000
+
+  ## Number of timing/histogram values to track per-measurement in the
+  ## calculation of percentiles. Raising this limit increases the accuracy
+  ## of percentiles but also increases the memory usage and cpu time.
+  percentile_limit = 1000
