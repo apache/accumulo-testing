@@ -32,6 +32,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -112,13 +113,16 @@ public class TestIngest {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
           args.numsplits);
 
-      if (!client.tableOperations().exists(args.tableName))
-        client.tableOperations().create(args.tableName);
-      try {
-        client.tableOperations().addSplits(args.tableName, splits);
-      } catch (TableNotFoundException ex) {
-        // unlikely
-        throw new RuntimeException(ex);
+      if (!client.tableOperations().exists(args.tableName)) {
+        client.tableOperations().create(args.tableName,
+            new NewTableConfiguration().withSplits(splits));
+      } else {
+        try {
+          client.tableOperations().addSplits(args.tableName, splits);
+        } catch (TableNotFoundException ex) {
+          // unlikely
+          throw new RuntimeException(ex);
+        }
       }
     }
   }
