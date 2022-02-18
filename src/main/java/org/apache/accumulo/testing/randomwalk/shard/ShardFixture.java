@@ -72,7 +72,7 @@ public class ShardFixture extends Fixture {
     client.tableOperations().create(name, ntc);
 
     String tableId = client.tableOperations().tableIdMap().get(name);
-    log.info("Created index table {}(id:{}) with {} splits", name, tableId, splits.size());
+    log.info("Created index table {} (id:{}) with {} splits", name, tableId, splits.size());
   }
 
   @Override
