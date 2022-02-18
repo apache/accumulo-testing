@@ -274,8 +274,8 @@ information related to how long such scans take.
 See the [readme.md](/test/automation/README.md).
 
 [Uno]: https://github.com/apache/fluo-uno
-[modules]: core/src/main/resources/randomwalk/modules
-[image]: core/src/main/resources/randomwalk/modules/Image.xml
+[modules]: src/main/resources/randomwalk/modules
+[image]: src/main/resources/randomwalk/modules/Image.xml
 [Docker Swarm]: https://docs.docker.com/engine/swarm/swarm-tutorial/
 [ti]: https://github.com/apache/accumulo-testing/workflows/QA/badge.svg
 [tl]: https://github.com/apache/accumulo-testing/actions
