@@ -16,8 +16,12 @@
  */
 package org.apache.accumulo.testing.randomwalk.multitable;
 
+import static java.util.stream.Collectors.toCollection;
+
 import java.net.InetAddress;
 import java.util.List;
+import java.util.OptionalInt;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -34,11 +38,27 @@ public class MultiTableFixture extends Fixture {
 
   @Override
   public void setUp(State state, RandWalkEnv env) throws Exception {
-
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
+    String prefix = String.format("multi_%s", hostname);
 
-    state.set("tableNamePrefix",
-        String.format("multi_%s_%s_%d", hostname, env.getPid(), System.currentTimeMillis()));
+    Set<String> all = env.getAccumuloClient().tableOperations().list();
+    List<String> tableList = all.stream().filter(s -> s.startsWith(prefix))
+        .collect(toCollection(CopyOnWriteArrayList::new));
+
+    log.debug("Existing MultiTables: {}", tableList);
+    // get the max of the last ID created
+    OptionalInt optionalInt = tableList.stream().mapToInt(s -> {
+      String[] strArr = s.split("_");
+      return Integer.parseInt(strArr[strArr.length - 1]);
+    }).max();
+    int nextId = optionalInt.orElse(-1) + 1;
+    log.debug("Next ID started at {}", nextId);
+
+    state.set("tableNamePrefix", prefix);
+    state.set("nextId", nextId);
+    state.set("numWrites", 0L);
+    state.set("totalWrites", 0L);
+    state.set("tableList", tableList);
     state.set("nextId", 0);
     state.set("numWrites", 0L);
     state.set("totalWrites", 0L);
