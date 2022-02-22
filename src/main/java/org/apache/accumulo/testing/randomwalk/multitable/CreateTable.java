@@ -22,6 +22,7 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -48,14 +49,11 @@ public class CreateTable extends Test {
     int nextId = (Integer) state.get("nextId");
     String tableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
     try {
-      client.tableOperations().create(tableName);
-      // Add some splits to make the server's life easier
-      client.tableOperations().addSplits(tableName, splits);
+      // Create table and add some splits to make the server's life easier
+      client.tableOperations().create(tableName, new NewTableConfiguration().withSplits(splits));
       String tableId = client.tableOperations().tableIdMap().get(tableName);
-      log.debug("created " + tableName + " (id:" + tableId + ")");
-      // Add some splits to make the server's life easier
-      client.tableOperations().addSplits(tableName, splits);
-      log.debug("created " + splits.size() + " splits on " + tableName);
+      log.debug("created table {} (id:{}) with {} splits", tableName, tableId, splits.size());
+
       @SuppressWarnings("unchecked")
       List<String> tables = (List<String>) state.get("tableList");
       tables.add(tableName);

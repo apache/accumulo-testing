@@ -18,6 +18,7 @@ package org.apache.accumulo.testing.scalability;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.testing.continuous.ContinuousIngest;
@@ -54,10 +56,11 @@ public class Ingest extends ScaleTest {
     }
 
     // create table
+    NewTableConfiguration ntc = new NewTableConfiguration();
+    ntc.withSplits(calculateSplits());
+    ntc.setProperties(Map.of("table.split.threshold", "256M"));
     try {
-      client.tableOperations().create(tableName);
-      client.tableOperations().addSplits(tableName, calculateSplits());
-      client.tableOperations().setProperty(tableName, "table.split.threshold", "256M");
+      client.tableOperations().create(tableName, ntc);
     } catch (Exception e) {
       log.error("Failed to create table '" + tableName + "'.", e);
     }

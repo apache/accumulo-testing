@@ -17,6 +17,7 @@
 package org.apache.accumulo.testing.randomwalk.shard;
 
 import java.net.InetAddress;
+import java.util.Map;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -24,6 +25,7 @@ import java.util.TreeSet;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.testing.randomwalk.Fixture;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
@@ -53,26 +55,24 @@ public class ShardFixture extends Fixture {
       throws Exception {
     AccumuloClient client = env.getAccumuloClient();
     String name = state.get("indexTableName") + suffix;
-    int numPartitions = (Integer) state.get("numPartitions");
-    boolean enableCache = (Boolean) state.get("cacheIndex");
-    client.tableOperations().create(name);
+
+    NewTableConfiguration ntc = new NewTableConfiguration();
+
+    int numPartitions = state.getInteger("numPartitions");
+    SortedSet<Text> splits = genSplits(numPartitions, rand.nextInt(numPartitions) + 1, "%06x");
+    ntc.withSplits(splits);
+
+    if ((Boolean) state.get("cacheIndex")) {
+      ntc.setProperties(Map.of(Property.TABLE_INDEXCACHE_ENABLED.getKey(), "true",
+          Property.TABLE_BLOCKCACHE_ENABLED.getKey(), "true"));
+
+      log.info("Enabling caching for table " + name);
+    }
+
+    client.tableOperations().create(name, ntc);
 
     String tableId = client.tableOperations().tableIdMap().get(name);
-    log.info("Created index table " + name + "(id:" + tableId + ")");
-
-    SortedSet<Text> splits = genSplits(numPartitions, rand.nextInt(numPartitions) + 1, "%06x");
-    client.tableOperations().addSplits(name, splits);
-
-    log.info("Added " + splits.size() + " splits to " + name);
-
-    if (enableCache) {
-      client.tableOperations().setProperty(name, Property.TABLE_INDEXCACHE_ENABLED.getKey(),
-          "true");
-      client.tableOperations().setProperty(name, Property.TABLE_BLOCKCACHE_ENABLED.getKey(),
-          "true");
-
-      log.info("Enabled caching for table " + name);
-    }
+    log.info("Created index table {} (id:{}) with {} splits", name, tableId, splits.size());
   }
 
   @Override
@@ -97,22 +97,18 @@ public class ShardFixture extends Fixture {
 
     createIndexTable(this.log, state, env, "", rand);
 
-    String docTableName = (String) state.get("docTableName");
-    client.tableOperations().create(docTableName);
-
-    String tableId = client.tableOperations().tableIdMap().get(docTableName);
-    log.info("Created doc table " + docTableName + " (id:" + tableId + ")");
-
+    String docTableName = state.getString("docTableName");
+    NewTableConfiguration ntc = new NewTableConfiguration();
     SortedSet<Text> splits = genSplits(0xff, rand.nextInt(32) + 1, "%02x");
-    client.tableOperations().addSplits(docTableName, splits);
-
-    log.info("Added " + splits.size() + " splits to " + docTableName);
-
+    ntc.withSplits(splits);
     if (rand.nextDouble() < .5) {
-      client.tableOperations().setProperty((String) state.get("docTableName"),
-          Property.TABLE_BLOOM_ENABLED.getKey(), "true");
-      log.info("Enabled bloom filters for table " + (String) state.get("docTableName"));
+      ntc.setProperties(Map.of(Property.TABLE_BLOOM_ENABLED.getKey(), "true"));
+      log.info("Enabling bloom filters for table {}", docTableName);
     }
+
+    client.tableOperations().create(docTableName, ntc);
+    String tableId = client.tableOperations().tableIdMap().get(docTableName);
+    log.info("Created doc table {} (id:{}) with {} splits", docTableName, tableId, splits.size());
   }
 
   @Override

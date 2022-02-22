@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -66,9 +67,8 @@ public class CopyTable extends Test {
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
-    env.getAccumuloClient().tableOperations().create(dstTableName);
-
-    env.getAccumuloClient().tableOperations().addSplits(dstTableName, splits);
+    env.getAccumuloClient().tableOperations().create(dstTableName,
+        new NewTableConfiguration().withSplits(splits));
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");

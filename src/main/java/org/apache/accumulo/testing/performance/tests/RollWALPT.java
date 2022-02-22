@@ -32,6 +32,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -115,10 +116,8 @@ public class RollWALPT implements PerformanceTest {
   }
 
   private void initTable(final String tableName, final AccumuloClient client)
-      throws AccumuloSecurityException, TableNotFoundException, AccumuloException,
-      TableExistsException {
-    client.tableOperations().create(tableName);
-    client.tableOperations().addSplits(tableName, getSplits());
+      throws AccumuloSecurityException, AccumuloException, TableExistsException {
+    client.tableOperations().create(tableName, new NewTableConfiguration().withSplits(getSplits()));
     client.instanceOperations().waitForBalance();
   }
 
