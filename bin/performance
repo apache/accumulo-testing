@@ -21,7 +21,7 @@
 
 bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
-at_version=2.0.0-SNAPSHOT
+at_version=2.1.0-SNAPSHOT
 
 function print_usage() {
   cat <<EOF

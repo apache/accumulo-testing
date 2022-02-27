@@ -67,7 +67,7 @@ run in Docker:
 
     * `conf/accumulo-client.properties` - Configure this file from your Accumulo install
     * `conf/accumulo-testing.properties` - Configure this file for testing
-    * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
+    * `target/accumulo-testing-2.1.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
 
    Run the following command to create the image. `HADOOP_HOME` should be where Hadoop is installed on your cluster.
    `HADOOP_USER_NAME` should match the user running Hadoop on your cluster.
