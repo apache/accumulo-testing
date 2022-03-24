@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.testing.randomwalk;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WAL_MAX_SIZE;
 
@@ -25,10 +26,11 @@ import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
 import org.apache.hadoop.conf.Configuration;
 import org.easymock.EasyMock;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-@Ignore("Replication ITs are not stable and not currently maintained")
+@Disabled("Replication ITs are not stable and not currently maintained")
 public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
   @Override
@@ -39,7 +41,8 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
   }
 
   @Deprecated
-  @Test(timeout = 5 * 60 * 1000)
+  @Test
+  @Timeout(value = 5, unit = MINUTES)
   public void runReplicationRandomWalkStep() throws Exception {
     var r = new org.apache.accumulo.testing.randomwalk.concurrent.Replication();
 
