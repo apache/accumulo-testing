@@ -392,12 +392,12 @@ public class ConditionalMutationsPT implements PerformanceTest {
   }
 
   private static Mutation genRow(int row, int numCols) {
-    String r = String.format("%08x", Math.abs(Hashing.murmur3_32().hashInt(row).asInt()));
+    String r = String.format("%08x", Math.abs(Hashing.murmur3_32_fixed().hashInt(row).asInt()));
     Mutation m = new Mutation(r);
 
     for (int col = 0; col < numCols; col++) {
       String c = String.format("%04x",
-          Math.abs(Hashing.murmur3_32().hashInt(col).asInt() & 0xffff));
+          Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
       m.put("data", c, "1");
     }
     return m;
@@ -409,7 +409,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     BatchWriter bw = env.getClient().createBatchWriter(tableName, new BatchWriterConfig());
     numRows = numRows * 10;
     for (int row = 0; row < numRows; row++) {
-      String r = String.format("%08x", Math.abs(Hashing.murmur3_32().hashInt(row).asInt()));
+      String r = String.format("%08x", Math.abs(Hashing.murmur3_32_fixed().hashInt(row).asInt()));
       Mutation m = new Mutation(r);
       m.put("ntfy", "absfasf3", "");
       bw.addMutation(m);
@@ -419,7 +419,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
   private static String randRow(Random rand, int numRows) {
     int row = rand.nextInt(numRows);
-    return String.format("%08x", Math.abs(Hashing.murmur3_32().hashInt(row).asInt()));
+    return String.format("%08x", Math.abs(Hashing.murmur3_32_fixed().hashInt(row).asInt()));
   }
 
   private static Collection<String> randCols(Random rand, int num, int numCols) {
@@ -427,7 +427,7 @@ public class ConditionalMutationsPT implements PerformanceTest {
     while (cols.size() < num) {
       int col = rand.nextInt(numCols);
       String c = String.format("%04x",
-          Math.abs(Hashing.murmur3_32().hashInt(col).asInt() & 0xffff));
+          Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
       cols.add(c);
     }
     return cols;
