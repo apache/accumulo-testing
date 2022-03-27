@@ -40,7 +40,7 @@ public class Generator {
 
   Random rand = new Random();
 
-  private Persistence persistence;
+  private final Persistence persistence;
 
   public Generator(GcsEnv gcsEnv) {
     this.persistence = new Persistence(gcsEnv);

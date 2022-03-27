@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public class Framework {
 
   private static final Logger log = LoggerFactory.getLogger(Framework.class);
-  private HashMap<String,Node> nodes = new HashMap<>();
+  private final HashMap<String,Node> nodes = new HashMap<>();
   private static final Framework INSTANCE = new Framework();
 
   /**
@@ -40,6 +40,12 @@ public class Framework {
    *
    * @param startName
    *          Full name of starting graph or test
+   * @param env
+   *          the test environment
+   * @param state
+   *          Random walk state passed between nodes
+   *
+   * @return 0 if successful, -1 if an exception is thrown during the random walk
    */
   public int run(String startName, State state, RandWalkEnv env) {
 

@@ -34,7 +34,6 @@
   <edge id="mt.BulkImport" weight="100"/>
   <edge id="mt.OfflineTable" weight="10"/>
   <edge id="mt.DropTable" weight="20"/>
-  <edge id="END" weight="1"/>
 </node>
 
 <node id="mt.Write">

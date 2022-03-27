@@ -102,7 +102,7 @@ public class Verify extends Test {
 
     Iterator<Entry<Key,Value>> scanIter = scanner.iterator();
 
-    if (scanIter.hasNext() == false) {
+    if (!scanIter.hasNext()) {
       log.error("Found row(" + row + ") in " + indexTableName + " but not " + imageTableName);
       return;
     }

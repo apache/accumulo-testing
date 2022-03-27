@@ -26,7 +26,7 @@ following command.
   japi-compliance-checker.pl -skip-deprecated -old japi-accumulo-1.5.xml -new japi-accumulo-1.6.xml -l accumulo
 ```
 
-Optionally, you can use the --skip-classes argument with the provided exclude_classes.txt file to skip classes from
+Optionally, you can use the --skip-classes argument with the provided `exclude_classes.txt` file to skip classes from
 org.apache.accumulo.core.data that aren't in the public API.
 
 This directory should have a library configuration file for each release on supported lines as well as an in-progress

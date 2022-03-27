@@ -42,7 +42,7 @@ import com.beust.jcommander.Parameter;
 
 public class Verify extends Test {
 
-  private static byte[] zero = new byte[] {'0'};
+  private static final byte[] zero = new byte[] {'0'};
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {

@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
@@ -52,6 +53,13 @@ public class CopyTable extends Test {
     int nextId = ((Integer) state.get("nextId")).intValue();
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
+    if (env.getAccumuloClient().tableOperations().exists(dstTableName)) {
+      log.debug(dstTableName + " already exists so don't copy.");
+      nextId++;
+      state.set("nextId", Integer.valueOf(nextId));
+      return;
+    }
+
     String[] args = new String[3];
     args[0] = env.getClientPropsPath();
     args[1] = srcTableName;
@@ -59,9 +67,8 @@ public class CopyTable extends Test {
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
-    env.getAccumuloClient().tableOperations().create(dstTableName);
-
-    env.getAccumuloClient().tableOperations().addSplits(dstTableName, splits);
+    env.getAccumuloClient().tableOperations().create(dstTableName,
+        new NewTableConfiguration().withSplits(splits));
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");

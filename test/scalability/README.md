@@ -26,7 +26,7 @@ your Accumulo instance. Do not run these tests on a cluster holding essential
 data.
 
 1.  Make sure you have both `ACCUMULO_HOME` and `HADOOP_HOME` set in your
-    `$ACCUMULO_CONF_DIR/accumulo-env.sh.`
+    `$ACCUMULO_CONF_DIR/accumulo-env.sh`
 
 2.  Edit the 'site.conf' file in the `conf` directory containing settings
     needed by test nodes to connect to Accumulo, and to guide the tests.

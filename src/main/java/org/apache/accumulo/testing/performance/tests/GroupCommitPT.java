@@ -48,14 +48,14 @@ public class GroupCommitPT implements PerformanceTest {
   private static final int NUM_FLUSHES = 1024;
 
   static Mutation createRandomMutation(Random rand) {
-    byte row[] = new byte[16];
+    byte[] row = new byte[16];
 
     rand.nextBytes(row);
 
     Mutation m = new Mutation(row);
 
-    byte cq[] = new byte[8];
-    byte val[] = new byte[16];
+    byte[] cq = new byte[8];
+    byte[] val = new byte[16];
 
     for (int i = 0; i < 3; i++) {
       rand.nextBytes(cq);
@@ -68,8 +68,8 @@ public class GroupCommitPT implements PerformanceTest {
 
   static class WriteTask implements Runnable {
 
-    private int batchSize;
-    private BatchWriter bw;
+    private final int batchSize;
+    private final BatchWriter bw;
     private volatile int written = 0;
 
     WriteTask(BatchWriter bw, int numMutations) throws Exception {
@@ -153,7 +153,7 @@ public class GroupCommitPT implements PerformanceTest {
         "The number of times each thread will flush its batch writer.  The flushes are spread evenly between mutations.");
 
     // number of threads to run for each test
-    int tests[] = new int[] {1, 2, 4, 8, 16, 32, 64};
+    int[] tests = new int[] {1, 2, 4, 8, 16, 32, 64};
 
     // run warm up test
     for (int numThreads : tests) {
@@ -174,7 +174,7 @@ public class GroupCommitPT implements PerformanceTest {
     Preconditions.checkArgument(NUM_MUTATIONS % numThreads == 0);
 
     // presplit tablet to allow more concurrency to tablet in memory map updates, so this does not
-    // impeded write ahead log appends.
+    // impede write ahead log appends.
     NewTableConfiguration ntc = new NewTableConfiguration();
     SortedSet<Text> splits = new TreeSet<>();
     for (int s = 16; s < 256; s += 16) {

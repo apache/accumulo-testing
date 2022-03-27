@@ -35,6 +35,6 @@ if [[ ! -f ${DIR}/writers ]]; then
 fi
 
 # Copy environment out
-pscp -h "${DIR}/writers" "${DIR}/stress-env.sh" "${DIR}"
+$PSCP -h "${DIR}/writers" "${DIR}/stress-env.sh" "${DIR}"
 
-pssh -h "${DIR}/writers" "nohup ${DIR}/writer.sh >${DIR}/writer.out 2>${DIR}/writer.err < /dev/null &"
+$PSSH -h "${DIR}/writers" "nohup ${DIR}/writer.sh >${DIR}/writer.out 2>${DIR}/writer.err < /dev/null &"

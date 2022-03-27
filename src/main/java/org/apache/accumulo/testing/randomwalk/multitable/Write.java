@@ -25,6 +25,8 @@ import java.util.Random;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.TableDeletedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.TableOfflineException;
 import org.apache.accumulo.core.data.Mutation;
@@ -43,7 +45,7 @@ public class Write extends Test {
     List<String> tables = (List<String>) state.get("tableList");
 
     if (tables.isEmpty()) {
-      log.debug("No tables to ingest into");
+      log.trace("No tables to ingest into");
       return;
     }
 
@@ -54,10 +56,11 @@ public class Write extends Test {
     try {
       bw = env.getMultiTableBatchWriter().getBatchWriter(tableName);
     } catch (TableOfflineException e) {
-      log.error("Table " + tableName + " is offline!");
+      log.debug("Table " + tableName + " is offline");
       return;
     } catch (TableNotFoundException e) {
-      log.error("Table " + tableName + " not found!");
+      log.debug("Table " + tableName + " not found");
+      tables.remove(tableName);
       return;
     }
 
@@ -80,10 +83,21 @@ public class Write extends Test {
     alg.update(payloadBytes);
     m.put(meta, new Text("sha1"), new Value(alg.digest()));
 
-    // add mutation
-    bw.addMutation(m);
-
-    state.set("numWrites", state.getLong("numWrites") + 1);
+    try {
+      // add mutation
+      bw.addMutation(m);
+      state.set("numWrites", state.getLong("numWrites") + 1);
+    } catch (TableOfflineException e) {
+      log.debug("BatchWrite " + tableName + " failed, offline");
+    } catch (MutationsRejectedException mre) {
+      if (mre.getCause() instanceof TableDeletedException) {
+        log.debug("BatchWrite " + tableName + " failed, table deleted");
+        tables.remove(tableName);
+      } else if (mre.getCause() instanceof TableOfflineException)
+        log.debug("BatchWrite " + tableName + " failed, offline");
+      else
+        throw mre;
+    }
   }
 
 }

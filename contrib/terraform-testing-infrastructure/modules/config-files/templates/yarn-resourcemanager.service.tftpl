@@ -1,0 +1,18 @@
+[Unit]
+Description=Yarn ResourceManager start/stop
+After=hadoop-namenode.service
+
+[Service]
+Environment=JAVA_HOME=${java_home}
+Environment=YARN_HOME=${software_root}/hadoop/hadoop-${hadoop_version}
+Environment=HADOOP_LOG_DIR=${hadoop_dir}/logs
+User=hadoop
+Group=hadoop
+Type=oneshot
+ExecStart=${software_root}/hadoop/hadoop-${hadoop_version}/bin/yarn --daemon start resourcemanager
+ExecStop=${software_root}/hadoop/hadoop-${hadoop_version}/bin/yarn --daemon stop resourcemanager
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

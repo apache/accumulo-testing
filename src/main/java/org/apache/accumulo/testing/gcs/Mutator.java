@@ -18,5 +18,5 @@
 package org.apache.accumulo.testing.gcs;
 
 public interface Mutator {
-  public void run(Persistence p);
+  void run(Persistence p);
 }

@@ -16,6 +16,7 @@
  */
 package org.apache.accumulo.testing.randomwalk;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.accumulo.core.conf.Property.TSERV_NATIVEMAP_ENABLED;
 import static org.apache.accumulo.core.conf.Property.TSERV_WAL_MAX_SIZE;
 
@@ -23,13 +24,13 @@ import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.miniclusterImpl.MiniAccumuloConfigImpl;
 import org.apache.accumulo.test.functional.ConfigurableMacBase;
-import org.apache.accumulo.testing.randomwalk.concurrent.Replication;
 import org.apache.hadoop.conf.Configuration;
 import org.easymock.EasyMock;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-@Ignore("Replication ITs are not stable and not currently maintained")
+@Disabled("Replication ITs are not stable and not currently maintained")
 public class ReplicationRandomWalkIT extends ConfigurableMacBase {
 
   @Override
@@ -39,9 +40,11 @@ public class ReplicationRandomWalkIT extends ConfigurableMacBase {
     cfg.setNumTservers(1);
   }
 
-  @Test(timeout = 5 * 60 * 1000)
+  @Deprecated
+  @Test
+  @Timeout(value = 5, unit = MINUTES)
   public void runReplicationRandomWalkStep() throws Exception {
-    Replication r = new Replication();
+    var r = new org.apache.accumulo.testing.randomwalk.concurrent.Replication();
 
     RandWalkEnv env = EasyMock.createMock(RandWalkEnv.class);
     EasyMock.expect(env.getAccumuloUserName()).andReturn("root").anyTimes();

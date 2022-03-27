@@ -48,9 +48,9 @@ import com.google.common.hash.Hashing;
 
 public class Persistence {
 
-  private BatchWriter writer;
-  private String table;
-  private AccumuloClient client;
+  private final BatchWriter writer;
+  private final String table;
+  private final AccumuloClient client;
 
   Persistence(GcsEnv env) {
     this.client = env.getAccumuloClient();
@@ -83,12 +83,13 @@ public class Persistence {
   }
 
   private String toHexWithHash(long l1, long l2) {
-    int hc = Hashing.murmur3_32().newHasher().putLong(l1).putLong(l2).hash().asInt();
+    int hc = Hashing.murmur3_32_fixed().newHasher().putLong(l1).putLong(l2).hash().asInt();
     return toHex(hc) + ":" + toHex(l1) + ":" + toHex(l2);
   }
 
   private String toHexWithHash(long l1, long l2, long l3) {
-    int hc = Hashing.murmur3_32().newHasher().putLong(l1).putLong(l2).putLong(l3).hash().asInt();
+    int hc = Hashing.murmur3_32_fixed().newHasher().putLong(l1).putLong(l2).putLong(l3).hash()
+        .asInt();
     return toHex(hc) + ":" + toHex(l1) + ":" + toHex(l2) + ":" + toHex(l3);
   }
 

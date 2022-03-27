@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 public class Collector {
 
   Persistence persistence;
-  private int batchSize;
+  private final int batchSize;
 
   public Collector(GcsEnv gcsEnv) {
     this.persistence = new Persistence(gcsEnv);

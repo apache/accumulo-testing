@@ -53,6 +53,7 @@ import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
 import org.apache.hadoop.io.Text;
 
+@Deprecated
 public class Replication extends Test {
 
   final int ROWS = 1000;

@@ -26,10 +26,10 @@ import java.util.Random;
  */
 public class State {
 
-  private HashMap<String,Object> stateMap = new HashMap<>();
-  private List<String> tables = new ArrayList<>();
-  private List<String> namespaces = new ArrayList<>();
-  private List<String> users = new ArrayList<>();
+  private final HashMap<String,Object> stateMap = new HashMap<>();
+  private final List<String> tables = new ArrayList<>();
+  private final List<String> namespaces = new ArrayList<>();
+  private final List<String> users = new ArrayList<>();
   private Random random = new Random();
 
   /**
@@ -83,7 +83,7 @@ public class State {
    *           if state object is not present
    */
   public Object get(String key) {
-    if (stateMap.containsKey(key) == false) {
+    if (!stateMap.containsKey(key)) {
       throw new RuntimeException("State does not contain " + key);
     }
     return stateMap.get(key);
@@ -107,6 +107,8 @@ public class State {
 
   /**
    * Gets a random table name
+   *
+   * @return a random table name from the list of current table names.
    */
   public String getRandomTableName() {
     return tables.get(random.nextInt(tables.size()));

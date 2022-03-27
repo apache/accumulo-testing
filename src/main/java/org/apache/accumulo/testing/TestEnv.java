@@ -33,7 +33,7 @@ import org.apache.hadoop.conf.Configuration;
 public class TestEnv implements AutoCloseable {
 
   protected final Properties testProps;
-  private String clientPropsPath;
+  private final String clientPropsPath;
   private final Properties clientProps;
   private AccumuloClient client = null;
   private Configuration hadoopConfig = null;

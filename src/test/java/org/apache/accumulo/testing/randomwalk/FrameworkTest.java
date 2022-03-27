@@ -16,14 +16,13 @@
  */
 package org.apache.accumulo.testing.randomwalk;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,10 +37,10 @@ public class FrameworkTest {
 
   // Need to use fully qualified name here because of conflict with
   // org.apache.accumulo.testing.randomwalk.Test
-  @org.junit.Test
+  @org.junit.jupiter.api.Test
   public void testXML()
       throws SAXException, URISyntaxException, ParserConfigurationException, IOException {
-    SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
     Schema moduleSchema = sf.newSchema(getFile("/randomwalk/module.xsd"));
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -50,21 +49,21 @@ public class FrameworkTest {
     DocumentBuilder docbuilder = dbf.newDocumentBuilder();
     Document document = docbuilder.parse(getFile("/randomwalk/modules/unit/Basic.xml"));
 
-    assertNotEquals("Parsing randomwalk xml should result in nodes.", 0,
-        document.getChildNodes().getLength());
+    assertNotEquals(0, document.getChildNodes().getLength(),
+        "Parsing randomwalk xml should result in nodes.");
   }
 
   private File getFile(String resource) throws URISyntaxException {
     return new File(this.getClass().getResource(resource).toURI());
   }
 
-  @org.junit.Test
+  @org.junit.jupiter.api.Test
   public void testRWTest() {
     Test t1 = new CreateTable();
     assertEquals("org.apache.accumulo.testing.randomwalk.unit.CreateTable", t1.toString());
 
     Test t2 = new CreateTable();
-    assertEquals("CreateTable test nodes were not equal.", t1, t2);
+    assertEquals(t1, t2, "CreateTable test nodes were not equal.");
   }
 
 }

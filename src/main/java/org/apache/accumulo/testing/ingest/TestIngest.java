@@ -32,6 +32,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
@@ -48,8 +49,6 @@ import org.apache.accumulo.testing.util.FastFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import com.beust.jcommander.Parameter;
 
@@ -114,13 +113,16 @@ public class TestIngest {
       TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
           args.numsplits);
 
-      if (!client.tableOperations().exists(args.tableName))
-        client.tableOperations().create(args.tableName);
-      try {
-        client.tableOperations().addSplits(args.tableName, splits);
-      } catch (TableNotFoundException ex) {
-        // unlikely
-        throw new RuntimeException(ex);
+      if (!client.tableOperations().exists(args.tableName)) {
+        client.tableOperations().create(args.tableName,
+            new NewTableConfiguration().withSplits(splits));
+      } else {
+        try {
+          client.tableOperations().addSplits(args.tableName, splits);
+        } catch (TableNotFoundException ex) {
+          // unlikely
+          throw new RuntimeException(ex);
+        }
       }
     }
   }
@@ -153,8 +155,8 @@ public class TestIngest {
     return bytevals;
   }
 
-  private static byte[] ROW_PREFIX = "row_".getBytes(UTF_8);
-  private static byte[] COL_PREFIX = "col_".getBytes(UTF_8);
+  private static final byte[] ROW_PREFIX = "row_".getBytes(UTF_8);
+  private static final byte[] COL_PREFIX = "col_".getBytes(UTF_8);
 
   public static Text generateRow(int rowid, int startRow) {
     return new Text(FastFormat.toZeroPaddedString(rowid + startRow, 10, 10, ROW_PREFIX));
@@ -182,10 +184,6 @@ public class TestIngest {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
 
-      if (opts.debug)
-        Logger.getLogger("org.apache.accumulo.core.clientImpl.TabletServerBatchWriter")
-            .setLevel(Level.TRACE);
-
       // test batch update
 
       ingest(client, opts, new Configuration());
@@ -196,7 +194,7 @@ public class TestIngest {
 
   public static void ingest(AccumuloClient client, FileSystem fs, Opts opts, Configuration conf)
       throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException,
-      MutationsRejectedException, TableExistsException {
+      TableExistsException {
     long stopTime;
 
     byte[][] bytevals = generateValues(opts.dataSize);
@@ -245,11 +243,7 @@ public class TestIngest {
             key.setTimestamp(startTime);
           }
 
-          if (opts.delete) {
-            key.setDeleted(true);
-          } else {
-            key.setDeleted(false);
-          }
+          key.setDeleted(opts.delete);
 
           bytesWritten += key.getSize();
 
@@ -334,9 +328,8 @@ public class TestIngest {
         elapsed);
   }
 
-  public static void ingest(AccumuloClient c, Opts opts, Configuration conf)
-      throws MutationsRejectedException, IOException, AccumuloException, AccumuloSecurityException,
-      TableNotFoundException, TableExistsException {
+  public static void ingest(AccumuloClient c, Opts opts, Configuration conf) throws IOException,
+      AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
     ingest(c, FileSystem.get(conf), opts, conf);
   }
 }

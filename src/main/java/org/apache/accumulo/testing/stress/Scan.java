@@ -91,8 +91,8 @@ public class Scan {
    * These interfaces + implementations are used to determine how many times the scanner should look
    * up a random tablet and scan it.
    */
-  static interface LoopControl {
-    public boolean keepScanning();
+  interface LoopControl {
+    boolean keepScanning();
   }
 
   // Does a finite number of iterations

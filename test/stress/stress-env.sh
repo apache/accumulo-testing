@@ -15,6 +15,18 @@
 
 ACCUMULO_HOME=${ACCUMULO_HOME:-/opt/accumulo}
 
+## check that pssh and pscp is installed, falling back to parallel-ssh/scp if needed
+if hash pssh 2>/dev/null; then
+  PSSH=pssh
+  PSCP=pscp
+  hash pscp.pssh 2>/dev/null && PSCP=pscp.pssh
+elif hash parallel-ssh 2>/dev/null; then
+  PSSH=parallel-ssh
+  PSCP=parallel-scp
+else
+  echo >&2 "The stress test requires pssh/parallel-ssh and pscp/parallel-scp to be installed. Aborting."; exit 1;
+fi
+
 # Edit the credentials to match your system
 USERPASS='-u root -p secret'
 INSTANCE='-z localhost -i inst'

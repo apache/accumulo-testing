@@ -35,6 +35,6 @@ if [[ ! -f ${DIR}/readers ]]; then
 fi
 
 # Copy environment out
-pscp -h "${DIR}/readers" "${DIR}/stress-env.sh" "${DIR}"
+$PSCP -h "${DIR}/readers" "${DIR}/stress-env.sh" "${DIR}"
 
-pssh -h "${DIR}/readers" "nohup ${DIR}/reader.sh >${DIR}/reader.out 2>${DIR}/reader.err < /dev/null &"
+$PSSH -h "${DIR}/readers" "nohup ${DIR}/reader.sh >${DIR}/reader.out 2>${DIR}/reader.err < /dev/null &"

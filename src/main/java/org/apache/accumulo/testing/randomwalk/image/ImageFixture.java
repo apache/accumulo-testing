@@ -29,6 +29,7 @@ import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.randomwalk.Fixture;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -59,8 +60,8 @@ public class ImageFixture extends Fixture {
     state.set("indexTableName", indexTableName);
 
     try {
-      client.tableOperations().create(imageTableName);
-      client.tableOperations().addSplits(imageTableName, splits);
+      client.tableOperations().create(imageTableName,
+          new NewTableConfiguration().withSplits(splits));
       log.debug("Created table " + imageTableName + " (id:"
           + client.tableOperations().tableIdMap().get(imageTableName) + ")");
     } catch (TableExistsException e) {
@@ -86,9 +87,9 @@ public class ImageFixture extends Fixture {
       log.debug("Configured locality groups for " + imageTableName + " groups = " + groups);
     }
 
-    state.set("numWrites", Long.valueOf(0));
-    state.set("totalWrites", Long.valueOf(0));
-    state.set("verified", Integer.valueOf(0));
+    state.set("numWrites", 0L);
+    state.set("totalWrites", 0L);
+    state.set("verified", 0);
     state.set("lastIndexRow", new Text(""));
   }
 

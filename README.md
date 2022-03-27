@@ -67,7 +67,7 @@ run in Docker:
 
     * `conf/accumulo-client.properties` - Configure this file from your Accumulo install
     * `conf/accumulo-testing.properties` - Configure this file for testing
-    * `target/accumulo-testing-2.0.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
+    * `target/accumulo-testing-2.1.0-SNAPSHOT-shaded.jar` - Can be created using `./bin/build`
 
    Run the following command to create the image. `HADOOP_HOME` should be where Hadoop is installed on your cluster.
    `HADOOP_USER_NAME` should match the user running Hadoop on your cluster.
@@ -165,13 +165,13 @@ See [gcs.md](docs/gcs.md).
 
 ## Agitator
 
-The agitator will periodically kill the Accumulo master, tablet server, and Hadoop data node
+The agitator will periodically kill the Accumulo manager, tablet server, and Hadoop data node
 processes on random nodes. Before running the agitator you should create `accumulo-testing-env.sh`
-in `conf/` and review all of the agitator settings. The command below will start the agitator:
+in `conf/` and review all the agitator settings. The command below will start the agitator:
 
             ./bin/agitator start
 
-You can run this script as root and it will properly start processes as the user you configured in
+Running this script as root will properly start processes as the user you configured in
 `env.sh` (`AGTR_HDFS_USER` for the data node and `AGTR_ACCUMULO_USER` for Accumulo
 processes). If you run it as yourself and the `AGTR_HDFS_USER` and `AGTR_ACCUMULO_USER` values are
 the same as your user, the agitator will not change users. In the case where you run the agitator as
@@ -274,8 +274,8 @@ information related to how long such scans take.
 See the [readme.md](/test/automation/README.md).
 
 [Uno]: https://github.com/apache/fluo-uno
-[modules]: core/src/main/resources/randomwalk/modules
-[image]: core/src/main/resources/randomwalk/modules/Image.xml
+[modules]: src/main/resources/randomwalk/modules
+[image]: src/main/resources/randomwalk/modules/Image.xml
 [Docker Swarm]: https://docs.docker.com/engine/swarm/swarm-tutorial/
 [ti]: https://github.com/apache/accumulo-testing/workflows/QA/badge.svg
 [tl]: https://github.com/apache/accumulo-testing/actions
