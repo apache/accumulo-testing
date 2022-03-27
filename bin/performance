@@ -59,7 +59,10 @@ if [ ! -f "$at_home/conf/cluster-control.sh" ]; then
 fi
 
 source "$at_home"/conf/cluster-control.sh
-build_shade_jar
+export TEST_JAR_PATH="${at_home}/target/accumulo-testing-shaded.jar"
+if [[ ! -f "$TEST_JAR_PATH" ]]; then
+  build_shade_jar
+fi
 CP="$at_shaded_jar:$(get_hadoop_client)"
 export CLASSPATH="$at_shaded_jar:$CLASSPATH"
 perf_pkg="org.apache.accumulo.testing.performance.impl"
