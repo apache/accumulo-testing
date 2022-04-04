@@ -37,15 +37,7 @@ sudo systemctl start yarn-resourcemanager
 pdsh -S -g worker 'sudo systemctl start hadoop-datanode yarn-nodemanager'
 
 echo "Waiting for NameNode to leave safemode..."
-hdfs dfsadmin -safemode wait > /tmp/namenode_safemode_status
-exit_code=$?
-while [[ $exit_code -ne 0 ]]; do
-  sleep 5s
+while [[ ! $(hdfs dfsadmin -safemode wait 2>/dev/null) =~ OFF ]]; do
+  sleep 5
   echo "Waiting for NameNode to leave safemode..."
-  hdfs dfsadmin -safemode wait > /tmp/namenode_safemode_status
-  exit_code=$?
 done
-if ! [[ $(cat /tmp/namenode_safemode_status) =~ OFF ]]; then
-  echo "Finished waiting for SafeMode to exit, but safemode is not OFF"
-fi
-rm -f /tmp/namenode_safemode_status
