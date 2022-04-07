@@ -321,11 +321,11 @@ This Terraform configuration:
      and builds the software using Maven, then untars the binary tarball to
      `${software_root}/accumulo/accumulo-${accumulo_version}`
   5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.7.1.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.12.1.jar`
   6. Copies the Accumulo `test` jar to `${software_root}/accumulo/accumulo-${accumulo_version}/lib`
      so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
   7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.7.4.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.8.4.jar`
   8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}`
      into `${software_root}/sources/accumulo-testing-repo`. It switches to the
      `${accumulo_testing_branch_name}` branch and builds the software using Maven.
