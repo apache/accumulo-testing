@@ -129,7 +129,7 @@ variable "accumulo_dir" {
 }
 
 variable "maven_version" {
-  default     = "3.8.4"
+  default     = "3.8.5"
   description = "The version of Maven to download and install"
   nullable    = false
 }
