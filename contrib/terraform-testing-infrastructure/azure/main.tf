@@ -69,7 +69,12 @@ locals {
 
   ssh_keys = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
 
-  # Resource group location
+  # Resource group name and location
+  # This is pulled either from the resource group that was created (if create_resource_group is true)
+  # or from the resource group that already exists (if create_resource_group is false). Keeping
+  # references to the resource group or data object rather than just using var.resource_group_name
+  # allows for terraform to automatically create the dependency graph and wait for the resource group
+  # to be created if necessary.
   rg_name = var.create_resource_group ? azurerm_resource_group.rg[0].name : data.azurerm_resource_group.existing_rg[0].name
   location = var.create_resource_group ? azurerm_resource_group.rg[0].location : data.azurerm_resource_group.existing_rg[0].location
 
@@ -434,6 +439,10 @@ module "config_files" {
 
   accumulo_instance_name = var.accumulo_instance_name
   accumulo_root_password = var.accumulo_root_password
+
+  depends_on = [
+    null_resource.wait_for_manager_cloud_init
+  ]
 }
 
 #
