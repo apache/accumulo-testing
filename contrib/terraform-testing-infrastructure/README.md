@@ -165,7 +165,7 @@ The table below lists the variables and their default values that are used in th
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
 | instance\_type | The type of EC2 instances to create | `string` | `"m5.2xlarge"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | private\_network | Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
@@ -208,7 +208,8 @@ The table below lists the variables and their default values that are used in th
 | hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | location | The Azure region where resources are to be created. If an existing resource group is specified, this value is ignored and the resource group's location is used. | `string` | n/a | yes |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
+| managed\_disk\_configuration | Optional managed disk configuration. If supplied, the managed disks on each VM will be combined into an LVM volume mounted at the named mount point. | <pre>object({<br>    mount_point          = string<br>    disk_count           = number<br>    storage_account_type = string<br>    disk_size_gb         = number<br>  })</pre> | `null` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
 | network\_address\_space | The network address space to use for the virtual network. | `list(string)` | <pre>[<br>  "10.0.0.0/16"<br>]</pre> | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | os\_disk\_caching | The type of caching to use for the OS disk. Possible values are None, ReadOnly, and ReadWrite. | `string` | `"ReadOnly"` | no |

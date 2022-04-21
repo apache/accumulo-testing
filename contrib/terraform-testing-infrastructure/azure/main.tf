@@ -69,6 +69,15 @@ locals {
 
   ssh_keys = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
 
+  # Resource group name and location
+  # This is pulled either from the resource group that was created (if create_resource_group is true)
+  # or from the resource group that already exists (if create_resource_group is false). Keeping
+  # references to the resource group or data object rather than just using var.resource_group_name
+  # allows for terraform to automatically create the dependency graph and wait for the resource group
+  # to be created if necessary.
+  rg_name = var.create_resource_group ? azurerm_resource_group.rg[0].name : data.azurerm_resource_group.existing_rg[0].name
+  location = var.create_resource_group ? azurerm_resource_group.rg[0].location : data.azurerm_resource_group.existing_rg[0].location
+
   # Save the public/private IP addresses of the VMs to pass to sub-modules.
   manager_ip         = azurerm_linux_virtual_machine.manager.public_ip_address
   worker_ips         = azurerm_linux_virtual_machine.workers[*].public_ip_address
@@ -82,6 +91,11 @@ locals {
     "sudo cloud-init status --wait > /dev/null",
     "sudo cloud-init status --long"
   ]
+}
+
+data "azurerm_resource_group" "existing_rg" {
+  count = var.create_resource_group ? 0 : 1
+  name = var.resource_group_name
 }
 
 # Place all resources in a resource group
@@ -98,8 +112,8 @@ resource "azurerm_resource_group" "rg" {
 # Creates a virtual network for use by this cluster.
 resource "azurerm_virtual_network" "accumulo_vnet" {
   name                = "${var.resource_name_prefix}-vnet"
-  resource_group_name = azurerm_resource_group.rg[0].name
-  location            = azurerm_resource_group.rg[0].location
+  resource_group_name = local.rg_name
+  location            = local.location
   address_space       = var.network_address_space
 }
 
@@ -107,7 +121,7 @@ resource "azurerm_virtual_network" "accumulo_vnet" {
 # so that we'll be able to create an NFS share.
 resource "azurerm_subnet" "internal" {
   name                 = "${var.resource_name_prefix}-subnet"
-  resource_group_name  = azurerm_resource_group.rg[0].name
+  resource_group_name  = local.rg_name
   virtual_network_name = azurerm_virtual_network.accumulo_vnet.name
   address_prefixes     = var.subnet_address_prefixes
 }
@@ -116,8 +130,8 @@ resource "azurerm_subnet" "internal" {
 # traffic from the internet and denies everything else.
 resource "azurerm_network_security_group" "nsg" {
   name                = "${var.resource_name_prefix}-nsg"
-  location            = azurerm_resource_group.rg[0].location
-  resource_group_name = azurerm_resource_group.rg[0].name
+  location            = local.location
+  resource_group_name = local.rg_name
 
   security_rule {
     name                       = "allow-ssh"
@@ -140,6 +154,8 @@ resource "azurerm_network_security_group" "nsg" {
 module "cloud_init_config" {
   source = "../modules/cloud-init-config"
 
+  lvm_mount_point      = var.managed_disk_configuration != null ? var.managed_disk_configuration.mount_point : null
+  lvm_disk_count       = var.managed_disk_configuration != null ? var.managed_disk_configuration.disk_count : null
   software_root        = var.software_root
   zookeeper_dir        = var.zookeeper_dir
   hadoop_dir           = var.hadoop_dir
@@ -151,6 +167,7 @@ module "cloud_init_config" {
   accumulo_version     = var.accumulo_version
   authorized_ssh_keys  = local.ssh_keys[*]
   os_type              = local.os_type
+  cluster_type         = "azure"
 
   optional_cloudinit_config = var.optional_cloudinit_config
   cloudinit_merge_type      = var.cloudinit_merge_type
@@ -159,16 +176,16 @@ module "cloud_init_config" {
 # Create a static public IP address for the manager node.
 resource "azurerm_public_ip" "manager" {
   name                = "${var.resource_name_prefix}-manager-ip"
-  resource_group_name = azurerm_resource_group.rg[0].name
-  location            = azurerm_resource_group.rg[0].location
+  resource_group_name = local.rg_name
+  location            = local.location
   allocation_method   = "Static"
 }
 
 # Create a NIC for the manager node.
 resource "azurerm_network_interface" "manager" {
   name                = "${var.resource_name_prefix}-manager-nic"
-  location            = azurerm_resource_group.rg[0].location
-  resource_group_name = azurerm_resource_group.rg[0].name
+  location            = local.location
+  resource_group_name = local.rg_name
 
   enable_accelerated_networking = true
 
@@ -190,8 +207,8 @@ resource "azurerm_network_interface_security_group_association" "manager" {
 resource "azurerm_public_ip" "workers" {
   count               = var.worker_count
   name                = "${var.resource_name_prefix}-worker${count.index}-ip"
-  resource_group_name = azurerm_resource_group.rg[0].name
-  location            = azurerm_resource_group.rg[0].location
+  resource_group_name = local.rg_name
+  location            = local.location
   allocation_method   = "Static"
 }
 
@@ -199,8 +216,8 @@ resource "azurerm_public_ip" "workers" {
 resource "azurerm_network_interface" "workers" {
   count               = var.worker_count
   name                = "${var.resource_name_prefix}-worker${count.index}-nic"
-  location            = azurerm_resource_group.rg[0].location
-  resource_group_name = azurerm_resource_group.rg[0].name
+  location            = local.location
+  resource_group_name = local.rg_name
 
   enable_accelerated_networking = true
 
@@ -223,8 +240,8 @@ resource "azurerm_network_interface_security_group_association" "workers" {
 # Add a login user that can SSH to the VM using the first supplied SSH key.
 resource "azurerm_linux_virtual_machine" "manager" {
   name                = "${var.resource_name_prefix}-manager"
-  resource_group_name = azurerm_resource_group.rg[0].name
-  location            = azurerm_resource_group.rg[0].location
+  resource_group_name = local.rg_name
+  location            = local.location
   size                = var.vm_sku
   computer_name       = "manager"
   admin_username      = var.admin_username
@@ -256,15 +273,44 @@ resource "azurerm_linux_virtual_machine" "manager" {
     sku       = var.vm_image.sku
     version   = var.vm_image.version
   }
+}
 
+# Create and attach managed disks to the manager VM.
+resource "azurerm_managed_disk" "manager_managed_disk" {
+  count                = var.managed_disk_configuration != null ? var.managed_disk_configuration.disk_count : 0
+  name                 = format("%s_disk%02d", azurerm_linux_virtual_machine.manager.name, count.index)
+  resource_group_name  = local.rg_name
+  location             = local.location
+  storage_account_type = var.managed_disk_configuration.storage_account_type
+  disk_size_gb         = var.managed_disk_configuration.disk_size_gb
+  create_option        = "Empty"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "manager_managed_disk_attachment" {
+  count              = var.managed_disk_configuration != null ? var.managed_disk_configuration.disk_count : 0
+  managed_disk_id    = azurerm_managed_disk.manager_managed_disk[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.manager.id
+  lun                = 10 + count.index
+  caching            = "ReadOnly"
+}
+
+# Wait for cloud-init to complete on the manager VM.
+# This is done here rather than in the VM resource because the cloud-init script
+# waits for managed disks to be attached (if used), but the managed disks cannot
+# be attached until the VM is created, so we'd have a deadlock.
+resource "null_resource" "wait_for_manager_cloud_init" {
   provisioner "remote-exec" {
     inline = local.ready_script
     connection {
       type = "ssh"
-      user = self.admin_username
-      host = self.public_ip_address
+      user = azurerm_linux_virtual_machine.manager.admin_username
+      host = azurerm_linux_virtual_machine.manager.public_ip_address
     }
   }
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.manager_managed_disk_attachment
+  ]
 }
 
 # Create the worker VMs.
@@ -272,8 +318,8 @@ resource "azurerm_linux_virtual_machine" "manager" {
 resource "azurerm_linux_virtual_machine" "workers" {
   count               = var.worker_count
   name                = "${var.resource_name_prefix}-worker${count.index}"
-  resource_group_name = azurerm_resource_group.rg[0].name
-  location            = azurerm_resource_group.rg[0].location
+  resource_group_name = local.rg_name
+  location            = local.location
   size                = var.vm_sku
   computer_name       = "worker${count.index}"
   admin_username      = var.admin_username
@@ -305,15 +351,57 @@ resource "azurerm_linux_virtual_machine" "workers" {
     sku       = var.vm_image.sku
     version   = var.vm_image.version
   }
+}
 
+# Create and attach managed disks to the worker VMs.
+locals {
+  worker_disks = var.managed_disk_configuration == null ? [] : flatten([
+    for vm_num, vm in azurerm_linux_virtual_machine.workers : [
+      for disk_num in range(var.managed_disk_configuration.disk_count) : {
+        datadisk_name = format("%s_disk%02d", vm.name, disk_num)
+        lun           = 10 + disk_num
+        worker_num    = vm_num
+      }
+    ]
+  ])
+}
+
+resource "azurerm_managed_disk" "worker_managed_disk" {
+  count                = length(local.worker_disks)
+  name                 = local.worker_disks[count.index].datadisk_name
+  resource_group_name  = local.rg_name
+  location             = local.location
+  storage_account_type = var.managed_disk_configuration.storage_account_type
+  disk_size_gb         = var.managed_disk_configuration.disk_size_gb
+  create_option        = "Empty"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "worker_managed_disk_attachment" {
+  count              = length(local.worker_disks)
+  managed_disk_id    = azurerm_managed_disk.worker_managed_disk[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.workers[local.worker_disks[count.index].worker_num].id
+  lun                = local.worker_disks[count.index].lun
+  caching            = "ReadOnly"
+}
+
+# Wait for cloud-init to complete on the worker VMs.
+# This is done here rather than in the VM resources because the cloud-init script
+# waits for managed disks to be attached (if used), but the managed disks cannot
+# be attached until the VMs are created, so we'd have a deadlock.
+resource "null_resource" "wait_for_workers_cloud_init" {
+  count = length(azurerm_linux_virtual_machine.workers)
   provisioner "remote-exec" {
     inline = local.ready_script
     connection {
       type = "ssh"
-      user = self.admin_username
-      host = self.public_ip_address
+      user = azurerm_linux_virtual_machine.workers[count.index].admin_username
+      host = azurerm_linux_virtual_machine.workers[count.index].public_ip_address
     }
   }
+
+  depends_on = [
+    azurerm_virtual_machine_data_disk_attachment.worker_managed_disk_attachment
+  ]
 }
 
 ##############################
@@ -351,6 +439,10 @@ module "config_files" {
 
   accumulo_instance_name = var.accumulo_instance_name
   accumulo_root_password = var.accumulo_root_password
+
+  depends_on = [
+    null_resource.wait_for_manager_cloud_init
+  ]
 }
 
 #
@@ -363,6 +455,10 @@ module "upload_software" {
   local_sources_dir = var.local_sources_dir
   upload_dir        = var.software_root
   upload_host       = local.manager_ip
+
+  depends_on = [
+    null_resource.wait_for_manager_cloud_init
+  ]
 }
 
 #
@@ -379,7 +475,8 @@ module "configure_nodes" {
 
   depends_on = [
     module.upload_software,
-    module.config_files
+    module.config_files,
+    null_resource.wait_for_workers_cloud_init
   ]
 }
 

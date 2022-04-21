@@ -131,6 +131,7 @@ module "cloud_init_config" {
   accumulo_branch_name = var.accumulo_branch_name
   accumulo_version     = var.accumulo_version
   authorized_ssh_keys  = local.ssh_keys[*]
+  cluster_type         = "aws"
 
   optional_cloudinit_config = var.optional_cloudinit_config
   cloudinit_merge_type      = var.cloudinit_merge_type
