@@ -119,6 +119,9 @@ public class TestProps {
   public static final String CI_VERIFY_MAX_MAPS = CI_VERIFY + "max.maps";
   // Number of mapreduce reducers
   public static final String CI_VERIFY_REDUCERS = CI_VERIFY + "reducers";
+  // Perform the scan using the configured consistency level
+  public static final String CI_VERIFY_SCAN_CONSISTENCY_LEVEL = CI_VERIFY
+      + "scan.consistency.level";
   // Perform the verification directly on the files while the table is
   // offline"
   public static final String CI_VERIFY_SCAN_OFFLINE = CI_VERIFY + "scan.offline";

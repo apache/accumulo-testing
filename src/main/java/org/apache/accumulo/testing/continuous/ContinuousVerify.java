@@ -26,11 +26,13 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.testing.TestProps;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -158,6 +160,18 @@ public class ContinuousVerify extends Configured implements Tool {
       int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
       String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
 
+      ConsistencyLevel cl = ConsistencyLevel.IMMEDIATE;
+      String configuredCL = env.getTestProperty(TestProps.CI_VERIFY_SCAN_CONSISTENCY_LEVEL);
+      if (!StringUtils.isEmpty(configuredCL)) {
+        try {
+          cl = ConsistencyLevel.valueOf(configuredCL.toUpperCase());
+        } catch (Exception e) {
+          log.warn("Error setting consistency level to {}, using IMMEDIATE",
+              configuredCL.toUpperCase());
+          cl = ConsistencyLevel.IMMEDIATE;
+        }
+      }
+
       Set<Range> ranges;
       String clone = "";
       AccumuloClient client = env.getAccumuloClient();
@@ -176,7 +190,8 @@ public class ContinuousVerify extends Configured implements Tool {
       }
 
       AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
-          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
+          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).consistencyLevel(cl)
+          .store(job);
 
       job.setMapperClass(CMapper.class);
       job.setMapOutputKeyClass(LongWritable.class);
