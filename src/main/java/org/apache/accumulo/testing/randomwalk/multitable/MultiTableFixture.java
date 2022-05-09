@@ -64,6 +64,7 @@ public class MultiTableFixture extends Fixture {
     state.set("totalWrites", 0L);
     state.set("tableList", new CopyOnWriteArrayList<String>());
     state.set("fs", FileSystem.get(new Configuration()));
+    state.set("wroteBadFile", false);
   }
 
   @Override

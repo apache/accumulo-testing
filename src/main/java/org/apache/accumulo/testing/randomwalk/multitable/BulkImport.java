@@ -76,6 +76,8 @@ public class BulkImport extends Test {
     fs.mkdirs(fail);
     final int parts = rand.nextInt(10) + 1;
     final boolean useLegacyBulk = rand.nextBoolean();
+    boolean wroteBadFile = state.getBoolean("wroteBadFile");
+    String badFile = null;
 
     TreeSet<String> rows = new TreeSet<>();
     for (int i = 0; i < ROWS; i++)
@@ -95,7 +97,14 @@ public class BulkImport extends Test {
         }
         f.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
       }
-      f.close();
+      if (i == parts - 1 && !wroteBadFile) {
+        // skip close to corrupt file
+        log.info("Skipping close on " + fileName);
+        badFile = fileName;
+        wroteBadFile = true;
+      } else {
+        f.close();
+      }
     }
     log.debug("Starting {} bulk import to {}", useLegacyBulk ? "legacy" : "new", tableName);
     try {
@@ -117,6 +126,11 @@ public class BulkImport extends Test {
       log.debug("Finished {} bulk import to {} start: {} last: {} marker: {}",
           useLegacyBulk ? "legacy" : "new", tableName, rows.first(), rows.last(),
           markerColumnQualifier);
+
+      if (badFile != null)
+        log.debug("Wrote bad file {}", badFile);
+
+      state.set("wroteBadFile", wroteBadFile);
     } catch (TableNotFoundException tnfe) {
       log.debug("Table {} was deleted", tableName);
       tables.remove(tableName);

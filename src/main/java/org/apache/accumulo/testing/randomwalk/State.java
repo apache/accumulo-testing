@@ -181,4 +181,17 @@ public class State {
   public Long getLong(String key) {
     return (Long) stateMap.get(key);
   }
+
+  /**
+   * Gets a state object as a Boolean.
+   *
+   * @param key
+   *          key for object
+   * @return value as Boolean
+   * @throws ClassCastException
+   *           if the value object is not a boolean type
+   */
+  public Boolean getBoolean(String key) {
+    return (Boolean) stateMap.get(key);
+  }
 }
