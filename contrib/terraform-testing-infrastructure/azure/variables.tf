@@ -138,19 +138,19 @@ variable "managed_disk_configuration" {
   nullable    = true
 
   validation {
-    condition     = var.managed_disk_configuration.mount_point != null
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.mount_point != null)
     error_message = "The mount point must be specified."
   }
   validation {
-    condition     = var.managed_disk_configuration.disk_count > 0
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.disk_count > 0)
     error_message = "The number of disks must be at least 1."
   }
   validation {
-    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.managed_disk_configuration.storage_account_type)
+    condition     = var.managed_disk_configuration == null || can(contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.managed_disk_configuration.storage_account_type))
     error_message = "The storage account type must be one of 'Standard_LRS', 'StandardSSD_LRS', or 'Premium_LRS'."
   }
   validation {
-    condition     = var.managed_disk_configuration.disk_size_gb > 0 && var.managed_disk_configuration.disk_size_gb <= 32767
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.disk_size_gb > 0 && var.managed_disk_configuration.disk_size_gb <= 32767)
     error_message = "The disk size must be at least 1GB and less than 32768GB."
   }
 }
