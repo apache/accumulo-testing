@@ -35,7 +35,7 @@
   You will need to create a configuration file that includes values for the
   variables that do not have a default value. See the Variables section in
   the README. For example, you can create a file "aws.auto.tfvars" file in
-  the aws directory with the following content (replace as appropriate):
+  the `aws` directory with the following content (replace as appropriate):
 
 create_route53_records = "true"
 private_network = "true"
@@ -53,17 +53,17 @@ authorized_ssh_keys = [
 ]
 
 
-3. Create the Resources
+4. Create the Resources
+
+  NOTE: ensure that the private key corresponding to the first ssh key in 
+        `authorized_ssh_keys` in the configuration above has been loaded
+        into your ssh agent, or else terraform apply will fail.
 
   cd aws
-
-  Create the configuration section of the README. For example you can create
-    Example in HCL syntax:
-
   terraform init --backend-config=bucket=<bucket-name-goes-here>
   terraform apply
 
-4. Accessing the cluster
+5. Accessing the cluster
 
   The output of the apply step above will include the IP addresses of the
   resources that were created. If created correctly, you should be able to

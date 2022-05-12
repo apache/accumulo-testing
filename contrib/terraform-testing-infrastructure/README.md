@@ -64,7 +64,9 @@ about this see [remote state](https://www.terraform.io/docs/language/state/remot
 shared state instructions are based on
 [this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). 
 
-To generate the storage, run `terraform init` followed by `terraform apply`.
+To generate the storage, run `terraform init` followed by `terraform apply`. Note that the shell
+working directory must be the `shared_state/aws` or `shared_state/azure` directory when you run
+the terraform commands for shared state creation.
 
 The default AWS configuration generates the S3 bucket name when `terraform apply` is run. This
 ensures that a globally unique S3 bucket name is used. It is not required to set any variables for
@@ -415,7 +417,9 @@ recommended that the public IP addresses be used instead.
 
 ## Instructions
 
-  1. Once you have created a `.auto.tfvars.json` file, or set the properties some other way, run
+  1. Change to either the `aws` or `azure` directory in your shell. This must be the current
+     directory when you run the following `terraform` commands.
+  2. Once you have created a `.auto.tfvars` file, or set the properties some other way, run
      `terraform init`. If you have modified shared_state backend configuration over the default,
      you can override the values here. For example, the following configuration updates the
      `resource_group_name` and `storage_account_name` for the `azurerm` backend:
@@ -424,8 +428,14 @@ recommended that the public IP addresses be used instead.
      ```
      Once values are supplied to `terraform init`, they are stored in the local state and it is not
      necessary to supply these overrides to the `terraform apply` or `terraform destroy` commands.
-  2. Run `terraform apply` to create the AWS/Azure resources.
-  3. Run `terraform destroy` to tear down the AWS/Azure resources.
+  3. Ensure that the private key associated with the first public SSH key listed for the value
+     of either `authorized_ssh_keys` or `authorized_ssh_key_files` in your `.auto.tfvars` file
+     is loaded into your SSH agent. During resource creation, Terraform will connect to the newly
+     created VMs using SSH in order copy files and configure the VMs to run Accumulo. If the
+     appropriate private key is not available to your SSH agent, then the connection will fail and
+     resource creation will eventually fail.
+  4. Run `terraform apply` to create the AWS/Azure resources.
+  5. Run `terraform destroy` to tear down the AWS/Azure resources.
 
 **NOTE**: If you are working with `aws` and get an Access Denied error then try setting the AWS
 Short Term access keys in your environment
