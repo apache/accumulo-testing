@@ -25,6 +25,7 @@ import java.util.zip.CRC32;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -56,10 +57,13 @@ public class ContinuousWalk {
       ArrayList<Value> values = new ArrayList<>();
 
       int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
+      ConsistencyLevel cl = TestProps
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_BW_CONSISTENCY_LEVEL));
 
       while (true) {
         Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
             env.getRandomAuthorizations());
+        scanner.setConsistencyLevel(cl);
         String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, r);
 
         while (row != null) {

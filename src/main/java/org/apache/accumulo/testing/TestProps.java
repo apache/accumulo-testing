@@ -21,7 +21,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TestProps {
+
+  private static final Logger LOG = LoggerFactory.getLogger(TestProps.class);
 
   private static final String PREFIX = "test.";
   private static final String COMMON = PREFIX + "common.";
@@ -103,25 +110,30 @@ public class TestProps {
   public static final String CI_BW_SLEEP_MS = CI_BW + "sleep.ms";
   // Scan batch size
   public static final String CI_BW_BATCH_SIZE = CI_BW + "batch.size";
+  // Perform the scan using the configured consistency level
+  public static final String CI_BW_CONSISTENCY_LEVEL = CI_BW + "consistency.level";
 
   /** Walker **/
   // Sleep time between scans (in ms)
   public static final String CI_WALKER_SLEEP_MS = CI_WALKER + "sleep.ms";
+  // Perform the scan using the configured consistency level
+  public static final String CI_WALKER_CONSISTENCY_LEVEL = CI_WALKER + "consistency.level";
 
   /** Scanner **/
   // Sleep time between scans (in ms)
   public static final String CI_SCANNER_SLEEP_MS = CI_SCANNER + "sleep.ms";
   // Scanner entries
   public static final String CI_SCANNER_ENTRIES = CI_SCANNER + "entries";
+  // Perform the scan using the configured consistency level
+  public static final String CI_SCANNER_CONSISTENCY_LEVEL = CI_SCANNER + "consistency.level";
 
   /** Verify **/
   // Maximum number of mapreduce mappers
   public static final String CI_VERIFY_MAX_MAPS = CI_VERIFY + "max.maps";
   // Number of mapreduce reducers
   public static final String CI_VERIFY_REDUCERS = CI_VERIFY + "reducers";
-  // Perform the scan using the configured consistency level
-  public static final String CI_VERIFY_SCAN_CONSISTENCY_LEVEL = CI_VERIFY
-      + "scan.consistency.level";
+  // Perform the verify using the configured consistency level
+  public static final String CI_VERIFY_CONSISTENCY_LEVEL = CI_VERIFY + "scan.consistency.level";
   // Perform the verification directly on the files while the table is
   // offline"
   public static final String CI_VERIFY_SCAN_OFFLINE = CI_VERIFY + "scan.offline";
@@ -162,5 +174,18 @@ public class TestProps {
     props.load(fis);
     fis.close();
     return props;
+  }
+
+  public static ConsistencyLevel getScanConsistencyLevel(String property) {
+    ConsistencyLevel cl = ConsistencyLevel.IMMEDIATE;
+    if (!StringUtils.isEmpty(property)) {
+      try {
+        cl = ConsistencyLevel.valueOf(property.toUpperCase());
+      } catch (Exception e) {
+        LOG.warn("Error setting consistency level to {}, using IMMEDIATE", property.toUpperCase());
+        cl = ConsistencyLevel.IMMEDIATE;
+      }
+    }
+    return cl;
   }
 }

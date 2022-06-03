@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -52,6 +53,8 @@ public class ContinuousScanner {
 
       int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
       int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));
+      ConsistencyLevel cl = TestProps
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_SCANNER_CONSISTENCY_LEVEL));
 
       double delta = Math.min(.05, .05 / (numToScan / 1000.0));
 
@@ -61,6 +64,7 @@ public class ContinuousScanner {
         byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
 
         scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
+        scanner.setConsistencyLevel(cl);
 
         int count = 0;
         Iterator<Entry<Key,Value>> iter = scanner.iterator();

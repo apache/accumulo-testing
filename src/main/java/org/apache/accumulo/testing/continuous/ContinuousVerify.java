@@ -32,7 +32,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.testing.TestProps;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -159,18 +158,8 @@ public class ContinuousVerify extends Configured implements Tool {
       int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
       int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
       String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
-
-      ConsistencyLevel cl = ConsistencyLevel.IMMEDIATE;
-      String configuredCL = env.getTestProperty(TestProps.CI_VERIFY_SCAN_CONSISTENCY_LEVEL);
-      if (!StringUtils.isEmpty(configuredCL)) {
-        try {
-          cl = ConsistencyLevel.valueOf(configuredCL.toUpperCase());
-        } catch (Exception e) {
-          log.warn("Error setting consistency level to {}, using IMMEDIATE",
-              configuredCL.toUpperCase());
-          cl = ConsistencyLevel.IMMEDIATE;
-        }
-      }
+      ConsistencyLevel cl = TestProps
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_VERIFY_CONSISTENCY_LEVEL));
 
       Set<Range> ranges;
       String clone = "";

@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -50,11 +51,15 @@ public class ContinuousBatchWalker {
       Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
       int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
       scanner.setBatchSize(scanBatchSize);
+      ConsistencyLevel cl = TestProps
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_BW_CONSISTENCY_LEVEL));
+      scanner.setConsistencyLevel(cl);
 
       Random r = new Random();
 
       while (true) {
         BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths);
+        bs.setConsistencyLevel(cl);
 
         Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
         List<Range> ranges = new ArrayList<>(batch.size());
