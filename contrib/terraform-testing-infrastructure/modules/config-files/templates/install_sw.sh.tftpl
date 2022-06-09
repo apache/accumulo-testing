@@ -76,7 +76,7 @@ else
   git clone ${accumulo_repo} accumulo-repo
   cd accumulo-repo
   git checkout ${accumulo_branch_name}
-  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean package -DskipTests -DskipITs
+  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean install -PskipQA
   mkdir -p ${software_root}/accumulo
   tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
 fi
