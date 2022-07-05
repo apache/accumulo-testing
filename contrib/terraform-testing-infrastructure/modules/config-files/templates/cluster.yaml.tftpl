@@ -16,9 +16,6 @@ compaction:
   coordinator:
     - ${manager_ip}
   compactor:
-    - queue:
-      - q1
-      - q2
     - q1:
 %{ for ip in worker_ips ~}
         - ${ip}
