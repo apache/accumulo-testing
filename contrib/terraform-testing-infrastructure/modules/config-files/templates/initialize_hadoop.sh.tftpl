@@ -28,9 +28,16 @@ pdsh -S -g worker sudo systemctl enable hadoop-datanode yarn-nodemanager
 # 3. Start the namenode
 # 4. Start the resource manager
 # 5. Start datanodes and nodemanagers on the worker nodes
+# 6. Wait for the namenode to leave safemode
 #
 sudo systemctl start zookeeper
 hdfs namenode -format
 sudo systemctl start hadoop-namenode
 sudo systemctl start yarn-resourcemanager
 pdsh -S -g worker 'sudo systemctl start hadoop-datanode yarn-nodemanager'
+
+echo "Waiting for NameNode to leave safemode..."
+while [[ ! $(hdfs dfsadmin -safemode wait 2>/dev/null) =~ OFF ]]; do
+  sleep 5
+  echo "Waiting for NameNode to leave safemode..."
+done

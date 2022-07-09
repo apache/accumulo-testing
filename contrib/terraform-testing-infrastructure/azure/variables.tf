@@ -126,6 +126,35 @@ variable "os_disk_caching" {
   }
 }
 
+variable "managed_disk_configuration" {
+  default = null
+  type = object({
+    mount_point          = string
+    disk_count           = number
+    storage_account_type = string
+    disk_size_gb         = number
+  })
+  description = "Optional managed disk configuration. If supplied, the managed disks on each VM will be combined into an LVM volume mounted at the named mount point."
+  nullable    = true
+
+  validation {
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.mount_point != null)
+    error_message = "The mount point must be specified."
+  }
+  validation {
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.disk_count > 0)
+    error_message = "The number of disks must be at least 1."
+  }
+  validation {
+    condition     = var.managed_disk_configuration == null || can(contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.managed_disk_configuration.storage_account_type))
+    error_message = "The storage account type must be one of 'Standard_LRS', 'StandardSSD_LRS', or 'Premium_LRS'."
+  }
+  validation {
+    condition     = var.managed_disk_configuration == null || can(var.managed_disk_configuration.disk_size_gb > 0 && var.managed_disk_configuration.disk_size_gb <= 32767)
+    error_message = "The disk size must be at least 1GB and less than 32768GB."
+  }
+}
+
 variable "software_root" {
   default     = "/opt/accumulo-testing"
   description = "The full directory root where software will be installed"
@@ -178,7 +207,7 @@ variable "accumulo_dir" {
 }
 
 variable "maven_version" {
-  default     = "3.8.4"
+  default     = "3.8.5"
   description = "The version of Maven to download and install"
   nullable    = false
 }

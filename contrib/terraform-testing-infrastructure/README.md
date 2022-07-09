@@ -64,7 +64,9 @@ about this see [remote state](https://www.terraform.io/docs/language/state/remot
 shared state instructions are based on
 [this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). 
 
-To generate the storage, run `terraform init` followed by `terraform apply`.
+To generate the storage, run `terraform init` followed by `terraform apply`. Note that the shell
+working directory must be the `shared_state/aws` or `shared_state/azure` directory when you run
+the terraform commands for shared state creation.
 
 The default AWS configuration generates the S3 bucket name when `terraform apply` is run. This
 ensures that a globally unique S3 bucket name is used. It is not required to set any variables for
@@ -165,7 +167,7 @@ The table below lists the variables and their default values that are used in th
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
 | instance\_type | The type of EC2 instances to create | `string` | `"m5.2xlarge"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | private\_network | Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
@@ -208,7 +210,8 @@ The table below lists the variables and their default values that are used in th
 | hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | location | The Azure region where resources are to be created. If an existing resource group is specified, this value is ignored and the resource group's location is used. | `string` | n/a | yes |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.4"` | no |
+| managed\_disk\_configuration | Optional managed disk configuration. If supplied, the managed disks on each VM will be combined into an LVM volume mounted at the named mount point. | <pre>object({<br>    mount_point          = string<br>    disk_count           = number<br>    storage_account_type = string<br>    disk_size_gb         = number<br>  })</pre> | `null` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
 | network\_address\_space | The network address space to use for the virtual network. | `list(string)` | <pre>[<br>  "10.0.0.0/16"<br>]</pre> | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | os\_disk\_caching | The type of caching to use for the OS disk. Possible values are None, ReadOnly, and ReadWrite. | `string` | `"ReadOnly"` | no |
@@ -321,11 +324,11 @@ This Terraform configuration:
      and builds the software using Maven, then untars the binary tarball to
      `${software_root}/accumulo/accumulo-${accumulo_version}`
   5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.7.1.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.12.1.jar`
   6. Copies the Accumulo `test` jar to `${software_root}/accumulo/accumulo-${accumulo_version}/lib`
      so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
   7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.7.4.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.8.4.jar`
   8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}`
      into `${software_root}/sources/accumulo-testing-repo`. It switches to the
      `${accumulo_testing_branch_name}` branch and builds the software using Maven.
@@ -414,7 +417,9 @@ recommended that the public IP addresses be used instead.
 
 ## Instructions
 
-  1. Once you have created a `.auto.tfvars.json` file, or set the properties some other way, run
+  1. Change to either the `aws` or `azure` directory in your shell. This must be the current
+     directory when you run the following `terraform` commands.
+  2. Once you have created a `.auto.tfvars` file, or set the properties some other way, run
      `terraform init`. If you have modified shared_state backend configuration over the default,
      you can override the values here. For example, the following configuration updates the
      `resource_group_name` and `storage_account_name` for the `azurerm` backend:
@@ -423,8 +428,14 @@ recommended that the public IP addresses be used instead.
      ```
      Once values are supplied to `terraform init`, they are stored in the local state and it is not
      necessary to supply these overrides to the `terraform apply` or `terraform destroy` commands.
-  2. Run `terraform apply` to create the AWS/Azure resources.
-  3. Run `terraform destroy` to tear down the AWS/Azure resources.
+  3. Ensure that the private key associated with the first public SSH key listed for the value
+     of either `authorized_ssh_keys` or `authorized_ssh_key_files` in your `.auto.tfvars` file
+     is loaded into your SSH agent. During resource creation, Terraform will connect to the newly
+     created VMs using SSH in order copy files and configure the VMs to run Accumulo. If the
+     appropriate private key is not available to your SSH agent, then the connection will fail and
+     resource creation will eventually fail.
+  4. Run `terraform apply` to create the AWS/Azure resources.
+  5. Run `terraform destroy` to tear down the AWS/Azure resources.
 
 **NOTE**: If you are working with `aws` and get an Access Denied error then try setting the AWS
 Short Term access keys in your environment

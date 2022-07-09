@@ -75,6 +75,9 @@ packages:
 # Make directories on each node
 #
 runcmd:
+%{ if cluster_type == "azure" && lvm_mount_point != "" ~}
+  - /usr/local/bin/format-lvm-data-disk.sh ${lvm_disk_count} ${lvm_mount_point} hadoop.hadoop
+%{ endif ~}
   - mkdir -p ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
   - chown hadoop.hadoop ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
   - systemctl enable docker
@@ -149,3 +152,9 @@ write_files:
     permissions: '0755'
     content: |
       ${indent(6, file("${files_path}/update-hosts-genders.sh"))}
+%{ if cluster_type == "azure" ~}
+  - path: /usr/local/bin/format-lvm-data-disk.sh
+    permissions: '0755'
+    content: |
+      ${indent(6, file("${files_path}/azure-format-lvm-data-disk.sh"))}
+%{ endif ~}
