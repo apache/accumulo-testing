@@ -112,8 +112,6 @@ public class ContinuousIngest {
             "Consult the README and create the table before starting ingest.");
       }
 
-      Random rand = new Random();
-
       byte[] ingestInstanceId = UUID.randomUUID().toString().getBytes(UTF_8);
       log.info("Ingest instance ID: {} current time: {}ms", new String(ingestInstanceId, UTF_8),
           System.currentTimeMillis());
@@ -153,7 +151,7 @@ public class ContinuousIngest {
 
       if (pauseEnabled) {
         lastPauseNs = System.nanoTime();
-        pauseWaitSec = getPause(rand);
+        pauseWaitSec = getPause(env.getRandom());
         log.info("PAUSING enabled");
         log.info("INGESTING for {}s", pauseWaitSec);
       }
@@ -164,17 +162,17 @@ public class ContinuousIngest {
 
       try (BatchWriter bw = client.createBatchWriter(tableName)) {
         out: while (true) {
-          ColumnVisibility cv = getVisibility(rand);
+          ColumnVisibility cv = getVisibility(env.getRandom());
 
           // generate sets nodes that link to previous set of nodes
           for (int depth = 0; depth < maxDepth; depth++) {
             for (int index = 0; index < flushInterval; index++) {
-              long rowLong = genLong(rowMin, rowMax, rand);
+              long rowLong = genLong(rowMin, rowMax, env.getRandom());
 
               byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
 
-              int cfInt = rand.nextInt(maxColF);
-              int cqInt = rand.nextInt(maxColQ);
+              int cfInt = env.getRandom().nextInt(maxColF);
+              int cqInt = env.getRandom().nextInt(maxColQ);
 
               nodeMap[depth][index] = new MutationInfo(rowLong, cfInt, cqInt);
               Mutation m = genMutation(rowLong, cfInt, cqInt, cv, ingestInstanceId, entriesWritten,
@@ -186,11 +184,11 @@ public class ContinuousIngest {
             lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
             if (entriesWritten >= numEntries)
               break out;
-            pauseCheck(rand);
+            pauseCheck(env.getRandom());
           }
 
           // random chance that the entries will be deleted
-          final boolean delete = rand.nextFloat() < deleteProbability;
+          final boolean delete = env.getRandom().nextFloat() < deleteProbability;
 
           // if the previously written entries are scheduled to be deleted
           if (delete) {
@@ -205,7 +203,7 @@ public class ContinuousIngest {
                 bw.addMutation(m);
               }
               lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
-              pauseCheck(rand);
+              pauseCheck(env.getRandom());
             }
           } else {
             // create one big linked list, this makes all the first inserts point to something
@@ -222,7 +220,7 @@ public class ContinuousIngest {
 
           if (entriesWritten >= numEntries)
             break out;
-          pauseCheck(rand);
+          pauseCheck(env.getRandom());
         }
       }
     }

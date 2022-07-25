@@ -23,9 +23,7 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.accumulo.testing.cli.ClientOpts.TimeConverter;
 import org.apache.accumulo.testing.cli.Help;
@@ -156,39 +154,36 @@ public class TimeBinner {
       }
     }
 
-    TreeMap<Long,DoubleWrapper> sorted = new TreeMap<>(aggregation1);
-
-    Set<Entry<Long,DoubleWrapper>> es = sorted.entrySet();
-
-    double cumulative = 0;
-    for (Entry<Long,DoubleWrapper> entry : es) {
-      String value;
+    AtomicReference<Double> cumulative = new AtomicReference<>((double) 0);
+    aggregation1.entrySet().stream().sorted().forEach(entry -> {
+      final String value;
+      final var currentKey = entry.getKey();
+      final var currentValue = entry.getValue();
 
       switch (operation) {
         case AMM_HACK1:
         case AMM: {
-          DoubleWrapper countdw = aggregation2.get(entry.getKey());
-          value = "" + (entry.getValue().d / countdw.d) + " " + aggregation3.get(entry.getKey()).d
-              + " " + aggregation4.get(entry.getKey()).d;
+          DoubleWrapper countdw = aggregation2.get(currentKey);
+          value = "" + (currentValue.d / countdw.d) + " " + aggregation3.get(currentKey).d + " "
+              + aggregation4.get(currentKey).d;
           break;
         }
         case AVG: {
-          DoubleWrapper countdw = aggregation2.get(entry.getKey());
-          value = "" + (entry.getValue().d / countdw.d);
+          DoubleWrapper countdw = aggregation2.get(currentKey);
+          value = "" + (currentValue.d / countdw.d);
           break;
         }
         case CUMULATIVE: {
-          cumulative += entry.getValue().d;
+          cumulative.updateAndGet(v -> v + currentValue.d);
           value = "" + cumulative;
           break;
         }
         default:
-          value = "" + entry.getValue().d;
+          value = "" + currentValue.d;
       }
 
-      log.info(sdf.format(new Date(entry.getKey())) + " " + value);
-    }
-
+      log.info("{} {}", sdf.format(new Date(currentKey)), value);
+    });
   }
 
   private static void increment(long time, HashMap<Long,DoubleWrapper> aggregation, double amount) {

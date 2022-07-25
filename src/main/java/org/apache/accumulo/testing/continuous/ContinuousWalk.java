@@ -47,51 +47,49 @@ public class ContinuousWalk {
 
   public static void main(String[] args) throws Exception {
 
-    try (ContinuousEnv env = new ContinuousEnv(args)) {
-
-      AccumuloClient client = env.getAccumuloClient();
-
-      Random r = new Random();
+    try (ContinuousEnv env = new ContinuousEnv(args);
+        AccumuloClient client = env.getAccumuloClient()) {
 
       ArrayList<Value> values = new ArrayList<>();
 
       int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
 
       while (true) {
-        Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
-            env.getRandomAuthorizations());
-        String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, r);
+        try (Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
+            env.getRandomAuthorizations())) {
+          String row = findAStartRow(env.getRowMin(), env.getRowMax(), scanner, env.getRandom());
 
-        while (row != null) {
+          while (row != null) {
 
-          values.clear();
+            values.clear();
 
-          long t1 = System.currentTimeMillis();
+            long t1 = System.currentTimeMillis();
 
-          scanner.setRange(new Range(new Text(row)));
-          for (Entry<Key,Value> entry : scanner) {
-            validate(entry.getKey(), entry.getValue());
-            values.add(entry.getValue());
-          }
+            scanner.setRange(new Range(new Text(row)));
+            for (Entry<Key,Value> entry : scanner) {
+              validate(entry.getKey(), entry.getValue());
+              values.add(entry.getValue());
+            }
 
-          long t2 = System.currentTimeMillis();
+            long t2 = System.currentTimeMillis();
 
-          log.debug("SRQ {} {} {} {}", t1, row, (t2 - t1), values.size());
+            log.debug("SRQ {} {} {} {}", t1, row, (t2 - t1), values.size());
 
-          if (values.size() > 0) {
-            row = getPrevRow(values.get(r.nextInt(values.size())));
-          } else {
-            log.debug("MIS {} {}", t1, row);
-            log.debug("MIS {} {}", t1, row);
-            row = null;
+            if (values.size() > 0) {
+              row = getPrevRow(values.get(env.getRandom().nextInt(values.size())));
+            } else {
+              log.debug("MIS {} {}", t1, row);
+              log.debug("MIS {} {}", t1, row);
+              row = null;
+            }
+
+            if (sleepTime > 0)
+              Thread.sleep(sleepTime);
           }
 
           if (sleepTime > 0)
             Thread.sleep(sleepTime);
         }
-
-        if (sleepTime > 0)
-          Thread.sleep(sleepTime);
       }
     }
   }

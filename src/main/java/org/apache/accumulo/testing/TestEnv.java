@@ -18,11 +18,13 @@
 package org.apache.accumulo.testing;
 
 import java.lang.management.ManagementFactory;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -37,6 +39,7 @@ public class TestEnv implements AutoCloseable {
   private final Properties clientProps;
   private AccumuloClient client = null;
   private Configuration hadoopConfig = null;
+  private final SecureRandom random = new SecureRandom();
 
   public TestEnv(String[] args) {
 
@@ -178,6 +181,10 @@ public class TestEnv implements AutoCloseable {
 
   public AccumuloClient createClient(String principal, AuthenticationToken token) {
     return Accumulo.newClient().from(clientProps).as(principal, token).build();
+  }
+
+  public Random getRandom() {
+    return random;
   }
 
   @Override

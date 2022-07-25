@@ -18,7 +18,7 @@ package org.apache.accumulo.testing.continuous;
 
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -39,34 +40,33 @@ import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 public class ContinuousBatchWalker {
   private static final Logger log = LoggerFactory.getLogger(ContinuousBatchWalker.class);
 
   public static void main(String[] args) throws Exception {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
+
       Authorizations auths = env.getRandomAuthorizations();
-      AccumuloClient client = env.getAccumuloClient();
-      Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
-      int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
-      scanner.setBatchSize(scanBatchSize);
 
-      Random r = new Random();
-
-      while (true) {
-        BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths);
-
-        Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, r);
-        List<Range> ranges = new ArrayList<>(batch.size());
-
-        for (Text row : batch) {
-          ranges.add(new Range(row));
+      try (AccumuloClient client = env.getAccumuloClient();
+          Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
+              auths)) {
+        int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
+        scanner.setBatchSize(scanBatchSize);
+        Duration bwSleep = Duration
+            .ofMillis(Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS)));
+        while (true) {
+          try (BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths)) {
+            Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize,
+                env.getRandom());
+            List<Range> ranges = batch.stream().map(Range::new).collect(Collectors.toList());
+            runBatchScan(scanBatchSize, bs, batch, ranges);
+          }
+          sleepUninterruptibly(bwSleep);
         }
-
-        runBatchScan(scanBatchSize, bs, batch, ranges);
-
-        int bwSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS));
-        sleepUninterruptibly(bwSleepMs, TimeUnit.MILLISECONDS);
       }
     }
   }
@@ -95,16 +95,13 @@ public class ContinuousBatchWalker {
     long t2 = System.currentTimeMillis();
 
     if (!rowsSeen.equals(batch)) {
-      HashSet<Text> copy1 = new HashSet<>(rowsSeen);
-      HashSet<Text> copy2 = new HashSet<>(batch);
+      Set<Text> extraSeen = Sets.difference(rowsSeen, batch);
+      Set<Text> notSeen = Sets.difference(batch, rowsSeen);
 
-      copy1.removeAll(batch);
-      copy2.removeAll(rowsSeen);
-
-      log.info("DIF {} {} {}", t1, copy1.size(), copy2.size());
-      log.info("DIF {} {} {}", t1, copy1.size(), copy2.size());
-      log.info("Extra seen : {}", copy1);
-      log.info("Not seen   : {}", copy2);
+      log.info("DIF {} {} {}", t1, extraSeen.size(), notSeen.size());
+      log.info("DIF {} {} {}", t1, extraSeen.size(), notSeen.size());
+      log.info("Extra seen : {}", extraSeen);
+      log.info("Not seen   : {}", notSeen);
     } else {
       log.info("BRQ {} {} {} {} {}", t1, (t2 - t1), rowsSeen.size(), count,
           (rowsSeen.size() / ((t2 - t1) / 1000.0)));
@@ -124,7 +121,7 @@ public class ContinuousBatchWalker {
     }
   }
 
-  private static HashSet<Text> rowsToQuery = new HashSet<>();
+  private static final HashSet<Text> rowsToQuery = new HashSet<>();
 
   private static Set<Text> getBatch(Scanner scanner, long min, long max, int batchSize, Random r) {
 
