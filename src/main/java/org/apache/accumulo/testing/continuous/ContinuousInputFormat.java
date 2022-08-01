@@ -29,6 +29,8 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -81,11 +83,7 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
   @Override
   public List<InputSplit> getSplits(JobContext jobContext) {
     int numTask = jobContext.getConfiguration().getInt(PROP_MAP_TASK, 1);
-    List<InputSplit> splits = new ArrayList<>();
-    for (int i = 0; i < numTask; i++) {
-      splits.add(new RandomSplit());
-    }
-    return splits;
+    return Stream.generate(RandomSplit::new).limit(numTask).collect(Collectors.toList());
   }
 
   public static void configure(Configuration conf, String uuid, ContinuousEnv env) {
