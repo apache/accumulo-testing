@@ -48,12 +48,11 @@ public class ContinuousBatchWalker {
   public static void main(String[] args) throws Exception {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
-
       Authorizations auths = env.getRandomAuthorizations();
+      AccumuloClient client = env.getAccumuloClient();
 
-      try (AccumuloClient client = env.getAccumuloClient();
-          Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
-              auths)) {
+      try (Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
+          auths)) {
         int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
         scanner.setBatchSize(scanBatchSize);
         Duration bwSleep = Duration

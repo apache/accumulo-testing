@@ -98,8 +98,9 @@ public class ContinuousIngest {
 
   public static void main(String[] args) throws Exception {
 
-    try (ContinuousEnv env = new ContinuousEnv(args);
-        AccumuloClient client = env.getAccumuloClient()) {
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
+
+      AccumuloClient client = env.getAccumuloClient();
 
       final long rowMin = env.getRowMin();
       final long rowMax = env.getRowMax();

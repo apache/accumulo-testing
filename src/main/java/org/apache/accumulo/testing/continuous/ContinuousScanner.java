@@ -34,10 +34,11 @@ public class ContinuousScanner {
 
   public static void main(String[] args) throws Exception {
 
-    try (ContinuousEnv env = new ContinuousEnv(args);
-        AccumuloClient client = env.getAccumuloClient()) {
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
 
       long distance = 1_000_000_000_000L;
+
+      AccumuloClient client = env.getAccumuloClient();
 
       int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
       int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));

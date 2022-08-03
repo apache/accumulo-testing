@@ -47,8 +47,9 @@ public class ContinuousWalk {
 
   public static void main(String[] args) throws Exception {
 
-    try (ContinuousEnv env = new ContinuousEnv(args);
-        AccumuloClient client = env.getAccumuloClient()) {
+    try (ContinuousEnv env = new ContinuousEnv(args)) {
+
+      AccumuloClient client = env.getAccumuloClient();
 
       ArrayList<Value> values = new ArrayList<>();
 

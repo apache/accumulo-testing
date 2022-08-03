@@ -85,27 +85,25 @@ public class BulkIngest extends Configured implements Tool {
 
       // create splits file for KeyRangePartitioner
       String splitsFile = bulkDir + "/splits.txt";
-      try (AccumuloClient client = env.getAccumuloClient()) {
+      AccumuloClient client = env.getAccumuloClient();
 
-        // make sure splits file is closed before continuing
-        try (PrintStream out = new PrintStream(
-            new BufferedOutputStream(fs.create(fs.makeQualified(new Path(splitsFile)))))) {
-          Collection<Text> splits = client.tableOperations().listSplits(tableName,
-              env.getBulkReducers() - 1);
-          for (Text split : splits) {
-            out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
-          }
-          job.setNumReduceTasks(splits.size() + 1);
-        }
-
-        job.setPartitionerClass(KeyRangePartitioner.class);
-        KeyRangePartitioner.setSplitFile(job, fs.makeQualified(new Path(splitsFile)).toString());
-
-        job.waitForCompletion(true);
-        boolean success = job.isSuccessful();
-
-        return success ? 0 : 1;
+      // make sure splits file is closed before continuing
+      try (PrintStream out = new PrintStream(
+          new BufferedOutputStream(fs.create(fs.makeQualified(new Path(splitsFile)))))) {
+        Collection<Text> splits = client.tableOperations().listSplits(tableName,
+            env.getBulkReducers() - 1);
+        splits.stream().map(Text::copyBytes).map(split -> Base64.getEncoder().encodeToString(split))
+            .forEach(out::println);
+        job.setNumReduceTasks(splits.size() + 1);
       }
+
+      job.setPartitionerClass(KeyRangePartitioner.class);
+      KeyRangePartitioner.setSplitFile(job, fs.makeQualified(new Path(splitsFile)).toString());
+
+      job.waitForCompletion(true);
+      boolean success = job.isSuccessful();
+
+      return success ? 0 : 1;
     }
   }
 
