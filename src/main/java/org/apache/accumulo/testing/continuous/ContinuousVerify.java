@@ -22,8 +22,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Random;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.data.Key;
@@ -119,15 +120,11 @@ public class ContinuousVerify extends Configured implements Tool {
       }
 
       if (defCount == 0 && refs.size() > 0) {
-        StringBuilder sb = new StringBuilder();
-        String comma = "";
-        for (Long ref : refs) {
-          sb.append(comma);
-          comma = ",";
-          sb.append(new String(ContinuousIngest.genRow(ref), UTF_8));
-        }
+        List<String> rowList = refs.stream().map(ContinuousIngest::genRow)
+            .map(row -> new String(row, UTF_8)).collect(Collectors.toList());
+        String rows = String.join(",", rowList);
 
-        context.write(new Text(ContinuousIngest.genRow(key.get())), new Text(sb.toString()));
+        context.write(new Text(ContinuousIngest.genRow(key.get())), new Text(rows));
         context.getCounter(Counts.UNDEFINED).increment(1L);
 
       } else if (defCount > 0 && refs.size() == 0) {
@@ -164,8 +161,8 @@ public class ContinuousVerify extends Configured implements Tool {
       String table;
 
       if (scanOffline) {
-        Random random = new Random();
-        clone = tableName + "_" + String.format("%016x", (random.nextLong() & 0x7fffffffffffffffL));
+        clone = tableName + "_"
+            + String.format("%016x", (env.getRandom().nextLong() & 0x7fffffffffffffffL));
         client.tableOperations().clone(tableName, clone, true, new HashMap<>(), new HashSet<>());
         ranges = client.tableOperations().splitRangeByTablets(tableName, new Range(), maxMaps);
         client.tableOperations().offline(clone);

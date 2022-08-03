@@ -25,13 +25,16 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -172,67 +175,61 @@ public class UndefinedAnalyzer {
 
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
-      if (masterLogs != null) {
-        for (File masterLog : masterLogs) {
+      if (masterLogs == null)
+        return;
 
-          String line;
-          try (BufferedReader reader = Files.newBufferedReader(masterLog.toPath())) {
-            while ((line = reader.readLine()) != null) {
-              String[] tokens = line.split("\\s+");
-              String day = tokens[0];
-              String time = tokens[1];
-              String tablet = tokens[2];
-              String server = tokens[3];
+      for (File masterLog : masterLogs) {
 
-              int pos1 = -1;
-              int pos2 = -1;
-              int pos3 = -1;
+        String line;
+        try (BufferedReader reader = Files.newBufferedReader(masterLog.toPath())) {
+          while ((line = reader.readLine()) != null) {
+            String[] tokens = line.split("\\s+");
+            String day = tokens[0];
+            String time = tokens[1];
+            String tablet = tokens[2];
+            String server = tokens[3];
 
-              for (int i = 0; i < tablet.length(); i++) {
-                if (tablet.charAt(i) == '<' || tablet.charAt(i) == ';') {
-                  if (pos1 == -1) {
-                    pos1 = i;
-                  } else if (pos2 == -1) {
-                    pos2 = i;
-                  } else {
-                    pos3 = i;
-                  }
+            int pos1 = -1;
+            int pos2 = -1;
+            int pos3 = -1;
+
+            for (int i = 0; i < tablet.length(); i++) {
+              if (tablet.charAt(i) == '<' || tablet.charAt(i) == ';') {
+                if (pos1 == -1) {
+                  pos1 = i;
+                } else if (pos2 == -1) {
+                  pos2 = i;
+                } else {
+                  pos3 = i;
                 }
               }
+            }
 
-              if (pos1 > 0 && pos2 > 0 && pos3 == -1) {
-                String tid = tablet.substring(0, pos1);
-                String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000"
-                    : tablet.substring(pos1 + 1, pos2);
-                String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
-                if (tid.equals(tableId)) {
-                  Date date = sdf.parse(day + " " + time);
-                  assignments.add(
-                      new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
+            if (pos1 > 0 && pos2 > 0 && pos3 == -1) {
+              String tid = tablet.substring(0, pos1);
+              String endRow = tablet.charAt(pos1) == '<' ? "8000000000000000"
+                  : tablet.substring(pos1 + 1, pos2);
+              String prevEndRow = tablet.charAt(pos2) == '<' ? "" : tablet.substring(pos2 + 1);
+              if (tid.equals(tableId)) {
+                Date date = sdf.parse(day + " " + time);
+                assignments
+                    .add(new TabletAssignment(tablet, endRow, prevEndRow, server, date.getTime()));
 
-                }
-              } else if (!tablet.startsWith("!0")) {
-                logger.error("Cannot parse tablet {}", tablet);
               }
+            } else if (!tablet.startsWith("!0")) {
+              logger.error("Cannot parse tablet {}", tablet);
             }
           }
         }
       }
     }
 
-    TabletAssignment findMostRecentAssignment(String row, long time1, long time2) {
-
-      long latest = Long.MIN_VALUE;
-      TabletAssignment ret = null;
-
-      for (TabletAssignment assignment : assignments) {
-        if (assignment.contains(row) && assignment.time <= time2 && assignment.time > latest) {
-          latest = assignment.time;
-          ret = assignment;
-        }
-      }
-
-      return ret;
+    TabletAssignment findMostRecentAssignment(String row, long time2) {
+      Optional<TabletAssignment> ret1 = assignments.stream()
+          .filter(assignment -> assignment.contains(row))
+          .filter(assignment -> assignment.time <= time2)
+          .max(Comparator.comparingLong(assignment -> assignment.time));
+      return ret1.orElse(null);
     }
   }
 
@@ -267,10 +264,9 @@ public class UndefinedAnalyzer {
 
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build();
         BatchScanner bscanner = client.createBatchScanner(opts.tableName, opts.auths)) {
-      List<Range> refs = new ArrayList<>();
 
-      for (UndefinedNode undefinedNode : undefs)
-        refs.add(new Range(new Text(undefinedNode.ref)));
+      List<Range> refs = undefs.stream().map(node -> node.ref).map(Text::new).map(Range::new)
+          .collect(Collectors.toList());
 
       bscanner.setRanges(refs);
 
@@ -292,10 +288,8 @@ public class UndefinedAnalyzer {
 
         List<String> refVals = refInfo.get(undefinedNode.ref);
         if (refVals != null) {
-          for (String refVal : refVals) {
+          refVals.stream().map(refVal -> refVal.split(":")).forEach(tokens -> {
             TabletAssignment ta = null;
-
-            String[] tokens = refVal.split(":");
 
             String uuid = tokens[0];
             String count = tokens[1];
@@ -311,7 +305,7 @@ public class UndefinedAnalyzer {
                 if (times.hasNext()) {
                   long time1 = times.next();
                   t1 = sdf.format(new Date(time1));
-                  ta = tabletHistory.findMostRecentAssignment(undefinedNode.undef, time1, time2);
+                  ta = tabletHistory.findMostRecentAssignment(undefinedNode.undef, time2);
                 }
               }
             }
@@ -322,7 +316,7 @@ public class UndefinedAnalyzer {
               logger.debug("{} {} {} {} {} {} {}", undefinedNode.undef, undefinedNode.ref,
                   ta.tablet, ta.server, uuid, t1, t2);
 
-          }
+          });
         } else {
           logger.debug("{} {}", undefinedNode.undef, undefinedNode.ref);
         }

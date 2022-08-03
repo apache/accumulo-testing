@@ -17,10 +17,10 @@
 
 package org.apache.accumulo.testing.continuous;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestEnv;
@@ -43,10 +43,8 @@ public class ContinuousEnv extends TestEnv {
       if (authValue == null || authValue.trim().isEmpty()) {
         authList = Collections.singletonList(Authorizations.EMPTY);
       } else {
-        authList = new ArrayList<>();
-        for (String a : authValue.split("\\|")) {
-          authList.add(new Authorizations(a.split(",")));
-        }
+        authList = Arrays.stream(authValue.split("\\|")).map(a -> a.split(","))
+            .map(Authorizations::new).collect(Collectors.toList());
       }
     }
     return authList;
@@ -56,8 +54,7 @@ public class ContinuousEnv extends TestEnv {
    * @return random authorization
    */
   Authorizations getRandomAuthorizations() {
-    Random r = new Random();
-    return getAuthList().get(r.nextInt(getAuthList().size()));
+    return getAuthList().get(this.getRandom().nextInt(getAuthList().size()));
   }
 
   public long getRowMin() {

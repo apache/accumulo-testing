@@ -19,17 +19,11 @@ package org.apache.accumulo.testing.continuous;
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
@@ -42,56 +36,50 @@ public class ContinuousScanner {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
 
-      Random r = new Random();
-
-      long distance = 1000000000000l;
+      long distance = 1_000_000_000_000L;
 
       AccumuloClient client = env.getAccumuloClient();
-      Authorizations auths = env.getRandomAuthorizations();
-      Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths);
 
       int numToScan = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_ENTRIES));
       int scannerSleepMs = Integer.parseInt(env.getTestProperty(TestProps.CI_SCANNER_SLEEP_MS));
 
       double delta = Math.min(.05, .05 / (numToScan / 1000.0));
+      try (Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
+          env.getRandomAuthorizations())) {
+        while (true) {
+          long startRow = ContinuousIngest.genLong(env.getRowMin(), env.getRowMax() - distance,
+              env.getRandom());
+          byte[] scanStart = ContinuousIngest.genRow(startRow);
+          byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
 
-      while (true) {
-        long startRow = ContinuousIngest.genLong(env.getRowMin(), env.getRowMax() - distance, r);
-        byte[] scanStart = ContinuousIngest.genRow(startRow);
-        byte[] scanStop = ContinuousIngest.genRow(startRow + distance);
+          scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
 
-        scanner.setRange(new Range(new Text(scanStart), new Text(scanStop)));
+          long t1 = System.currentTimeMillis();
 
-        int count = 0;
-        Iterator<Entry<Key,Value>> iter = scanner.iterator();
+          long count = scanner.stream()
+              .peek(entry -> ContinuousWalk.validate(entry.getKey(), entry.getValue())).count();
 
-        long t1 = System.currentTimeMillis();
+          long t2 = System.currentTimeMillis();
 
-        while (iter.hasNext()) {
-          Entry<Key,Value> entry = iter.next();
-          ContinuousWalk.validate(entry.getKey(), entry.getValue());
-          count++;
-        }
-
-        long t2 = System.currentTimeMillis();
-
-        if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
-          if (count == 0) {
-            distance = distance * 10;
-            if (distance < 0)
-              distance = 1000000000000l;
-          } else {
-            double ratio = (double) numToScan / count;
-            // move ratio closer to 1 to make change slower
-            ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
-            distance = (long) (ratio * distance);
+          if (count < (1 - delta) * numToScan || count > (1 + delta) * numToScan) {
+            if (count == 0) {
+              distance = distance * 10;
+              if (distance < 0)
+                distance = 1_000_000_000_000L;
+            } else {
+              double ratio = (double) numToScan / count;
+              // move ratio closer to 1 to make change slower
+              ratio = ratio - (ratio - 1.0) * (2.0 / 3.0);
+              distance = (long) (ratio * distance);
+            }
           }
-        }
 
-        log.debug("SCN {} {} {} {}", t1, new String(scanStart, UTF_8), (t2 - t1), count);
+          log.debug("SCAN - start: {}ms, start row: {}, duration: {}ms, total scanned: {}", t1,
+              new String(scanStart, UTF_8), (t2 - t1), count);
 
-        if (scannerSleepMs > 0) {
-          sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+          if (scannerSleepMs > 0) {
+            sleepUninterruptibly(scannerSleepMs, TimeUnit.MILLISECONDS);
+          }
         }
       }
     }
