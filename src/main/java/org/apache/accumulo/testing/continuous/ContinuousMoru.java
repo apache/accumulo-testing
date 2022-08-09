@@ -63,7 +63,6 @@ public class ContinuousMoru extends Configured implements Tool {
     private short max_cf;
     private short max_cq;
     private Random random;
-    private String ingestInstanceId;
     private byte[] iiId;
     private long count;
 
@@ -81,7 +80,7 @@ public class ContinuousMoru extends Configured implements Tool {
       this.max_cq = (short) max_cq;
 
       random = new Random();
-      ingestInstanceId = context.getConfiguration().get(CI_ID);
+      final String ingestInstanceId = context.getConfiguration().get(CI_ID);
       iiId = ingestInstanceId.getBytes(UTF_8);
 
       count = 0;
