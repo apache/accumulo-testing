@@ -56,7 +56,7 @@ public class ContinuousWalk {
 
       int sleepTime = Integer.parseInt(env.getTestProperty(TestProps.CI_WALKER_SLEEP_MS));
       ConsistencyLevel cl = TestProps
-          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_BW_CONSISTENCY_LEVEL));
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_WALKER_CONSISTENCY_LEVEL));
 
       while (true) {
         try (Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
