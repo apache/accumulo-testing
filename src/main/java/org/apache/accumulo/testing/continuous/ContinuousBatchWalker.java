@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -55,6 +56,9 @@ public class ContinuousBatchWalker {
           auths)) {
         int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
         scanner.setBatchSize(scanBatchSize);
+        ConsistencyLevel cl = TestProps
+            .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_BW_CONSISTENCY_LEVEL));
+        scanner.setConsistencyLevel(cl);
         Duration bwSleep = Duration
             .ofMillis(Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS)));
         while (true) {

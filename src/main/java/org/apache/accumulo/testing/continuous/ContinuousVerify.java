@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -154,6 +155,8 @@ public class ContinuousVerify extends Configured implements Tool {
       int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
       int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
       String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);
+      ConsistencyLevel cl = TestProps
+          .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_VERIFY_CONSISTENCY_LEVEL));
 
       Set<Range> ranges;
       String clone = "";
@@ -173,7 +176,8 @@ public class ContinuousVerify extends Configured implements Tool {
       }
 
       AccumuloInputFormat.configure().clientProperties(env.getClientProps()).table(table)
-          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).store(job);
+          .ranges(ranges).autoAdjustRanges(false).offlineScan(scanOffline).consistencyLevel(cl)
+          .store(job);
 
       job.setMapperClass(CMapper.class);
       job.setMapOutputKeyClass(LongWritable.class);
