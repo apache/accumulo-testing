@@ -85,8 +85,8 @@ ${software_root}/accumulo/accumulo-${accumulo_version}/bin/accumulo-util build-n
 #
 # OpenTelemetry dependencies
 #
-if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.15.0.jar ]; then
-  wget https://search.maven.org/remotecontent?filepath=io/opentelemetry/javaagent/opentelemetry-javaagent/1.15.0/opentelemetry-javaagent-1.15.0.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.15.0.jar
+if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.17.0.jar ]; then
+  wget https://search.maven.org/remotecontent?filepath=io/opentelemetry/javaagent/opentelemetry-javaagent/1.17.0/opentelemetry-javaagent-1.17.0.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.17.0.jar
 fi
 #
 # Micrometer dependencies
