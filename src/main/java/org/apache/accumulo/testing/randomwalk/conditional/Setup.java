@@ -17,7 +17,6 @@
 package org.apache.accumulo.testing.randomwalk.conditional;
 
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriterConfig;
@@ -31,8 +30,7 @@ public class Setup extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    Random rand = new Random();
-    state.setRandom(rand);
+    state.setRandom(env.getRandom());
 
     int numBanks = Integer.parseInt(props.getProperty("numBanks", "1000"));
     log.debug("numBanks = " + numBanks);
@@ -48,7 +46,7 @@ public class Setup extends Test {
     try {
       env.getAccumuloClient().tableOperations().create(tableName);
       log.debug("created table " + tableName);
-      boolean blockCache = rand.nextBoolean();
+      boolean blockCache = env.getRandom().nextBoolean();
       env.getAccumuloClient().tableOperations().setProperty(tableName,
           Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
       log.debug("set " + Property.TABLE_BLOCKCACHE_ENABLED.getKey() + " " + blockCache);

@@ -80,28 +80,26 @@ public class ShardFixture extends Fixture {
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
     String pid = env.getPid();
 
-    Random rand = new Random();
-
-    int numPartitions = rand.nextInt(90) + 10;
+    int numPartitions = env.getRandom().nextInt(90) + 10;
 
     state.set("indexTableName",
         String.format("ST_index_%s_%s_%d", hostname, pid, System.currentTimeMillis()));
     state.set("docTableName",
         String.format("ST_docs_%s_%s_%d", hostname, pid, System.currentTimeMillis()));
     state.set("numPartitions", Integer.valueOf(numPartitions));
-    state.set("cacheIndex", rand.nextDouble() < .5);
-    state.set("rand", rand);
+    state.set("cacheIndex", env.getRandom().nextDouble() < .5);
+    state.set("rand", env.getRandom());
     state.set("nextDocID", Long.valueOf(0));
 
     AccumuloClient client = env.getAccumuloClient();
 
-    createIndexTable(this.log, state, env, "", rand);
+    createIndexTable(this.log, state, env, "", env.getRandom());
 
     String docTableName = state.getString("docTableName");
     NewTableConfiguration ntc = new NewTableConfiguration();
-    SortedSet<Text> splits = genSplits(0xff, rand.nextInt(32) + 1, "%02x");
+    SortedSet<Text> splits = genSplits(0xff, env.getRandom().nextInt(32) + 1, "%02x");
     ntc.withSplits(splits);
-    if (rand.nextDouble() < .5) {
+    if (env.getRandom().nextDouble() < .5) {
       ntc.setProperties(Map.of(Property.TABLE_BLOOM_ENABLED.getKey(), "true"));
       log.info("Enabling bloom filters for table {}", docTableName);
     }

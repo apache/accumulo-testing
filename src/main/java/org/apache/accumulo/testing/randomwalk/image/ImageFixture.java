@@ -20,7 +20,6 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -78,8 +77,7 @@ public class ImageFixture extends Fixture {
       throw e;
     }
 
-    Random rand = new Random();
-    if (rand.nextInt(10) < 5) {
+    if (env.getRandom().nextInt(10) < 5) {
       // setup locality groups
       Map<String,Set<Text>> groups = getLocalityGroups();
 

@@ -38,7 +38,7 @@ public class Generator {
   // The max number of work chains that should be active at any one time.
   private final int maxActiveWork;
 
-  Random rand = new Random();
+  Random rand;
 
   private final Persistence persistence;
 
@@ -48,6 +48,8 @@ public class Generator {
 
     this.maxWork = gcsEnv.getMaxWork();
     this.maxActiveWork = gcsEnv.getMaxActiveWork();
+
+    this.rand = gcsEnv.getRandom();
   }
 
   private void run() {

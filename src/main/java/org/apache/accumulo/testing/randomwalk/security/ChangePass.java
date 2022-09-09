@@ -17,7 +17,6 @@
 package org.apache.accumulo.testing.randomwalk.security;
 
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -59,11 +58,9 @@ public class ChangePass extends Test {
       hasPerm = client.securityOperations().hasSystemPermission(principal,
           SystemPermission.ALTER_USER) || principal.equals(target);
 
-      Random r = new Random();
-
-      byte[] newPassw = new byte[r.nextInt(50) + 1];
+      byte[] newPassw = new byte[env.getRandom().nextInt(50) + 1];
       for (int i = 0; i < newPassw.length; i++)
-        newPassw[i] = (byte) ((r.nextInt(26) + 65) & 0xFF);
+        newPassw[i] = (byte) ((env.getRandom().nextInt(26) + 65) & 0xFF);
 
       PasswordToken newPass = new PasswordToken(newPassw);
       try {

@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.security.MessageDigest;
 import java.util.Properties;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.BatchWriter;
@@ -56,10 +55,9 @@ public class Write extends Test {
     int maxSize = Integer.parseInt(props.getProperty("maxSize"));
     int minSize = Integer.parseInt(props.getProperty("minSize"));
 
-    Random rand = new Random();
-    int numBytes = rand.nextInt(maxSize - minSize) + minSize;
+    int numBytes = env.getRandom().nextInt(maxSize - minSize) + minSize;
     byte[] imageBytes = new byte[numBytes];
-    rand.nextBytes(imageBytes);
+    env.getRandom().nextBytes(imageBytes);
     m.put(CONTENT_COLUMN_FAMILY, IMAGE_COLUMN_QUALIFIER, new Value(imageBytes));
 
     // store size

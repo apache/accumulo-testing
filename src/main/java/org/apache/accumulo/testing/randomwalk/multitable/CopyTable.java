@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.multitable;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
@@ -47,8 +46,7 @@ public class CopyTable extends Test {
     if (tables.isEmpty())
       return;
 
-    Random rand = new Random();
-    String srcTableName = tables.remove(rand.nextInt(tables.size()));
+    String srcTableName = tables.remove(env.getRandom().nextInt(tables.size()));
 
     int nextId = ((Integer) state.get("nextId")).intValue();
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);

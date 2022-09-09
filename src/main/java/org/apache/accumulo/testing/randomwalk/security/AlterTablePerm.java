@@ -17,7 +17,6 @@
 package org.apache.accumulo.testing.randomwalk.security;
 
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -56,8 +55,7 @@ public class AlterTablePerm extends Test {
 
     TablePermission tabPerm;
     if (perm.equals("random")) {
-      Random r = new Random();
-      int i = r.nextInt(TablePermission.values().length);
+      int i = env.getRandom().nextInt(TablePermission.values().length);
       tabPerm = TablePermission.values()[i];
     } else
       tabPerm = TablePermission.valueOf(perm);

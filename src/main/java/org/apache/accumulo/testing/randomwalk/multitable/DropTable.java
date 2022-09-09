@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.multitable;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
@@ -38,8 +37,7 @@ public class DropTable extends Test {
       return;
     }
 
-    Random rand = new Random();
-    String tableName = tables.remove(rand.nextInt(tables.size()));
+    String tableName = tables.remove(env.getRandom().nextInt(tables.size()));
 
     try {
       env.getAccumuloClient().tableOperations().delete(tableName);

@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.randomwalk.multitable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,16 +65,15 @@ public class BulkImport extends Test {
       return;
     }
 
-    Random rand = new Random();
-    String tableName = tables.get(rand.nextInt(tables.size()));
+    String tableName = tables.get(env.getRandom().nextInt(tables.size()));
 
     String uuid = UUID.randomUUID().toString();
     final Path dir = new Path("/tmp/bulk", uuid);
     final Path fail = new Path(dir.toString() + "_fail");
     final FileSystem fs = (FileSystem) state.get("fs");
     fs.mkdirs(fail);
-    final int parts = rand.nextInt(10) + 1;
-    final boolean useLegacyBulk = rand.nextBoolean();
+    final int parts = env.getRandom().nextInt(10) + 1;
+    final boolean useLegacyBulk = env.getRandom().nextBoolean();
 
     TreeSet<String> rows = new TreeSet<>();
     for (int i = 0; i < ROWS; i++)

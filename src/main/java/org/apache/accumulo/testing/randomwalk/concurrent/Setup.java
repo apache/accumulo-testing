@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.randomwalk.concurrent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -29,7 +28,7 @@ public class Setup extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    state.setRandom(new Random());
+    state.setRandom(env.getRandom());
 
     int numTables = Integer.parseInt(props.getProperty("numTables", "9"));
     int numNamespaces = Integer.parseInt(props.getProperty("numNamespaces", "2"));

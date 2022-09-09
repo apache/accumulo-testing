@@ -19,7 +19,6 @@ package org.apache.accumulo.testing.randomwalk.image;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -35,9 +34,8 @@ public class TableOp extends Test {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
     // choose a table
-    Random rand = new Random();
     String tableName;
-    if (rand.nextInt(10) < 8) {
+    if (env.getRandom().nextInt(10) < 8) {
       tableName = state.getString("imageTableName");
     } else {
       tableName = state.getString("indexTableName");
@@ -52,7 +50,7 @@ public class TableOp extends Test {
     }
 
     // choose a random action
-    int num = rand.nextInt(10);
+    int num = env.getRandom().nextInt(10);
     if (num > 6) {
       log.debug("Retrieving info for " + tableName);
       tableOps.getLocalityGroups(tableName);
@@ -64,7 +62,7 @@ public class TableOp extends Test {
       tableOps.clearLocatorCache(tableName);
     }
 
-    if (rand.nextInt(10) < 3) {
+    if (env.getRandom().nextInt(10) < 3) {
       Map<String,Set<Text>> groups = tableOps.getLocalityGroups(state.getString("imageTableName"));
 
       if (groups.size() == 0) {

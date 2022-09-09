@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.bulk;
 
 import java.net.InetAddress;
 import java.util.Properties;
-import java.util.Random;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -56,7 +55,7 @@ public class Setup extends Test {
     } catch (TableExistsException ex) {
       // expected if there are multiple walkers
     }
-    state.setRandom(new Random());
+    state.setRandom(env.getRandom());
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set("bulkImportSuccess", "true");
     BulkPlusOne.counter.set(0l);

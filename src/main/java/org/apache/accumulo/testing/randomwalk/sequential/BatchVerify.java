@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -40,11 +39,9 @@ public class BatchVerify extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    Random rand = new Random();
-
     long numWrites = state.getLong("numWrites");
     int maxVerify = Integer.parseInt(props.getProperty("maxVerify", "2000"));
-    long numVerify = rand.nextInt(maxVerify - 1) + 1;
+    long numVerify = env.getRandom().nextInt(maxVerify - 1) + 1;
 
     if (numVerify > (numWrites / 4)) {
       numVerify = numWrites / 4;
@@ -57,7 +54,7 @@ public class BatchVerify extends Test {
       int count = 0;
       List<Range> ranges = new ArrayList<>();
       while (count < numVerify) {
-        long rangeStart = rand.nextInt((int) numWrites);
+        long rangeStart = env.getRandom().nextInt((int) numWrites);
         long rangeEnd = rangeStart + 99;
         if (rangeEnd > (numWrites - 1)) {
           rangeEnd = numWrites - 1;
