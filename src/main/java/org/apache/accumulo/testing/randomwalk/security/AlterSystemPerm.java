@@ -17,7 +17,6 @@
 package org.apache.accumulo.testing.randomwalk.security;
 
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -41,8 +40,7 @@ public class AlterSystemPerm extends Test {
 
     SystemPermission sysPerm;
     if (perm.equals("random")) {
-      Random r = new Random();
-      int i = r.nextInt(SystemPermission.values().length);
+      int i = env.getRandom().nextInt(SystemPermission.values().length);
       sysPerm = SystemPermission.values()[i];
     } else
       sysPerm = SystemPermission.valueOf(perm);

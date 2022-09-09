@@ -22,7 +22,6 @@ import java.security.MessageDigest;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -44,10 +43,8 @@ public class Verify extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    Random rand = new Random();
-
     int maxVerify = Integer.parseInt(props.getProperty("maxVerify"));
-    int numVerifications = rand.nextInt(maxVerify - 1) + 1;
+    int numVerifications = env.getRandom().nextInt(maxVerify - 1) + 1;
 
     indexTableName = state.getString("indexTableName");
     imageTableName = state.getString("imageTableName");

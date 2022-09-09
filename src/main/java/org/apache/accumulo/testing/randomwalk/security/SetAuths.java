@@ -17,7 +17,6 @@
 package org.apache.accumulo.testing.randomwalk.security;
 
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.AccumuloException;
@@ -58,12 +57,11 @@ public class SetAuths extends Test {
       if (authsString.equals("_random")) {
         String[] possibleAuths = WalkingSecurity.get(state, env).getAuthsArray();
 
-        Random r = new Random();
-        int i = r.nextInt(possibleAuths.length);
+        int i = env.getRandom().nextInt(possibleAuths.length);
         String[] authSet = new String[i];
         int length = possibleAuths.length;
         for (int j = 0; j < i; j++) {
-          int nextRand = r.nextInt(length);
+          int nextRand = env.getRandom().nextInt(length);
           authSet[j] = possibleAuths[nextRand];
           length--;
           possibleAuths[nextRand] = possibleAuths[length];

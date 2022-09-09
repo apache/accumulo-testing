@@ -18,7 +18,6 @@ package org.apache.accumulo.testing.randomwalk.multitable;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -36,12 +35,11 @@ public class OfflineTable extends Test {
       return;
     }
 
-    Random rand = new Random();
-    String tableName = tables.get(rand.nextInt(tables.size()));
+    String tableName = tables.get(env.getRandom().nextInt(tables.size()));
 
-    env.getAccumuloClient().tableOperations().offline(tableName, rand.nextBoolean());
+    env.getAccumuloClient().tableOperations().offline(tableName, env.getRandom().nextBoolean());
     log.debug("Table " + tableName + " offline ");
-    env.getAccumuloClient().tableOperations().online(tableName, rand.nextBoolean());
+    env.getAccumuloClient().tableOperations().online(tableName, env.getRandom().nextBoolean());
     log.debug("Table " + tableName + " online ");
   }
 }

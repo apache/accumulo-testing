@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -65,8 +64,7 @@ public class TableOp extends Test {
       String action = props.getProperty("action", "_random");
       TablePermission tp;
       if ("_random".equalsIgnoreCase(action)) {
-        Random r = new Random();
-        tp = TablePermission.values()[r.nextInt(TablePermission.values().length)];
+        tp = TablePermission.values()[env.getRandom().nextInt(TablePermission.values().length)];
       } else {
         tp = TablePermission.valueOf(action);
       }

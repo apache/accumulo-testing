@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.BatchWriter;
@@ -49,8 +48,7 @@ public class Write extends Test {
       return;
     }
 
-    Random rand = new Random();
-    String tableName = tables.get(rand.nextInt(tables.size()));
+    String tableName = tables.get(env.getRandom().nextInt(tables.size()));
 
     BatchWriter bw = null;
     try {
@@ -70,9 +68,9 @@ public class Write extends Test {
     Mutation m = new Mutation(new Text(uuid));
 
     // create a fake payload between 4KB and 16KB
-    int numBytes = rand.nextInt(12000) + 4000;
+    int numBytes = env.getRandom().nextInt(12000) + 4000;
     byte[] payloadBytes = new byte[numBytes];
-    rand.nextBytes(payloadBytes);
+    env.getRandom().nextBytes(payloadBytes);
     m.put(meta, new Text("payload"), new Value(payloadBytes));
 
     // store size

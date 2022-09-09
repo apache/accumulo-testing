@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -61,8 +60,7 @@ public class ScanMeta extends Test {
     int minScan = Integer.parseInt(props.getProperty("minScan"));
     int maxScan = Integer.parseInt(props.getProperty("maxScan"));
 
-    Random rand = new Random();
-    int numToScan = rand.nextInt(maxScan - minScan) + minScan;
+    int numToScan = env.getRandom().nextInt(maxScan - minScan) + minScan;
 
     Map<Text,Text> hashes = new HashMap<>();
 
