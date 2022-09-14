@@ -28,7 +28,7 @@ Usage: $0 <module> (<argument>)
    Modules listed below located in <at_home>/src/main/resources/randomwalk/modules
 
 EOF
-  find "$at_home/src/main/resources/randomwalk/modules/." -maxdepth 1 -name "*.xml" -printf "%f\n"
+  find "$at_home/src/main/resources/randomwalk/modules/." -maxdepth 1 -name "*.xml" -printf "%f\n" | sort
 }
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
