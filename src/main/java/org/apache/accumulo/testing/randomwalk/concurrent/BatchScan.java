@@ -45,25 +45,20 @@ public class BatchScan extends Test {
     Random rand = state.getRandom();
     String tableName = state.getRandomTableName();
 
-    try {
-      BatchScanner bs = client.createBatchScanner(tableName, Authorizations.EMPTY, 3);
+    try (BatchScanner bs = client.createBatchScanner(tableName, Authorizations.EMPTY, 3)) {
       List<Range> ranges = new ArrayList<>();
       for (int i = 0; i < rand.nextInt(2000) + 1; i++)
-        ranges.add(new Range(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));
+        ranges.add(new Range(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL)));
 
       bs.setRanges(ranges);
 
-      try {
-        Iterator<Entry<Key,Value>> iter = bs.iterator();
-        while (iter.hasNext())
-          iter.next();
-      } finally {
-        bs.close();
-      }
+      Iterator<Entry<Key,Value>> iter = bs.iterator();
+      while (iter.hasNext())
+        iter.next();
 
       log.debug("Wrote to " + tableName);
     } catch (TableNotFoundException e) {
-      log.debug("BatchScan " + tableName + " failed, doesnt exist");
+      log.debug("BatchScan " + tableName + " failed, doesn't exist");
     } catch (TableDeletedException tde) {
       log.debug("BatchScan " + tableName + " failed, table deleted");
     } catch (TableOfflineException e) {

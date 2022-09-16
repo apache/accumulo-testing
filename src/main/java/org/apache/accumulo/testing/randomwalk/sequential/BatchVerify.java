@@ -22,12 +22,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -80,14 +80,9 @@ public class BatchVerify extends Test {
 
       scanner.setRanges(ranges);
 
-      List<Key> keys = new ArrayList<>();
-      for (Entry<Key,Value> entry : scanner) {
-        keys.add(entry.getKey());
-      }
+      List<Key> keys = scanner.stream().map(Entry::getKey).sorted().collect(Collectors.toList());
 
       log.debug("scan returned " + keys.size() + " rows. now verifying...");
-
-      Collections.sort(keys);
 
       Iterator<Key> iterator = keys.iterator();
       int curKey = Integer.parseInt(iterator.next().getRow().toString());

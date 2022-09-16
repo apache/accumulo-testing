@@ -16,12 +16,13 @@
  */
 package org.apache.accumulo.testing.randomwalk.multitable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.accumulo.core.client.IteratorSetting.Column;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -39,15 +40,13 @@ import org.apache.hadoop.io.Text;
 
 public class BulkImport extends Test {
 
+  public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
   public static final int ROWS = 1_000_000;
   public static final int COLS = 10;
-  public static final List<Column> COLNAMES = new ArrayList<>();
-  public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
-  static {
-    for (int i = 0; i < COLS; i++) {
-      COLNAMES.add(new Column(CHECK_COLUMN_FAMILY, new Text(String.format("%03d", i))));
-    }
-  }
+  public static final List<Column> COLNAMES = IntStream.range(0, COLS - 1)
+      .mapToObj(i -> String.format("%03d", i)).map(Text::new)
+      .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
+
   public static final Text MARKER_CF = new Text("marker");
   static final AtomicLong counter = new AtomicLong();
 
@@ -69,7 +68,7 @@ public class BulkImport extends Test {
 
     String uuid = UUID.randomUUID().toString();
     final Path dir = new Path("/tmp/bulk", uuid);
-    final Path fail = new Path(dir.toString() + "_fail");
+    final Path fail = new Path(dir + "_fail");
     final FileSystem fs = (FileSystem) state.get("fs");
     fs.mkdirs(fail);
     final int parts = env.getRandom().nextInt(10) + 1;
@@ -84,16 +83,16 @@ public class BulkImport extends Test {
 
     for (int i = 0; i < parts; i++) {
       String fileName = dir + "/" + String.format("part_%d.rf", i);
-      RFileWriter f = RFile.newWriter().to(fileName).withFileSystem(fs).build();
-      f.startDefaultLocalityGroup();
-      for (String r : rows) {
-        Text row = new Text(r);
-        for (Column col : COLNAMES) {
-          f.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), ONE);
+      try (RFileWriter f = RFile.newWriter().to(fileName).withFileSystem(fs).build()) {
+        f.startDefaultLocalityGroup();
+        for (String r : rows) {
+          Text row = new Text(r);
+          for (Column col : COLNAMES) {
+            f.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), ONE);
+          }
+          f.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
         }
-        f.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
       }
-      f.close();
     }
     log.debug("Starting {} bulk import to {}", useLegacyBulk ? "legacy" : "new", tableName);
     try {

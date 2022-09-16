@@ -64,18 +64,20 @@ public class Verify extends Test {
 
     String user = env.getAccumuloClient().whoami();
     Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
-    Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths);
-    scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
-    for (Entry<Key,Value> entry : scanner) {
-      byte[] value = entry.getValue().get();
-      if (!Arrays.equals(value, zero)) {
-        throw new Exception("Bad key at " + entry);
+    RowIterator rowIter;
+    try (Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths)) {
+      scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
+      for (Entry<Key,Value> entry : scanner) {
+        byte[] value = entry.getValue().get();
+        if (!Arrays.equals(value, zero)) {
+          throw new Exception("Bad key at " + entry);
+        }
       }
-    }
 
-    scanner.clearColumns();
-    scanner.fetchColumnFamily(BulkPlusOne.MARKER_CF);
-    RowIterator rowIter = new RowIterator(scanner);
+      scanner.clearColumns();
+      scanner.fetchColumnFamily(BulkPlusOne.MARKER_CF);
+      rowIter = new RowIterator(scanner);
+    }
 
     while (rowIter.hasNext()) {
       Iterator<Entry<Key,Value>> row = rowIter.next();
@@ -117,8 +119,9 @@ public class Verify extends Test {
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     opts.parseArgs(Verify.class.getName(), args);
-    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
-      Scanner scanner = client.createScanner(opts.tableName, opts.auths);
+    try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build();
+        Scanner scanner = client.createScanner(opts.tableName, opts.auths)) {
+
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       Text startBadRow = null;
       Text lastBadRow = null;

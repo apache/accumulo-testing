@@ -17,11 +17,13 @@
 package org.apache.accumulo.testing.randomwalk.sequential;
 
 import java.net.InetAddress;
+import java.util.Map;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.testing.randomwalk.Fixture;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -41,15 +43,17 @@ public class SequentialFixture extends Fixture {
         System.currentTimeMillis());
     state.set("seqTableName", seqTableName);
 
+    NewTableConfiguration ntc = new NewTableConfiguration()
+        .setProperties(Map.of("table.scan.max.memory", "1K"));
+
     try {
-      client.tableOperations().create(seqTableName);
+      client.tableOperations().create(seqTableName, ntc);
       log.debug("Created table " + seqTableName + " (id:"
           + client.tableOperations().tableIdMap().get(seqTableName) + ")");
     } catch (TableExistsException e) {
       log.warn("Table " + seqTableName + " already exists!");
       throw e;
     }
-    client.tableOperations().setProperty(seqTableName, "table.scan.max.memory", "1K");
 
     state.set("numWrites", 0L);
     state.set("totalWrites", 0L);
@@ -70,7 +74,7 @@ public class SequentialFixture extends Fixture {
       env.resetMultiTableBatchWriter();
     }
 
-    log.debug("Dropping tables: " + seqTableName);
+    log.debug("Dropping table: " + seqTableName);
 
     AccumuloClient client = env.getAccumuloClient();
 

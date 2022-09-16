@@ -18,10 +18,12 @@ package org.apache.accumulo.testing.randomwalk.bulk;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.accumulo.core.client.IteratorSetting.Column;
 import org.apache.accumulo.core.client.rfile.RFile;
@@ -41,13 +43,11 @@ public class BulkPlusOne extends BulkImportTest {
   public static final int COLS = 10;
   public static final int HEX_SIZE = (int) Math.ceil(Math.log(LOTS) / Math.log(16));
   public static final String FMT = "r%0" + HEX_SIZE + "x";
-  public static final List<Column> COLNAMES = new ArrayList<>();
   public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
-  static {
-    for (int i = 0; i < COLS; i++) {
-      COLNAMES.add(new Column(CHECK_COLUMN_FAMILY, new Text(String.format("%03d", i))));
-    }
-  }
+  public static final List<Column> COLNAMES = IntStream.range(0, COLS - 1)
+      .mapToObj(i -> String.format("%03d", i)).map(Text::new)
+      .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
+
   public static final Text MARKER_CF = new Text("marker");
   static final AtomicLong counter = new AtomicLong();
 
@@ -55,19 +55,16 @@ public class BulkPlusOne extends BulkImportTest {
 
   static void bulkLoadLots(Logger log, State state, RandWalkEnv env, Value value) throws Exception {
     final FileSystem fs = (FileSystem) state.get("fs");
-    final Path dir = new Path(fs.getUri() + "/tmp", "bulk_" + UUID.randomUUID().toString());
+    final Path dir = new Path(fs.getUri() + "/tmp", "bulk_" + UUID.randomUUID());
     log.debug("Bulk loading from {}", dir);
-    final Random rand = state.getRandom();
-    final int parts = rand.nextInt(10) + 1;
+    final int parts = env.getRandom().nextInt(10) + 1;
 
-    TreeSet<Integer> startRows = new TreeSet<>();
+    TreeSet<Integer> startRows = Stream.generate(() -> env.getRandom().nextInt(LOTS)).limit(parts)
+        .collect(Collectors.toCollection(TreeSet::new));
     startRows.add(0);
-    while (startRows.size() < parts)
-      startRows.add(rand.nextInt(LOTS));
 
-    List<String> printRows = new ArrayList<>(startRows.size());
-    for (Integer row : startRows)
-      printRows.add(String.format(FMT, row));
+    List<String> printRows = startRows.stream().map(row -> String.format(FMT, row))
+        .collect(Collectors.toList());
 
     String markerColumnQualifier = String.format("%07d", counter.incrementAndGet());
     log.debug("preparing bulk files with start rows " + printRows + " last row "
@@ -80,18 +77,18 @@ public class BulkPlusOne extends BulkImportTest {
       String fileName = dir + "/" + String.format("part_%d.rf", i);
 
       log.debug("Creating {}", fileName);
-      RFileWriter writer = RFile.newWriter().to(fileName).withFileSystem(fs).build();
-      writer.startDefaultLocalityGroup();
-      int start = rows.get(i);
-      int end = rows.get(i + 1);
-      for (int j = start; j < end; j++) {
-        Text row = new Text(String.format(FMT, j));
-        for (Column col : COLNAMES) {
-          writer.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), value);
+      try (RFileWriter writer = RFile.newWriter().to(fileName).withFileSystem(fs).build()) {
+        writer.startDefaultLocalityGroup();
+        int start = rows.get(i);
+        int end = rows.get(i + 1);
+        for (int j = start; j < end; j++) {
+          Text row = new Text(String.format(FMT, j));
+          for (Column col : COLNAMES) {
+            writer.append(new Key(row, col.getColumnFamily(), col.getColumnQualifier()), value);
+          }
+          writer.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
         }
-        writer.append(new Key(row, MARKER_CF, new Text(markerColumnQualifier)), ONE);
       }
-      writer.close();
     }
     env.getAccumuloClient().tableOperations().importDirectory(dir.toString())
         .to(Setup.getTableName()).tableTime(true);

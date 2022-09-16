@@ -37,9 +37,9 @@ public class Config extends Test {
   private static final String LAST_NAMESPACE_SETTING = "lastNamespaceSetting";
 
   static class Setting {
-    public Property property;
-    public long min;
-    public long max;
+    final public Property property;
+    final public long min;
+    final public long max;
 
     public Setting(Property property, long min, long max) {
       this.property = property;
@@ -53,9 +53,9 @@ public class Config extends Test {
   }
 
   @SuppressWarnings("deprecation")
-  Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_READ_AHEAD_MAXCONCURRENT;
+  final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_READ_AHEAD_MAXCONCURRENT;
   // @formatter:off
-	Setting[] settings = {
+  final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
 			s(Property.TSERV_BULK_PROCESS_THREADS, 1, 10),
 			s(Property.TSERV_BULK_RETRY, 1, 10),
@@ -81,8 +81,7 @@ public class Config extends Test {
 			s(Property.TSERV_SESSION_MAXIDLE, 100, 5 * 60 * 1000),
 			s(Property.TSERV_WAL_SORT_BUFFER_SIZE, 1024 * 1024, 1024 * 1024 * 1024L),
 			s(Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN, 5, 100),
-			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,
-					1024 * 1024 * 1024 * 10L),
+			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,1024 * 1024 * 1024 * 10L),
 			s(Property.TSERV_WORKQ_THREADS, 1, 10),
 			s(Property.MANAGER_BULK_THREADPOOL_SIZE, 1, 10),
 			s(Property.MANAGER_BULK_RETRIES, 1, 10),
@@ -93,16 +92,13 @@ public class Config extends Test {
 			s(Property.MANAGER_THREADCHECK, 100, 10000),
 			s(Property.MANAGER_MINTHREADS, 1, 200),};
 
-	Setting[] tableSettings = {
+    final Setting[] tableSettings = {
 			s(Property.TABLE_MAJC_RATIO, 1, 10),
-			s(Property.TABLE_SPLIT_THRESHOLD, 10 * 1024,
-					10L * 1024 * 1024 * 1024),
+			s(Property.TABLE_SPLIT_THRESHOLD, 10 * 1024, 10L * 1024 * 1024 * 1024),
 			s(Property.TABLE_MINC_COMPACT_IDLETIME, 100, 100 * 60 * 60 * 1000L),
 			s(Property.TABLE_SCAN_MAXMEM, 10 * 1024, 10 * 1024 * 1024),
-			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE, 10 * 1024,
-					10 * 1024 * 1024L),
-			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE_INDEX, 10 * 1024,
-					10 * 1024 * 1024L),
+			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE, 10 * 1024, 10 * 1024 * 1024L),
+			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE_INDEX, 10 * 1024, 10 * 1024 * 1024L),
 			s(Property.TABLE_FILE_REPLICATION, 0, 5),
 			s(Property.TABLE_FILE_MAX, 2, 50),};
 	// @formatter:on

@@ -20,10 +20,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
@@ -38,26 +35,24 @@ public class Insert extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
+    int numPartitions = state.getInteger("numPartitions");
+    long nextDocID = state.getLong("nextDocID");
     Random rand = state.getRandom();
-    long nextDocID = (Long) state.get("nextDocID");
 
     BatchWriter dataWriter = env.getMultiTableBatchWriter().getBatchWriter(dataTableName);
     BatchWriter indexWriter = env.getMultiTableBatchWriter().getBatchWriter(indexTableName);
 
-    String docID = insertRandomDocument(nextDocID++, dataWriter, indexWriter, indexTableName,
-        dataTableName, numPartitions, rand);
+    String docID = insertRandomDocument(nextDocID++, dataWriter, indexWriter, numPartitions, rand);
 
     log.debug("Inserted document " + docID);
 
-    state.set("nextDocID", Long.valueOf(nextDocID));
+    state.set("nextDocID", nextDocID);
   }
 
   static String insertRandomDocument(long did, BatchWriter dataWriter, BatchWriter indexWriter,
-      String indexTableName, String dataTableName, int numPartitions, Random rand)
-      throws TableNotFoundException, Exception, AccumuloException, AccumuloSecurityException {
+      int numPartitions, Random rand) throws Exception {
     String doc = createDocument(rand);
 
     String docID = new StringBuilder(String.format("%016x", did)).reverse().toString();

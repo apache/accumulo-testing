@@ -16,8 +16,6 @@
  */
 package org.apache.accumulo.testing.randomwalk;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.testing.TestEnv;
 import org.slf4j.Logger;
@@ -48,8 +46,7 @@ public class RandWalkEnv extends TestEnv {
    * @throws NumberFormatException
    *           if any configuration property cannot be parsed
    */
-  public MultiTableBatchWriter getMultiTableBatchWriter()
-      throws AccumuloException, AccumuloSecurityException {
+  public MultiTableBatchWriter getMultiTableBatchWriter() {
     if (mtbw == null) {
       mtbw = getAccumuloClient().createMultiTableBatchWriter();
     }

@@ -31,7 +31,7 @@ public class OfflineTable extends Test {
     @SuppressWarnings("unchecked")
     List<String> tables = (List<String>) state.get("tableList");
 
-    if (tables.size() <= 0) {
+    if (tables.isEmpty()) {
       return;
     }
 

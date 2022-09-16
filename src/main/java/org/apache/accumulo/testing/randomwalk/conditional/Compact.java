@@ -16,6 +16,8 @@
  */
 package org.apache.accumulo.testing.randomwalk.conditional;
 
+import static org.apache.accumulo.testing.randomwalk.conditional.Utils.getRowFromBank;
+
 import java.util.Properties;
 import java.util.Random;
 
@@ -34,8 +36,9 @@ public class Compact extends Test {
     String table = state.getString("tableName");
     Random rand = state.getRandom();
     AccumuloClient client = env.getAccumuloClient();
-    Text row1 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));
-    Text row2 = new Text(Utils.getBank(rand.nextInt((Integer) state.get("numBanks"))));
+
+    Text row1 = getRowFromBank(rand, state);
+    Text row2 = getRowFromBank(rand, state);
 
     if (row1.compareTo(row2) >= 0) {
       row1 = null;

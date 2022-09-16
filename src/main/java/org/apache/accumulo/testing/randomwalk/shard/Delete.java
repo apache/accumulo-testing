@@ -31,12 +31,12 @@ public class Delete extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
+    int numPartitions = state.getInteger("numPartitions");
     Random rand = state.getRandom();
 
-    Entry<Key,Value> entry = Search.findRandomDocument(state, env, dataTableName, rand);
+    Entry<Key,Value> entry = Search.findRandomDocument(env, dataTableName, rand);
     if (entry == null)
       return;
 

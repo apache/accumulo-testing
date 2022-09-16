@@ -48,7 +48,7 @@ public class ChangePermissions extends Test {
         changeSystemPermission(client, rand, userName);
       else if (dice == 1)
         changeTablePermission(client, rand, userName, tableName);
-      else if (dice == 2)
+      else
         changeNamespacePermission(client, rand, userName, namespace);
     } catch (AccumuloSecurityException | AccumuloException ex) {
       log.debug("Unable to change user permissions: " + ex.getCause());

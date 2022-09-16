@@ -38,7 +38,7 @@ public class ListSplits extends Test {
       Collection<Text> splits = client.tableOperations().listSplits(tableName);
       log.debug("Table " + tableName + " had " + splits.size() + " splits");
     } catch (TableNotFoundException e) {
-      log.debug("listSplits " + tableName + " failed, doesnt exist");
+      log.debug("listSplits " + tableName + " failed, table doesn't exist");
     } catch (AccumuloSecurityException ase) {
       log.debug("listSplits " + tableName + " failed, " + ase.getMessage());
     }

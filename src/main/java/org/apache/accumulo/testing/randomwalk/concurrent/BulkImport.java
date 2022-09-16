@@ -98,7 +98,7 @@ public class BulkImport extends Test {
     FileSystem fs = FileSystem.get(env.getHadoopConfiguration());
 
     String bulkDir = env.getHdfsRoot() + "/tmp/concurrent_bulk/b_"
-        + String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl);
+        + String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL);
 
     fs.mkdirs(new Path(bulkDir));
     fs.mkdirs(new Path(bulkDir + "_f"));
@@ -109,12 +109,12 @@ public class BulkImport extends Test {
         TreeSet<Long> rows = new TreeSet<>();
         int numRows = rand.nextInt(100000);
         for (int i = 0; i < numRows; i++) {
-          rows.add(rand.nextLong() & 0x7fffffffffffffffl);
+          rows.add(rand.nextLong() & 0x7fffffffffffffffL);
         }
 
         for (Long row : rows) {
           Mutation m = new Mutation(String.format("%016x", row));
-          long val = rand.nextLong() & 0x7fffffffffffffffl;
+          long val = rand.nextLong() & 0x7fffffffffffffffL;
           for (int j = 0; j < 10; j++) {
             m.put("cf", "cq" + j, new Value(String.format("%016x", val).getBytes(UTF_8)));
           }

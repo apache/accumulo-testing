@@ -40,8 +40,7 @@ public class ScanTable extends Test {
     AccumuloClient client = env.getAccumuloClient();
     String tableName = state.getRandomTableName();
 
-    try {
-      Scanner scanner = client.createScanner(tableName, Authorizations.EMPTY);
+    try (Scanner scanner = client.createScanner(tableName, Authorizations.EMPTY)) {
       Iterator<Entry<Key,Value>> iter = scanner.iterator();
       while (iter.hasNext()) {
         iter.next();

@@ -16,20 +16,16 @@
  */
 package org.apache.accumulo.testing.randomwalk.image;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -52,60 +48,44 @@ public class ScanMeta extends Test {
 
     AccumuloClient client = env.getAccumuloClient();
 
-    Scanner imageScanner = client.createScanner(imageTableName, new Authorizations());
+    try (Scanner imageScanner = client.createScanner(imageTableName, new Authorizations())) {
 
-    imageScanner.setRange(new Range(new Text(uuid), null));
-    imageScanner.fetchColumn(Write.META_COLUMN_FAMILY, Write.SHA1_COLUMN_QUALIFIER);
+      imageScanner.setRange(new Range(new Text(uuid), null));
+      imageScanner.fetchColumn(Write.META_COLUMN_FAMILY, Write.SHA1_COLUMN_QUALIFIER);
 
-    int minScan = Integer.parseInt(props.getProperty("minScan"));
-    int maxScan = Integer.parseInt(props.getProperty("maxScan"));
+      int minScan = Integer.parseInt(props.getProperty("minScan"));
+      int maxScan = Integer.parseInt(props.getProperty("maxScan"));
 
-    int numToScan = env.getRandom().nextInt(maxScan - minScan) + minScan;
+      int numToScan = env.getRandom().nextInt(maxScan - minScan) + minScan;
 
-    Map<Text,Text> hashes = new HashMap<>();
+      Map<Text,Text> hashes = imageScanner.stream().limit(numToScan).collect(Collectors
+          .toMap(entry -> new Text(entry.getValue().get()), entry -> entry.getKey().getRow()));
 
-    Iterator<Entry<Key,Value>> iter = imageScanner.iterator();
+      log.debug("Found " + hashes.size() + " hashes starting at " + uuid);
 
-    while (iter.hasNext() && numToScan > 0) {
+      if (hashes.isEmpty()) {
+        return;
+      }
 
-      Entry<Key,Value> entry = iter.next();
+      // use batch scanner to verify all of these exist in index
+      try (BatchScanner indexScanner = client.createBatchScanner(indexTableName,
+          Authorizations.EMPTY, 3)) {
+        List<Range> ranges = hashes.keySet().stream().map(Range::new).collect(Collectors.toList());
 
-      hashes.put(new Text(entry.getValue().get()), entry.getKey().getRow());
+        indexScanner.setRanges(ranges);
 
-      numToScan--;
+        Map<Text,Text> hashes2 = indexScanner.stream().collect(Collectors
+            .toMap(entry -> entry.getKey().getRow(), entry -> new Text(entry.getValue().get())));
+
+        log.debug("Looked up " + ranges.size() + " ranges, found " + hashes2.size());
+
+        if (!hashes.equals(hashes2)) {
+          log.error("uuids from doc table : " + hashes.values());
+          log.error("uuids from index     : " + hashes2.values());
+          throw new Exception(
+              "Mismatch between document table and index " + indexTableName + " " + imageTableName);
+        }
+      }
     }
-
-    log.debug("Found " + hashes.size() + " hashes starting at " + uuid);
-
-    if (hashes.isEmpty()) {
-      return;
-    }
-
-    // use batch scanner to verify all of these exist in index
-    BatchScanner indexScanner = client.createBatchScanner(indexTableName, Authorizations.EMPTY, 3);
-    ArrayList<Range> ranges = new ArrayList<>();
-    for (Text row : hashes.keySet()) {
-      ranges.add(new Range(row));
-    }
-
-    indexScanner.setRanges(ranges);
-
-    Map<Text,Text> hashes2 = new HashMap<>();
-
-    for (Entry<Key,Value> entry : indexScanner)
-      hashes2.put(entry.getKey().getRow(), new Text(entry.getValue().get()));
-
-    log.debug("Looked up " + ranges.size() + " ranges, found " + hashes2.size());
-
-    if (!hashes.equals(hashes2)) {
-      log.error("uuids from doc table : " + hashes.values());
-      log.error("uuids from index     : " + hashes2.values());
-      throw new Exception(
-          "Mismatch between document table and index " + indexTableName + " " + imageTableName);
-    }
-
-    indexScanner.close();
-
   }
-
 }

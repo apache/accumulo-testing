@@ -16,9 +16,9 @@
  */
 package org.apache.accumulo.testing.randomwalk.conditional;
 
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
@@ -36,10 +36,10 @@ public class Split extends Test {
     String table = state.getString("tableName");
     Random rand = state.getRandom();
     AccumuloClient client = env.getAccumuloClient();
-    String row = Utils.getBank(rand.nextInt((Integer) state.get("numBanks")));
+    Text row = Utils.getRowFromBank(rand, state);
 
     log.debug("adding split " + row);
-    client.tableOperations().addSplits(table, new TreeSet<>(Arrays.asList(new Text(row))));
+    client.tableOperations().addSplits(table, new TreeSet<>(Set.of(row)));
   }
 
 }

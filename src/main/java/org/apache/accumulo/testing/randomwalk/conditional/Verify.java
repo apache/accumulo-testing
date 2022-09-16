@@ -20,7 +20,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.IsolatedScanner;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -42,9 +41,9 @@ public class Verify extends Test {
     String table = state.getString("tableName");
     AccumuloClient client = env.getAccumuloClient();
 
-    int numAccts = (Integer) state.get("numAccts");
-
-    for (int i = 0; i < (Integer) state.get("numBanks"); i++)
+    int numAccts = state.getInteger("numAccts");
+    int numBanks = state.getInteger("numBanks");
+    for (int i = 0; i < numBanks; i++)
       verifyBank(table, client, Utils.getBank(i), numAccts);
 
   }
@@ -58,9 +57,9 @@ public class Verify extends Test {
     int min = Integer.MAX_VALUE;
     int max = Integer.MIN_VALUE;
 
-    // TODO do not use IsolatedScanner, just enable isolation on scanner
-    try (Scanner scanner = new IsolatedScanner(client.createScanner(table, Authorizations.EMPTY))) {
+    try (Scanner scanner = client.createScanner(table, Authorizations.EMPTY)) {
 
+      scanner.enableIsolation();
       scanner.setRange(new Range(row));
       IteratorSetting iterConf = new IteratorSetting(100, "cqsl", ColumnSliceFilter.class);
       ColumnSliceFilter.setSlice(iterConf, "bal", true, "bal", true);

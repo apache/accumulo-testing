@@ -50,7 +50,7 @@ public class Write extends Test {
 
     String tableName = tables.get(env.getRandom().nextInt(tables.size()));
 
-    BatchWriter bw = null;
+    BatchWriter bw;
     try {
       bw = env.getMultiTableBatchWriter().getBatchWriter(tableName);
     } catch (TableOfflineException e) {

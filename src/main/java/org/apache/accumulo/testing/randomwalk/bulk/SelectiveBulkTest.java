@@ -16,6 +16,8 @@
  */
 package org.apache.accumulo.testing.randomwalk.bulk;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Properties;
 
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
@@ -31,14 +33,14 @@ public abstract class SelectiveBulkTest extends BulkTest {
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     if (SelectiveQueueing.shouldQueueOperation(state, env)) {
       super.visit(state, env, props);
-    } else {
-      log.debug("Skipping queueing of " + getClass().getSimpleName()
-          + " because of excessive queued tasks already");
-      log.debug("Waiting 30 seconds before continuing");
-      try {
-        Thread.sleep(30 * 1000);
-      } catch (InterruptedException e) {}
+      return;
     }
+    log.debug("Skipping queueing of {} because of excessive queued tasks already",
+        getClass().getSimpleName());
+    log.debug("Waiting 30 seconds before continuing");
+    try {
+      Thread.sleep(SECONDS.toMillis(30));
+    } catch (InterruptedException ignored) {}
   }
 
 }

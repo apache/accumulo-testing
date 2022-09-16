@@ -30,7 +30,7 @@ public class Merge extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
+    String indexTableName = state.getString("indexTableName");
 
     Collection<Text> splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     SortedSet<Text> splitSet = new TreeSet<>(splits);
@@ -40,8 +40,7 @@ public class Merge extends Test {
     merge.mergomatic(env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true);
     splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
-      // throw an excpetion so that test will die an no further changes to
-      // table will occur...
+      // throw an exception so that test will die and no further changes to table will occur...
       // this way table is left as is for debugging.
       throw new Exception(
           "There are more tablets after a merge: " + splits.size() + " was " + splitSet.size());

@@ -16,10 +16,11 @@
  */
 package org.apache.accumulo.testing.randomwalk.shard;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
@@ -36,47 +37,44 @@ public class DeleteSomeDocs extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    // delete documents that where the document id matches a given pattern
-    // from doc and index table
-    // using the batch deleter
+    // delete documents where the document id matches a given pattern
+    // from doc and index table using the batch deleter
 
     Random rand = state.getRandom();
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
 
-    ArrayList<String> patterns = new ArrayList<>();
-
-    for (Object key : props.keySet())
-      if (key instanceof String && ((String) key).startsWith("pattern"))
-        patterns.add(props.getProperty((String) key));
+    List<String> patterns = props.keySet().stream().filter(key -> key instanceof String)
+        .map(key -> (String) key).filter(key -> key.startsWith("pattern")).map(props::getProperty)
+        .collect(Collectors.toList());
 
     String pattern = patterns.get(rand.nextInt(patterns.size()));
     BatchWriterConfig bwc = new BatchWriterConfig();
-    BatchDeleter ibd = env.getAccumuloClient().createBatchDeleter(indexTableName,
-        Authorizations.EMPTY, 8, bwc);
-    ibd.setRanges(Collections.singletonList(new Range()));
-
     IteratorSetting iterSettings = new IteratorSetting(100, RegExFilter.class);
-    RegExFilter.setRegexs(iterSettings, null, null, pattern, null, false);
+    try (BatchDeleter ibd = env.getAccumuloClient().createBatchDeleter(indexTableName,
+        Authorizations.EMPTY, 8, bwc)) {
+      ibd.setRanges(Collections.singletonList(new Range()));
 
-    ibd.addScanIterator(iterSettings);
+      RegExFilter.setRegexs(iterSettings, null, null, pattern, null, false);
 
-    ibd.delete();
+      ibd.addScanIterator(iterSettings);
 
-    ibd.close();
+      ibd.delete();
 
-    BatchDeleter dbd = env.getAccumuloClient().createBatchDeleter(dataTableName,
-        Authorizations.EMPTY, 8, bwc);
-    dbd.setRanges(Collections.singletonList(new Range()));
+    }
 
-    iterSettings = new IteratorSetting(100, RegExFilter.class);
-    RegExFilter.setRegexs(iterSettings, pattern, null, null, null, false);
+    try (BatchDeleter dbd = env.getAccumuloClient().createBatchDeleter(dataTableName,
+        Authorizations.EMPTY, 8, bwc)) {
+      dbd.setRanges(Collections.singletonList(new Range()));
 
-    dbd.addScanIterator(iterSettings);
+      iterSettings = new IteratorSetting(100, RegExFilter.class);
+      RegExFilter.setRegexs(iterSettings, pattern, null, null, null, false);
 
-    dbd.delete();
+      dbd.addScanIterator(iterSettings);
 
-    dbd.close();
+      dbd.delete();
+
+    }
 
     log.debug("Deleted documents w/ id matching '" + pattern + "'");
   }

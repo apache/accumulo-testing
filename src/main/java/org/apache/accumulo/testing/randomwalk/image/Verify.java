@@ -51,43 +51,44 @@ public class Verify extends Test {
 
     AccumuloClient client = env.getAccumuloClient();
 
-    Scanner indexScanner = client.createScanner(indexTableName, new Authorizations());
-    Scanner imageScanner = client.createScanner(imageTableName, new Authorizations());
+    try (Scanner indexScanner = client.createScanner(indexTableName, new Authorizations());
+        Scanner imageScanner = client.createScanner(imageTableName, new Authorizations())) {
 
-    String uuid = UUID.randomUUID().toString();
+      String uuid = UUID.randomUUID().toString();
 
-    MessageDigest alg = MessageDigest.getInstance("SHA-1");
-    alg.update(uuid.getBytes(UTF_8));
+      MessageDigest alg = MessageDigest.getInstance("SHA-1");
+      alg.update(uuid.getBytes(UTF_8));
 
-    indexScanner.setRange(new Range(new Text(alg.digest()), null));
-    indexScanner.setBatchSize(numVerifications);
+      indexScanner.setRange(new Range(new Text(alg.digest()), null));
+      indexScanner.setBatchSize(numVerifications);
 
-    Text curRow = null;
-    int count = 0;
-    for (Entry<Key,Value> entry : indexScanner) {
+      Text curRow = null;
+      int count = 0;
+      for (Entry<Key,Value> entry : indexScanner) {
 
-      curRow = entry.getKey().getRow();
-      String rowToVerify = entry.getValue().toString();
+        curRow = entry.getKey().getRow();
+        String rowToVerify = entry.getValue().toString();
 
-      verifyRow(imageScanner, rowToVerify);
+        verifyRow(imageScanner, rowToVerify);
 
-      count++;
-      if (count == numVerifications) {
-        break;
+        count++;
+        if (count == numVerifications) {
+          break;
+        }
+      }
+
+      if (count != numVerifications && curRow != null) {
+        Text lastRow = (Text) state.get("lastIndexRow");
+        if (lastRow.compareTo(curRow) != 0) {
+          log.error("Verified only " + count + " of " + numVerifications + " - curRow " + curRow
+              + " lastKey " + lastRow);
+        }
       }
     }
 
-    if (count != numVerifications && curRow != null) {
-      Text lastRow = (Text) state.get("lastIndexRow");
-      if (lastRow.compareTo(curRow) != 0) {
-        log.error("Verified only " + count + " of " + numVerifications + " - curRow " + curRow
-            + " lastKey " + lastRow);
-      }
-    }
-
-    int verified = ((Integer) state.get("verified")).intValue() + numVerifications;
+    int verified = state.getInteger("verified") + numVerifications;
     log.debug("Verified " + numVerifications + " - Total " + verified);
-    state.set("verified", Integer.valueOf(verified));
+    state.set("verified", verified);
   }
 
   public void verifyRow(Scanner scanner, String row) throws Exception {

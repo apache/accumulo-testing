@@ -30,29 +30,31 @@ import org.apache.hadoop.io.Text;
 
 public class CreateTable extends Test {
 
-  private final TreeSet<Text> splits;
+  private final NewTableConfiguration ntc;
 
   public CreateTable() {
-    splits = new TreeSet<>();
+    TreeSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 10; i++) {
       splits.add(new Text(Integer.toString(i)));
     }
     for (String s : "a b c d e f".split(" ")) {
       splits.add(new Text(s));
     }
+    this.ntc = new NewTableConfiguration().withSplits(splits);
   }
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     AccumuloClient client = env.getAccumuloClient();
 
-    int nextId = (Integer) state.get("nextId");
+    int nextId = state.getInteger("nextId");
     String tableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
     try {
-      // Create table and add some splits to make the server's life easier
-      client.tableOperations().create(tableName, new NewTableConfiguration().withSplits(splits));
+      // Create table with some splits to make the server's life easier
+      client.tableOperations().create(tableName, ntc);
       String tableId = client.tableOperations().tableIdMap().get(tableName);
-      log.debug("created table {} (id:{}) with {} splits", tableName, tableId, splits.size());
+      log.debug("created table {} (id:{}) with {} splits", tableName, tableId,
+          ntc.getSplits().size());
 
       @SuppressWarnings("unchecked")
       List<String> tables = (List<String>) state.get("tableList");

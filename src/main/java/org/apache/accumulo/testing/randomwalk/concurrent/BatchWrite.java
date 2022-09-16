@@ -42,30 +42,29 @@ public class BatchWrite extends Test {
     Random rand = state.getRandom();
     String tableName = state.getRandomTableName();
 
-    try {
-      try (BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig())) {
-        int numRows = rand.nextInt(100000);
-        for (int i = 0; i < numRows; i++) {
-          Mutation m = new Mutation(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl));
-          long val = rand.nextLong() & 0x7fffffffffffffffl;
-          for (int j = 0; j < 10; j++) {
-            m.put("cf", "cq" + j, new Value(String.format("%016x", val).getBytes(UTF_8)));
-          }
+    try (BatchWriter bw = client.createBatchWriter(tableName, new BatchWriterConfig())) {
 
-          bw.addMutation(m);
+      int numRows = rand.nextInt(100000);
+      for (int i = 0; i < numRows; i++) {
+        Mutation m = new Mutation(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL));
+        long val = rand.nextLong() & 0x7fffffffffffffffL;
+        for (int j = 0; j < 10; j++) {
+          m.put("cf", "cq" + j, new Value(String.format("%016x", val).getBytes(UTF_8)));
         }
+
+        bw.addMutation(m);
       }
 
       log.debug("Wrote to " + tableName);
     } catch (TableNotFoundException e) {
-      log.debug("BatchWrite " + tableName + " failed, doesnt exist");
+      log.debug("BatchWrite " + tableName + " failed, table doesn't exist");
     } catch (TableOfflineException e) {
-      log.debug("BatchWrite " + tableName + " failed, offline");
+      log.debug("BatchWrite " + tableName + " failed, table offline");
     } catch (MutationsRejectedException mre) {
       if (mre.getCause() instanceof TableDeletedException)
         log.debug("BatchWrite " + tableName + " failed, table deleted");
       else if (mre.getCause() instanceof TableOfflineException)
-        log.debug("BatchWrite " + tableName + " failed, offline");
+        log.debug("BatchWrite " + tableName + " failed, table offline");
       else
         throw mre;
     }

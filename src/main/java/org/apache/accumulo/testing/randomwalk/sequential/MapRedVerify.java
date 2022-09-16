@@ -45,18 +45,21 @@ public class MapRedVerify extends Test {
       return;
     }
 
-    Scanner outputScanner = env.getAccumuloClient().createScanner(args[2], Authorizations.EMPTY);
-    outputScanner.setRange(new Range());
+    AccumuloClient client = env.getAccumuloClient();
+    int count;
+    try (Scanner outputScanner = client.createScanner(args[2], Authorizations.EMPTY)) {
+      outputScanner.setRange(new Range());
 
-    int count = 0;
-    Key lastKey = null;
-    for (Entry<Key,Value> entry : outputScanner) {
-      Key current = entry.getKey();
-      if (lastKey != null && lastKey.getColumnFamily().equals(current.getRow())) {
-        log.info(entry.getKey().toString());
-        count++;
+      count = 0;
+      Key lastKey = null;
+      for (Entry<Key,Value> entry : outputScanner) {
+        Key current = entry.getKey();
+        if (lastKey != null && lastKey.getColumnFamily().equals(current.getRow())) {
+          log.info(entry.getKey().toString());
+          count++;
+        }
+        lastKey = current;
       }
-      lastKey = current;
     }
 
     if (count > 1) {
@@ -64,7 +67,6 @@ public class MapRedVerify extends Test {
     }
 
     log.debug("Dropping table: " + args[2]);
-    AccumuloClient client = env.getAccumuloClient();
     client.tableOperations().delete(args[2]);
   }
 }
