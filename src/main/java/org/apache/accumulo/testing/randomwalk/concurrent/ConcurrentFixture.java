@@ -28,8 +28,6 @@ import org.apache.hadoop.io.Text;
 /**
  * When multiple instance of this test suite are run, all instances will operate on the same set of
  * table names.
- *
- *
  */
 
 public class ConcurrentFixture extends Fixture {
@@ -57,9 +55,9 @@ public class ConcurrentFixture extends Fixture {
 
     // Having all negative values = null might be too frequent
     if (firstLong >= 0)
-      first = new Text(String.format("%016x", firstLong & 0x7fffffffffffffffl));
+      first = new Text(String.format("%016x", firstLong & 0x7fffffffffffffffL));
     if (secondLong >= 0)
-      second = new Text(String.format("%016x", secondLong & 0x7fffffffffffffffl));
+      second = new Text(String.format("%016x", secondLong & 0x7fffffffffffffffL));
 
     if (first != null && second != null && first.compareTo(second) > 0) {
       Text swap = first;

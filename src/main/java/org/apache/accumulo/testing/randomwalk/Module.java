@@ -57,7 +57,7 @@ public class Module extends Node {
 
   private static class Dummy extends Node {
 
-    String name;
+    final String name;
 
     Dummy(String name) {
       this.name = name;
@@ -100,7 +100,7 @@ public class Module extends Node {
 
     Node target;
     String targetId;
-    String id;
+    final String id;
 
     Alias(String id) {
       target = null;
@@ -143,7 +143,6 @@ public class Module extends Node {
 
     private final List<Edge> edges = new ArrayList<>();
     private int totalWeight = 0;
-    private Random rand = new Random();
 
     /**
      * Adds a neighbor node and weight of edge
@@ -163,10 +162,10 @@ public class Module extends Node {
      *
      * @return Node or null if no edges
      */
-    private String randomNeighbor() throws Exception {
+    private String randomNeighbor() {
 
       String nodeId = null;
-      rand = new Random();
+      Random rand = new Random();
 
       int randNum = rand.nextInt(totalWeight) + 1;
       int sum = 0;
@@ -212,11 +211,8 @@ public class Module extends Node {
     else
       maxSec = Integer.parseInt(initProps.getProperty("maxSec", "0"));
 
-    if ((prop = initProps.getProperty("teardown")) == null || prop.equals("true")
-        || prop.equals(""))
-      teardown = true;
-    else
-      teardown = false;
+    teardown = (prop = initProps.getProperty("teardown")) == null || prop.equals("true")
+        || prop.equals("");
 
     if (fixture != null) {
       fixture.setUp(state, env);
@@ -386,7 +382,7 @@ public class Module extends Node {
 
   Thread timer = null;
   final int time = 5 * 1000 * 60;
-  AtomicBoolean runningLong = new AtomicBoolean(false);
+  final AtomicBoolean runningLong = new AtomicBoolean(false);
   long systemTime;
 
   /**
@@ -549,16 +545,13 @@ public class Module extends Node {
     Properties initProps = new Properties();
     String attr = initEl.getAttribute("maxHops");
 
-    if (attr != null)
-      initProps.setProperty("maxHops", attr);
+    initProps.setProperty("maxHops", attr);
     attr = initEl.getAttribute("maxSec");
 
-    if (attr != null)
-      initProps.setProperty("maxSec", attr);
+    initProps.setProperty("maxSec", attr);
     attr = initEl.getAttribute("teardown");
 
-    if (attr != null)
-      initProps.setProperty("teardown", attr);
+    initProps.setProperty("teardown", attr);
     localProps.put("_init", initProps);
 
     // parse all nodes

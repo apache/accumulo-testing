@@ -35,7 +35,7 @@ public class DeleteTable extends Test {
       client.tableOperations().delete(tableName);
       log.debug("Deleted table " + tableName);
     } catch (TableNotFoundException e) {
-      log.debug("Delete " + tableName + " failed, doesnt exist");
+      log.debug("Delete " + tableName + " failed, table doesn't exist");
     }
   }
 }

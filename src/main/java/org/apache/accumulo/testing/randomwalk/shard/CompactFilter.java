@@ -42,8 +42,8 @@ public class CompactFilter extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String docTableName = (String) state.get("docTableName");
+    String indexTableName = state.getString("indexTableName");
+    String docTableName = state.getString("docTableName");
     Random rand = state.getRandom();
 
     String deleteChar = Integer.toHexString(rand.nextInt(16)) + "";
@@ -77,22 +77,22 @@ public class CompactFilter extends Test {
     log.debug(
         "Filtered documents using compaction iterators " + regex + " " + (t3) + " " + (t2 - t1));
 
-    BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName,
-        new Authorizations(), 10);
+    try (BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName,
+        new Authorizations(), 10)) {
 
-    List<Range> ranges = new ArrayList<>();
-    for (int i = 0; i < 16; i++) {
-      ranges.add(Range.prefix(new Text(Integer.toHexString(i) + "" + deleteChar)));
+      List<Range> ranges = new ArrayList<>();
+      for (int i = 0; i < 16; i++) {
+        ranges.add(Range.prefix(new Text(Integer.toHexString(i) + "" + deleteChar)));
+      }
+
+      bscanner.setRanges(ranges);
+      Iterator<Entry<Key,Value>> iter = bscanner.iterator();
+
+      if (iter.hasNext()) {
+        throw new Exception("Saw unexpected document " + iter.next().getKey());
+      }
+
     }
-
-    bscanner.setRanges(ranges);
-    Iterator<Entry<Key,Value>> iter = bscanner.iterator();
-
-    if (iter.hasNext()) {
-      throw new Exception("Saw unexpected document " + iter.next().getKey());
-    }
-
-    bscanner.close();
   }
 
 }

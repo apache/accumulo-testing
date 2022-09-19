@@ -43,7 +43,7 @@ public class AddSplits extends Test {
     TreeSet<Text> splits = new TreeSet<>();
 
     for (int i = 0; i < rand.nextInt(10) + 1; i++)
-      splits.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));
+      splits.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL)));
 
     try {
       client.tableOperations().addSplits(tableName, splits);

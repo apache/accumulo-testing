@@ -27,16 +27,11 @@ public class Flush extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
     Random rand = state.getRandom();
 
-    String table;
-
-    if (rand.nextDouble() < .5)
-      table = indexTableName;
-    else
-      table = dataTableName;
+    String table = rand.nextBoolean() ? indexTableName : dataTableName;
 
     env.getAccumuloClient().tableOperations().flush(table, null, null, true);
     log.debug("Flushed " + table);

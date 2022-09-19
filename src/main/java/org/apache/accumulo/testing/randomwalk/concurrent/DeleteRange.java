@@ -40,8 +40,8 @@ public class DeleteRange extends Test {
 
     List<Text> range = new ArrayList<>();
     do {
-      range.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));
-      range.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffl)));
+      range.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL)));
+      range.add(new Text(String.format("%016x", rand.nextLong() & 0x7fffffffffffffffL)));
     } while (range.get(0).equals(range.get(1)));
     Collections.sort(range);
     if (rand.nextInt(20) == 0)
@@ -53,9 +53,9 @@ public class DeleteRange extends Test {
       client.tableOperations().deleteRows(tableName, range.get(0), range.get(1));
       log.debug("deleted rows (" + range.get(0) + " -> " + range.get(1) + "] in " + tableName);
     } catch (TableNotFoundException tne) {
-      log.debug("deleted rows " + tableName + " failed, doesnt exist");
+      log.debug("deleted rows " + tableName + " failed, table doesn't exist");
     } catch (TableOfflineException toe) {
-      log.debug("deleted rows " + tableName + " failed, offline");
+      log.debug("deleted rows " + tableName + " failed, table offline");
     }
   }
 }

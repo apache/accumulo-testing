@@ -16,10 +16,12 @@
  */
 package org.apache.accumulo.testing.randomwalk.conditional;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.accumulo.core.client.ConditionalWriter;
 import org.apache.accumulo.core.client.ConditionalWriter.Status;
@@ -38,19 +40,18 @@ public class Init extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    int numBanks = (Integer) state.get("numBanks");
-    int numAccts = (Integer) state.get("numAccts");
+    int numBanks = state.getInteger("numBanks");
+    int numAccts = state.getInteger("numAccts");
 
     // add some splits to spread ingest out a little
-    TreeSet<Text> splits = new TreeSet<>();
-    for (int i = 1; i < 10; i++)
-      splits.add(new Text(Utils.getBank((int) (numBanks * .1 * i))));
-    env.getAccumuloClient().tableOperations().addSplits((String) state.get("tableName"), splits);
+    TreeSet<Text> splits = IntStream.range(1, 10).map(i -> (int) (numBanks * .1 * i))
+        .mapToObj(Utils::getBank).map(Text::new).collect(Collectors.toCollection(TreeSet::new));
+
+    env.getAccumuloClient().tableOperations().addSplits(state.getString("tableName"), splits);
     log.info("Added splits " + splits);
 
-    ArrayList<Integer> banks = new ArrayList<>();
-    for (int i = 0; i < numBanks; i++)
-      banks.add(i);
+    List<Integer> banks = IntStream.range(0, numBanks).boxed().collect(Collectors.toList());
+
     // shuffle for case when multiple threads are adding banks
     Collections.shuffle(banks, state.getRandom());
 

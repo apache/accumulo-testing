@@ -54,7 +54,7 @@ public class ShardFixture extends Fixture {
   static void createIndexTable(Logger log, State state, RandWalkEnv env, String suffix, Random rand)
       throws Exception {
     AccumuloClient client = env.getAccumuloClient();
-    String name = state.get("indexTableName") + suffix;
+    String name = state.getString("indexTableName") + suffix;
 
     NewTableConfiguration ntc = new NewTableConfiguration();
 
@@ -86,10 +86,10 @@ public class ShardFixture extends Fixture {
         String.format("ST_index_%s_%s_%d", hostname, pid, System.currentTimeMillis()));
     state.set("docTableName",
         String.format("ST_docs_%s_%s_%d", hostname, pid, System.currentTimeMillis()));
-    state.set("numPartitions", Integer.valueOf(numPartitions));
-    state.set("cacheIndex", env.getRandom().nextDouble() < .5);
+    state.set("numPartitions", numPartitions);
+    state.set("cacheIndex", env.getRandom().nextBoolean());
     state.set("rand", env.getRandom());
-    state.set("nextDocID", Long.valueOf(0));
+    state.set("nextDocID", 0L);
 
     AccumuloClient client = env.getAccumuloClient();
 
@@ -99,7 +99,7 @@ public class ShardFixture extends Fixture {
     NewTableConfiguration ntc = new NewTableConfiguration();
     SortedSet<Text> splits = genSplits(0xff, env.getRandom().nextInt(32) + 1, "%02x");
     ntc.withSplits(splits);
-    if (env.getRandom().nextDouble() < .5) {
+    if (env.getRandom().nextBoolean()) {
       ntc.setProperties(Map.of(Property.TABLE_BLOOM_ENABLED.getKey(), "true"));
       log.info("Enabling bloom filters for table {}", docTableName);
     }
@@ -128,8 +128,8 @@ public class ShardFixture extends Fixture {
 
     log.info("Deleting index and doc tables");
 
-    client.tableOperations().delete((String) state.get("indexTableName"));
-    client.tableOperations().delete((String) state.get("docTableName"));
+    client.tableOperations().delete(state.getString("indexTableName"));
+    client.tableOperations().delete(state.getString("docTableName"));
 
     log.debug("Exiting shard test");
   }

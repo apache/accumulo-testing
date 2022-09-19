@@ -18,11 +18,12 @@ package org.apache.accumulo.testing.randomwalk.image;
 
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
@@ -44,10 +45,8 @@ public class ImageFixture extends Fixture {
 
     AccumuloClient client = env.getAccumuloClient();
 
-    SortedSet<Text> splits = new TreeSet<>();
-    for (int i = 1; i < 256; i++) {
-      splits.add(new Text(String.format("%04x", i << 8)));
-    }
+    SortedSet<Text> splits = IntStream.range(1, 256).mapToObj(i -> String.format("%04x", i << 8))
+        .map(Text::new).collect(Collectors.toCollection(TreeSet::new));
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");
     String pid = env.getPid();
@@ -93,14 +92,8 @@ public class ImageFixture extends Fixture {
 
   static Map<String,Set<Text>> getLocalityGroups() {
     Map<String,Set<Text>> groups = new HashMap<>();
-
-    HashSet<Text> lg1 = new HashSet<>();
-    lg1.add(Write.CONTENT_COLUMN_FAMILY);
-    groups.put("lg1", lg1);
-
-    HashSet<Text> lg2 = new HashSet<>();
-    lg2.add(Write.META_COLUMN_FAMILY);
-    groups.put("lg2", lg2);
+    groups.put("lg1", Set.of(Write.CONTENT_COLUMN_FAMILY));
+    groups.put("lg2", Set.of(Write.META_COLUMN_FAMILY));
     return groups;
   }
 

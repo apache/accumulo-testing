@@ -29,7 +29,7 @@ public class CloneIndex extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    String indexTableName = (String) state.get("indexTableName");
+    String indexTableName = state.getString("indexTableName");
     String tmpIndexTableName = indexTableName + "_tmp";
 
     long t1 = System.currentTimeMillis();

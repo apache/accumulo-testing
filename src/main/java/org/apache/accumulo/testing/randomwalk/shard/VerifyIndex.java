@@ -34,39 +34,41 @@ public class VerifyIndex extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    String indexTableName = (String) state.get("indexTableName");
+    String indexTableName = state.getString("indexTableName");
     String tmpIndexTableName = indexTableName + "_tmp";
 
     // scan new and old index and verify identical
-    Scanner indexScanner1 = env.getAccumuloClient().createScanner(tmpIndexTableName,
-        Authorizations.EMPTY);
-    Scanner indexScanner2 = env.getAccumuloClient().createScanner(indexTableName,
-        Authorizations.EMPTY);
+    try (
+        Scanner indexScanner1 = env.getAccumuloClient().createScanner(tmpIndexTableName,
+            Authorizations.EMPTY);
+        Scanner indexScanner2 = env.getAccumuloClient().createScanner(indexTableName,
+            Authorizations.EMPTY)) {
 
-    Iterator<Entry<Key,Value>> iter = indexScanner2.iterator();
+      Iterator<Entry<Key,Value>> iter = indexScanner2.iterator();
 
-    int count = 0;
+      int count = 0;
 
-    for (Entry<Key,Value> entry : indexScanner1) {
-      if (!iter.hasNext())
-        throw new Exception("index rebuild mismatch " + entry.getKey() + " " + indexTableName);
+      for (Entry<Key,Value> entry : indexScanner1) {
+        if (!iter.hasNext())
+          throw new Exception("index rebuild mismatch " + entry.getKey() + " " + indexTableName);
 
-      Key key1 = entry.getKey();
-      Key key2 = iter.next().getKey();
+        Key key1 = entry.getKey();
+        Key key2 = iter.next().getKey();
 
-      if (!key1.equals(key2, PartialKey.ROW_COLFAM_COLQUAL))
-        throw new Exception("index rebuild mismatch " + key1 + " " + key2 + " " + indexTableName
-            + " " + tmpIndexTableName);
-      count++;
-      if (count % 1000 == 0)
-        makingProgress();
+        if (!key1.equals(key2, PartialKey.ROW_COLFAM_COLQUAL))
+          throw new Exception("index rebuild mismatch " + key1 + " " + key2 + " " + indexTableName
+              + " " + tmpIndexTableName);
+        count++;
+        if (count % 1000 == 0)
+          makingProgress();
+      }
+
+      if (iter.hasNext())
+        throw new Exception(
+            "index rebuild mismatch " + iter.next().getKey() + " " + tmpIndexTableName);
+
+      log.debug("Verified " + count + " index entries ");
     }
-
-    if (iter.hasNext())
-      throw new Exception(
-          "index rebuild mismatch " + iter.next().getKey() + " " + tmpIndexTableName);
-
-    log.debug("Verified " + count + " index entries ");
 
     env.getAccumuloClient().tableOperations().delete(indexTableName);
     env.getAccumuloClient().tableOperations().rename(tmpIndexTableName, indexTableName);

@@ -43,7 +43,7 @@ public class OfflineTable extends Test {
       client.tableOperations().online(tableName, rand.nextBoolean());
       log.debug("Onlined " + tableName);
     } catch (TableNotFoundException tne) {
-      log.debug("offline or online failed " + tableName + ", doesnt exist");
+      log.debug("offline or online failed " + tableName + ", doesn't exist");
     }
 
   }

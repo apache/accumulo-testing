@@ -29,13 +29,14 @@ import org.apache.hadoop.util.ToolRunner;
 
 public class CopyTable extends Test {
 
-  private final TreeSet<Text> splits;
+  private final NewTableConfiguration ntc;
 
   public CopyTable() {
-    splits = new TreeSet<>();
+    TreeSet<Text> splits = new TreeSet<>();
     for (int i = 1; i < 10; i++) {
       splits.add(new Text(Integer.toString(i)));
     }
+    this.ntc = new NewTableConfiguration().withSplits(splits);
   }
 
   @Override
@@ -48,13 +49,13 @@ public class CopyTable extends Test {
 
     String srcTableName = tables.remove(env.getRandom().nextInt(tables.size()));
 
-    int nextId = ((Integer) state.get("nextId")).intValue();
+    int nextId = state.getInteger("nextId");
     String dstTableName = String.format("%s_%d", state.getString("tableNamePrefix"), nextId);
 
     if (env.getAccumuloClient().tableOperations().exists(dstTableName)) {
       log.debug(dstTableName + " already exists so don't copy.");
       nextId++;
-      state.set("nextId", Integer.valueOf(nextId));
+      state.set("nextId", nextId);
       return;
     }
 
@@ -65,8 +66,7 @@ public class CopyTable extends Test {
 
     log.debug("copying " + srcTableName + " to " + dstTableName);
 
-    env.getAccumuloClient().tableOperations().create(dstTableName,
-        new NewTableConfiguration().withSplits(splits));
+    env.getAccumuloClient().tableOperations().create(dstTableName, ntc);
 
     if (ToolRunner.run(env.getHadoopConfiguration(), new CopyTool(), args) != 0) {
       log.error("Failed to run map/red verify");
@@ -82,6 +82,6 @@ public class CopyTable extends Test {
     log.debug("dropped " + srcTableName);
 
     nextId++;
-    state.set("nextId", Integer.valueOf(nextId));
+    state.set("nextId", nextId);
   }
 }

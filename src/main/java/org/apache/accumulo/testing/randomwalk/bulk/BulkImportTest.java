@@ -59,7 +59,7 @@ public abstract class BulkImportTest extends BulkTest {
         log.debug("Waiting 30s before continuing");
         try {
           Thread.sleep(30 * 1000);
-        } catch (InterruptedException e) {}
+        } catch (InterruptedException ignored) {}
 
         return;
       } else {
@@ -78,7 +78,7 @@ public abstract class BulkImportTest extends BulkTest {
     }
   }
 
-  private boolean shouldQueueMoreImports(State state, RandWalkEnv env) throws Exception {
+  private boolean shouldQueueMoreImports(State state, RandWalkEnv env) {
     // Only selectively import when it's BulkPlusOne. If we did a
     // BulkPlusOne,
     // we must also do a BulkMinusOne to keep the table consistent

@@ -16,9 +16,11 @@
  */
 package org.apache.accumulo.testing.randomwalk.conditional;
 
-/**
- *
- */
+import java.util.Random;
+
+import org.apache.accumulo.testing.randomwalk.State;
+import org.apache.hadoop.io.Text;
+
 public class Utils {
 
   static String getBank(int b) {
@@ -31,5 +33,12 @@ public class Utils {
 
   static String getSeq(int s) {
     return String.format("%06d", s);
+  }
+
+  static Text getRowFromBank(Random rand, State state) {
+    Integer numBanks = state.getInteger("numBanks");
+    int randomBankIndex = rand.nextInt(numBanks);
+    String bank = Utils.getBank(randomBankIndex);
+    return new Text(bank);
   }
 }

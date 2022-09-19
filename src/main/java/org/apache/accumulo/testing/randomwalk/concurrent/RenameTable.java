@@ -67,7 +67,7 @@ public class RenameTable extends Test {
 
       log.debug("Rename " + srcTableName + " failed, doesnt exist");
     } catch (IllegalArgumentException e) {
-      log.debug("Rename: " + e.toString());
+      log.debug("Rename: " + e);
     } catch (AccumuloException e) {
       // Catch the expected failure when we try to rename a table into a
       // new namespace

@@ -16,10 +16,11 @@
  */
 package org.apache.accumulo.testing.randomwalk.shard;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -43,9 +44,9 @@ public class DeleteWord extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String docTableName = (String) state.get("docTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String indexTableName = state.getString("indexTableName");
+    String docTableName = state.getString("docTableName");
+    int numPartitions = state.getInteger("numPartitions");
     Random rand = state.getRandom();
 
     String wordToDelete = Insert.generateRandomWord(rand);
@@ -53,16 +54,17 @@ public class DeleteWord extends Test {
     // use index to find all documents containing word
     Scanner scanner = env.getAccumuloClient().createScanner(indexTableName, Authorizations.EMPTY);
     scanner.fetchColumnFamily(new Text(wordToDelete));
+    List<Range> documentsToDelete = scanner.stream().onClose(scanner::close).map(Entry::getKey)
+        .map(Key::getColumnQualifier).map(Range::new).collect(Collectors.toList());
 
-    ArrayList<Range> documentsToDelete = new ArrayList<>();
+    if (documentsToDelete.isEmpty()) {
+      log.debug("No documents to delete containing " + wordToDelete);
+      return;
+    }
 
-    for (Entry<Key,Value> entry : scanner)
-      documentsToDelete.add(new Range(entry.getKey().getColumnQualifier()));
-
-    if (documentsToDelete.size() > 0) {
-      // use a batch scanner to fetch all documents
-      BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName,
-          Authorizations.EMPTY, 8);
+    // use a batch scanner to fetch all documents
+    try (BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName,
+        Authorizations.EMPTY, 8)) {
       bscanner.setRanges(documentsToDelete);
 
       BatchWriter ibw = env.getMultiTableBatchWriter().getBatchWriter(indexTableName);
@@ -82,8 +84,6 @@ public class DeleteWord extends Test {
         dbw.addMutation(m);
         count++;
       }
-
-      bscanner.close();
 
       env.getMultiTableBatchWriter().flush();
 

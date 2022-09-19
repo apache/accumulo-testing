@@ -40,6 +40,7 @@ import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -49,7 +50,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 public class BulkInsert extends Test {
 
-  class SeqfileBatchWriter implements BatchWriter {
+  static class SeqfileBatchWriter implements BatchWriter {
 
     SequenceFile.Writer writer;
 
@@ -98,11 +99,11 @@ public class BulkInsert extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
 
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
+    int numPartitions = state.getInteger("numPartitions");
     Random rand = state.getRandom();
-    long nextDocID = (Long) state.get("nextDocID");
+    long nextDocID = state.getLong("nextDocID");
 
     int minInsert = Integer.parseInt(props.getProperty("minInsert"));
     int maxInsert = Integer.parseInt(props.getProperty("maxInsert"));
@@ -117,34 +118,32 @@ public class BulkInsert extends Test {
 
     fs.mkdirs(new Path(rootDir));
 
-    BatchWriter dataWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/data.seq");
-    BatchWriter indexWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/index.seq");
+    try (BatchWriter dataWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/data.seq");
+        BatchWriter indexWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/index.seq")) {
 
-    for (int i = 0; i < numToInsert; i++) {
-      String docID = Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter,
-          indexTableName, dataTableName, numPartitions, rand);
-      log.debug("Bulk inserting document " + docID);
+      for (int i = 0; i < numToInsert; i++) {
+        String docID = Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter,
+            numPartitions, rand);
+        log.debug("Bulk inserting document " + docID);
+      }
+
+      state.set("nextDocID", nextDocID);
     }
 
-    state.set("nextDocID", Long.valueOf(nextDocID));
-
-    dataWriter.close();
-    indexWriter.close();
-
-    sort(state, env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk",
+    sort(env, fs, dataTableName, rootDir + "/data.seq", rootDir + "/data_bulk",
         rootDir + "/data_work", maxSplits);
-    sort(state, env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk",
+    sort(env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk",
         rootDir + "/index_work", maxSplits);
 
-    bulkImport(fs, state, env, dataTableName, rootDir, "data");
-    bulkImport(fs, state, env, indexTableName, rootDir, "index");
+    bulkImport(fs, env, dataTableName, rootDir, "data");
+    bulkImport(fs, env, indexTableName, rootDir, "index");
 
     fs.delete(new Path(rootDir), true);
   }
 
   @SuppressWarnings("deprecation")
-  private void bulkImport(FileSystem fs, State state, RandWalkEnv env, String tableName,
-      String rootDir, String prefix) throws Exception {
+  private void bulkImport(FileSystem fs, RandWalkEnv env, String tableName, String rootDir,
+      String prefix) throws Exception {
     while (true) {
       String bulkDir = rootDir + "/" + prefix + "_bulk";
       String failDir = rootDir + "/" + prefix + "_failure";
@@ -154,40 +153,42 @@ public class BulkInsert extends Test {
       env.getAccumuloClient().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
 
       FileStatus[] failures = fs.listStatus(failPath);
-      if (failures != null && failures.length > 0) {
-        log.warn("Failed to bulk import some files, retrying ");
 
-        for (FileStatus failure : failures) {
-          if (!failure.getPath().getName().endsWith(".seq"))
-            fs.rename(failure.getPath(), new Path(new Path(bulkDir), failure.getPath().getName()));
-          else
-            log.debug("Ignoring " + failure.getPath());
-        }
-        sleepUninterruptibly(3, TimeUnit.SECONDS);
-      } else
+      if (failures == null || failures.length == 0)
         break;
+
+      log.warn("Failed to bulk import some files, retrying ");
+
+      for (FileStatus failure : failures) {
+        if (!failure.getPath().getName().endsWith(".seq"))
+          fs.rename(failure.getPath(), new Path(new Path(bulkDir), failure.getPath().getName()));
+        else
+          log.debug("Ignoring " + failure.getPath());
+      }
+      sleepUninterruptibly(3, TimeUnit.SECONDS);
+
     }
   }
 
-  private void sort(State state, RandWalkEnv env, FileSystem fs, String tableName, String seqFile,
+  private void sort(RandWalkEnv env, FileSystem fs, String tableName, String seqFile,
       String outputDir, String workDir, int maxSplits) throws Exception {
 
-    PrintStream out = new PrintStream(
-        new BufferedOutputStream(fs.create(new Path(workDir + "/splits.txt"))), false,
-        UTF_8.name());
+    try (FSDataOutputStream fsDataOutputStream = fs.create(new Path(workDir + "/splits.txt"));
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fsDataOutputStream);
+        PrintStream printStream = new PrintStream(bufferedOutputStream, false, UTF_8)) {
 
-    AccumuloClient client = env.getAccumuloClient();
+      AccumuloClient client = env.getAccumuloClient();
 
-    Collection<Text> splits = client.tableOperations().listSplits(tableName, maxSplits);
-    for (Text split : splits)
-      out.println(Base64.getEncoder().encodeToString(split.copyBytes()));
+      Collection<Text> splits = client.tableOperations().listSplits(tableName, maxSplits);
+      for (Text split : splits)
+        printStream.println(Base64.getEncoder().encodeToString(split.copyBytes()));
 
-    out.close();
+      SortTool sortTool = new SortTool(seqFile, outputDir, workDir + "/splits.txt", splits);
 
-    SortTool sortTool = new SortTool(seqFile, outputDir, workDir + "/splits.txt", splits);
+      if (ToolRunner.run(env.getHadoopConfiguration(), sortTool, new String[0]) != 0) {
+        throw new Exception("Failed to run map/red verify");
+      }
 
-    if (ToolRunner.run(env.getHadoopConfiguration(), sortTool, new String[0]) != 0) {
-      throw new Exception("Failed to run map/red verify");
     }
   }
 

@@ -50,8 +50,7 @@ public class TableOp extends Test {
     }
 
     // choose a random action
-    int num = env.getRandom().nextInt(10);
-    if (num > 6) {
+    if (env.getRandom().nextInt(10) > 6) {
       log.debug("Retrieving info for " + tableName);
       tableOps.getLocalityGroups(tableName);
       tableOps.getProperties(tableName);
@@ -65,7 +64,7 @@ public class TableOp extends Test {
     if (env.getRandom().nextInt(10) < 3) {
       Map<String,Set<Text>> groups = tableOps.getLocalityGroups(state.getString("imageTableName"));
 
-      if (groups.size() == 0) {
+      if (groups.isEmpty()) {
         log.debug("Adding locality groups to " + state.getString("imageTableName"));
         groups = ImageFixture.getLocalityGroups();
       } else {

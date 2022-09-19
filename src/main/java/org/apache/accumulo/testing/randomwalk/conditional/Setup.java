@@ -50,11 +50,16 @@ public class Setup extends Test {
       env.getAccumuloClient().tableOperations().setProperty(tableName,
           Property.TABLE_BLOCKCACHE_ENABLED.getKey(), blockCache + "");
       log.debug("set " + Property.TABLE_BLOCKCACHE_ENABLED.getKey() + " " + blockCache);
-    } catch (TableExistsException tee) {}
+    } catch (TableExistsException ignored) {}
 
-    ConditionalWriter cw = env.getAccumuloClient().createConditionalWriter(tableName,
+    ConditionalWriter newCW = env.getAccumuloClient().createConditionalWriter(tableName,
         new ConditionalWriterConfig().setMaxWriteThreads(1));
-    state.set("cw", cw);
+    ConditionalWriter previousCW = (ConditionalWriter) state.getOkIfAbsent("cw");
+    state.set("cw", newCW);
 
+    // close the previous conditional writer if there is one
+    if (previousCW != null) {
+      previousCW.close();
+    }
   }
 }

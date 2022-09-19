@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.iterators.LongCombiner;
 import org.apache.accumulo.core.iterators.user.SummingCombiner;
@@ -46,11 +47,10 @@ public class Setup extends Test {
     TableOperations tableOps = env.getAccumuloClient().tableOperations();
     try {
       if (!tableOps.exists(getTableName())) {
-        tableOps.create(getTableName());
         IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
         SummingCombiner.setEncodingType(is, LongCombiner.Type.STRING);
         SummingCombiner.setCombineAllColumns(is, true);
-        tableOps.attachIterator(getTableName(), is);
+        tableOps.create(getTableName(), new NewTableConfiguration().attachIterator(is));
       }
     } catch (TableExistsException ex) {
       // expected if there are multiple walkers
@@ -58,7 +58,7 @@ public class Setup extends Test {
     state.setRandom(env.getRandom());
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set("bulkImportSuccess", "true");
-    BulkPlusOne.counter.set(0l);
+    BulkPlusOne.counter.set(0L);
     ThreadPoolExecutor e = ThreadPools.getServerThreadPools().createFixedThreadPool(MAX_POOL_SIZE,
         "bulkImportPool", false);
     state.set("pool", e);

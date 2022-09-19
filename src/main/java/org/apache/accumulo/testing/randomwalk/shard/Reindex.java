@@ -34,31 +34,32 @@ public class Reindex extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
+    String indexTableName = state.getString("indexTableName");
     String tmpIndexTableName = indexTableName + "_tmp";
-    String docTableName = (String) state.get("docTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String docTableName = state.getString("docTableName");
+    int numPartitions = state.getInteger("numPartitions");
 
     Random rand = state.getRandom();
 
     ShardFixture.createIndexTable(this.log, state, env, "_tmp", rand);
 
-    Scanner scanner = env.getAccumuloClient().createScanner(docTableName, Authorizations.EMPTY);
-    BatchWriter tbw = env.getAccumuloClient().createBatchWriter(tmpIndexTableName,
-        new BatchWriterConfig());
-
     int count = 0;
 
-    for (Entry<Key,Value> entry : scanner) {
-      String docID = entry.getKey().getRow().toString();
-      String doc = entry.getValue().toString();
+    try (
+        Scanner scanner = env.getAccumuloClient().createScanner(docTableName, Authorizations.EMPTY);
+        BatchWriter tbw = env.getAccumuloClient().createBatchWriter(tmpIndexTableName,
+            new BatchWriterConfig())) {
 
-      Insert.indexDocument(tbw, doc, docID, numPartitions);
+      for (Entry<Key,Value> entry : scanner) {
+        String docID = entry.getKey().getRow().toString();
+        String doc = entry.getValue().toString();
 
-      count++;
+        Insert.indexDocument(tbw, doc, docID, numPartitions);
+
+        count++;
+      }
+
     }
-
-    tbw.close();
 
     log.debug("Reindexed " + count + " documents into " + tmpIndexTableName);
 

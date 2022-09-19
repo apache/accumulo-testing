@@ -29,8 +29,8 @@ public class Split extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    int numPartitions = (Integer) state.get("numPartitions");
+    String indexTableName = state.getString("indexTableName");
+    int numPartitions = state.getInteger("numPartitions");
     Random rand = state.getRandom();
 
     SortedSet<Text> splitSet = ShardFixture.genSplits(numPartitions,

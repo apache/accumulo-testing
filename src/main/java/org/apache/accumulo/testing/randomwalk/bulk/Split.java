@@ -19,6 +19,8 @@ package org.apache.accumulo.testing.randomwalk.bulk;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
@@ -28,13 +30,12 @@ public class Split extends SelectiveBulkTest {
 
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
-    SortedSet<Text> splits = new TreeSet<>();
     Random rand = state.getRandom();
     int count = rand.nextInt(20);
-    for (int i = 0; i < count; i++)
-      splits.add(new Text(String.format(BulkPlusOne.FMT,
-          (rand.nextLong() & 0x7fffffffffffffffl) % BulkPlusOne.LOTS)));
-    log.info("splitting " + splits);
+    SortedSet<Text> splits = Stream.generate(rand::nextLong).map(l -> l & 0x7fffffffffffffffL)
+        .map(l -> l % BulkPlusOne.LOTS).map(l -> String.format(BulkPlusOne.FMT, l)).map(Text::new)
+        .limit(count).collect(Collectors.toCollection(TreeSet::new));
+    log.info("splitting {}", splits);
     env.getAccumuloClient().tableOperations().addSplits(Setup.getTableName(), splits);
     log.info("split for " + splits + " finished");
   }

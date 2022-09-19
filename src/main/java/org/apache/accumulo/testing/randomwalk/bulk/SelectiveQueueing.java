@@ -25,13 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Chooses whether or not an operation should be queued based on the current thread pool queue
- * length and the number of available TServers.
+ * Chooses whether an operation should be queued based on the current thread pool queue length and
+ * the number of available TServers.
  */
 public class SelectiveQueueing {
   private static final Logger log = LoggerFactory.getLogger(SelectiveQueueing.class);
 
-  public static boolean shouldQueueOperation(State state, RandWalkEnv env) throws Exception {
+  public static boolean shouldQueueOperation(State state, RandWalkEnv env) {
     final ThreadPoolExecutor pool = (ThreadPoolExecutor) state.get("pool");
     long queuedThreads = pool.getTaskCount() - pool.getActiveCount() - pool.getCompletedTaskCount();
     final AccumuloClient client = env.getAccumuloClient();
@@ -46,6 +46,6 @@ public class SelectiveQueueing {
   }
 
   private static boolean shouldQueue(long queuedThreads, int numTservers) {
-    return queuedThreads < numTservers * 50;
+    return queuedThreads < numTservers * 50L;
   }
 }

@@ -66,10 +66,10 @@ public class Transfer extends Test {
     Random rand = state.getRandom();
     AccumuloClient client = env.getAccumuloClient();
 
-    int numAccts = (Integer) state.get("numAccts");
+    int numAccts = state.getInteger("numAccts");
     // note: non integer exponents are slow
 
-    ZipfDistribution zdiBanks = new ZipfDistribution((Integer) state.get("numBanks"), 1);
+    ZipfDistribution zdiBanks = new ZipfDistribution(state.getInteger("numBanks"), 1);
     String bank = Utils.getBank(zdiBanks.inverseCumulativeProbability(rand.nextDouble()));
     ZipfDistribution zdiAccts = new ZipfDistribution(numAccts, 1);
     String acct1 = Utils.getAccount(zdiAccts.inverseCumulativeProbability(rand.nextDouble()));

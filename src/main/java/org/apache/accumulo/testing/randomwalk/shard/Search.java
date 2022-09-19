@@ -17,11 +17,12 @@
 package org.apache.accumulo.testing.randomwalk.shard;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -40,12 +41,12 @@ public class Search extends Test {
 
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
 
     Random rand = state.getRandom();
 
-    Entry<Key,Value> entry = findRandomDocument(state, env, dataTableName, rand);
+    Entry<Key,Value> entry = findRandomDocument(env, dataTableName, rand);
     if (entry == null)
       return;
 
@@ -53,56 +54,42 @@ public class Search extends Test {
     String doc = entry.getValue().toString();
 
     String[] tokens = doc.split("\\W+");
-    int numSearchTerms = rand.nextInt(6);
-    if (numSearchTerms < 2)
-      numSearchTerms = 2;
+    int numSearchTerms = rand.nextInt(4) + 2;
 
-    HashSet<String> searchTerms = new HashSet<>();
-    while (searchTerms.size() < numSearchTerms)
-      searchTerms.add(tokens[rand.nextInt(tokens.length)]);
+    Set<String> searchTerms = Stream.generate(() -> tokens[rand.nextInt(tokens.length)])
+        .limit(numSearchTerms).collect(Collectors.toSet());
 
-    Text[] columns = new Text[searchTerms.size()];
-    int index = 0;
-    for (String term : searchTerms) {
-      columns[index++] = new Text(term);
-    }
+    Text[] columns = searchTerms.stream().map(Text::new).toArray(Text[]::new);
 
     log.debug("Looking up terms " + searchTerms + " expect to find " + docID);
 
-    BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
-        Authorizations.EMPTY, 10);
-    IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
-    IntersectingIterator.setColumnFamilies(ii, columns);
-    bs.addScanIterator(ii);
-    bs.setRanges(Collections.singleton(new Range()));
+    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
+        Authorizations.EMPTY, 10)) {
 
-    boolean sawDocID = false;
+      IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
+      IntersectingIterator.setColumnFamilies(ii, columns);
+      bs.addScanIterator(ii);
+      bs.setRanges(Collections.singleton(new Range()));
 
-    for (Entry<Key,Value> entry2 : bs) {
-      if (entry2.getKey().getColumnQualifier().equals(docID)) {
-        sawDocID = true;
-        break;
-      }
+      boolean sawDocID = bs.stream().map(Entry::getKey).map(Key::getColumnQualifier)
+          .anyMatch(cq -> cq.equals(docID));
+
+      if (!sawDocID)
+        throw new Exception("Did not see doc " + docID + " in index.  terms:" + searchTerms + " "
+            + indexTableName + " " + dataTableName);
     }
 
-    bs.close();
-
-    if (!sawDocID)
-      throw new Exception("Did not see doc " + docID + " in index.  terms:" + searchTerms + " "
-          + indexTableName + " " + dataTableName);
   }
 
-  static Entry<Key,Value> findRandomDocument(State state, RandWalkEnv env, String dataTableName,
-      Random rand) throws Exception {
-    Scanner scanner = env.getAccumuloClient().createScanner(dataTableName, Authorizations.EMPTY);
-    scanner.setBatchSize(1);
-    scanner.setRange(new Range(Integer.toString(rand.nextInt(0xfffffff), 16), null));
-
-    Iterator<Entry<Key,Value>> iter = scanner.iterator();
-    if (!iter.hasNext())
-      return null;
-
-    return iter.next();
+  static Entry<Key,Value> findRandomDocument(RandWalkEnv env, String dataTableName, Random rand)
+      throws Exception {
+    try (Scanner scanner = env.getAccumuloClient().createScanner(dataTableName,
+        Authorizations.EMPTY)) {
+      scanner.setBatchSize(1);
+      scanner.setRange(new Range(Integer.toString(rand.nextInt(0xfffffff), 16), null));
+      var entry = scanner.stream().findAny();
+      return entry.orElse(null);
+    }
   }
 
 }

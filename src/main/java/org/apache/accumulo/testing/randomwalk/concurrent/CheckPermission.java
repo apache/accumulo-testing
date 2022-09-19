@@ -39,7 +39,7 @@ public class CheckPermission extends Test {
     String namespace = state.getRandomNamespace();
 
     try {
-      int dice = rand.nextInt(2);
+      int dice = rand.nextInt(3);
       if (dice == 0) {
         log.debug("Checking systerm permission " + userName);
         client.securityOperations().hasSystemPermission(userName,
@@ -48,7 +48,7 @@ public class CheckPermission extends Test {
         log.debug("Checking table permission " + userName + " " + tableName);
         client.securityOperations().hasTablePermission(userName, tableName,
             TablePermission.values()[rand.nextInt(TablePermission.values().length)]);
-      } else if (dice == 2) {
+      } else {
         log.debug("Checking namespace permission " + userName + " " + namespace);
         client.securityOperations().hasNamespacePermission(userName, namespace,
             NamespacePermission.values()[rand.nextInt(NamespacePermission.values().length)]);

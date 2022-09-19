@@ -43,8 +43,8 @@ public class Grep extends Test {
     // pick a few randoms words... grep for those words and search the index
     // ensure both return the same set of documents
 
-    String indexTableName = (String) state.get("indexTableName");
-    String dataTableName = (String) state.get("docTableName");
+    String indexTableName = state.getString("indexTableName");
+    String dataTableName = state.getString("docTableName");
     Random rand = state.getRandom();
 
     Text[] words = new Text[rand.nextInt(4) + 2];
@@ -53,39 +53,40 @@ public class Grep extends Test {
       words[i] = new Text(Insert.generateRandomWord(rand));
     }
 
-    BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
-        Authorizations.EMPTY, 16);
-    IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class.getName());
-    IntersectingIterator.setColumnFamilies(ii, words);
-    bs.addScanIterator(ii);
-    bs.setRanges(Collections.singleton(new Range()));
-
     HashSet<Text> documentsFoundInIndex = new HashSet<>();
 
-    for (Entry<Key,Value> entry2 : bs) {
-      documentsFoundInIndex.add(entry2.getKey().getColumnQualifier());
+    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
+        Authorizations.EMPTY, 16)) {
+      IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class.getName());
+      IntersectingIterator.setColumnFamilies(ii, words);
+      bs.addScanIterator(ii);
+      bs.setRanges(Collections.singleton(new Range()));
+
+      for (Entry<Key,Value> entry : bs) {
+        documentsFoundInIndex.add(entry.getKey().getColumnQualifier());
+      }
+
     }
-
-    bs.close();
-
-    bs = env.getAccumuloClient().createBatchScanner(dataTableName, Authorizations.EMPTY, 16);
-
-    for (int i = 0; i < words.length; i++) {
-      IteratorSetting more = new IteratorSetting(20 + i, "ii" + i, RegExFilter.class);
-      RegExFilter.setRegexs(more, null, null, null, "(^|(.*\\s))" + words[i] + "($|(\\s.*))",
-          false);
-      bs.addScanIterator(more);
-    }
-
-    bs.setRanges(Collections.singleton(new Range()));
 
     HashSet<Text> documentsFoundByGrep = new HashSet<>();
 
-    for (Entry<Key,Value> entry2 : bs) {
-      documentsFoundByGrep.add(entry2.getKey().getRow());
-    }
+    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(dataTableName,
+        Authorizations.EMPTY, 16)) {
 
-    bs.close();
+      for (int i = 0; i < words.length; i++) {
+        IteratorSetting more = new IteratorSetting(20 + i, "ii" + i, RegExFilter.class);
+        RegExFilter.setRegexs(more, null, null, null, "(^|(.*\\s))" + words[i] + "($|(\\s.*))",
+            false);
+        bs.addScanIterator(more);
+      }
+
+      bs.setRanges(Collections.singleton(new Range()));
+
+      for (Entry<Key,Value> entry : bs) {
+        documentsFoundByGrep.add(entry.getKey().getRow());
+      }
+
+    }
 
     if (!documentsFoundInIndex.equals(documentsFoundByGrep)) {
       throw new Exception("Set of documents found not equal for words " + Arrays.toString(words)
