@@ -129,19 +129,19 @@ variable "accumulo_dir" {
 }
 
 variable "maven_version" {
-  default     = "3.8.5"
+  default     = "3.8.6"
   description = "The version of Maven to download and install"
   nullable    = false
 }
 
 variable "zookeeper_version" {
-  default     = "3.5.9"
+  default     = "3.8.0"
   description = "The version of ZooKeeper to download and install"
   nullable    = false
 }
 
 variable "hadoop_version" {
-  default     = "3.3.1"
+  default     = "3.3.3"
   description = "The version of Hadoop to download and install"
   nullable    = false
 }

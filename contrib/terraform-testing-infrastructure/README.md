@@ -163,11 +163,11 @@ The table below lists the variables and their default values that are used in th
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
 | create\_route53\_records | Indicates whether or not route53 records will be created | `bool` | `false` | no |
 | hadoop\_dir | The Hadoop directory on each EC2 node | `string` | `"/data/hadoop"` | no |
-| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
+| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.3"` | no |
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
 | instance\_type | The type of EC2 instances to create | `string` | `"m5.2xlarge"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.6"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | private\_network | Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
@@ -177,7 +177,7 @@ The table below lists the variables and their default values that are used in th
 | us\_east\_1b\_subnet | The AWS subnet id for the us-east-1b subnet | `any` | n/a | yes |
 | us\_east\_1e\_subnet | The AWS subnet id for the us-east-1e subnet | `any` | n/a | yes |
 | zookeeper\_dir | The ZooKeeper directory on each EC2 node | `string` | `"/data/zookeeper"` | no |
-| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.5.9"` | no |
+| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.8.0"` | no |
 
 The following outputs are returned by the `aws` Terraform configuration.
 
@@ -207,11 +207,11 @@ The table below lists the variables and their default values that are used in th
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
 | create\_resource\_group | Indicates whether or not resource\_group\_name should be created or is an existing resource group. | `bool` | `true` | no |
 | hadoop\_dir | The Hadoop directory on each node | `string` | `"/data/hadoop"` | no |
-| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.1"` | no |
+| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.3"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | location | The Azure region where resources are to be created. If an existing resource group is specified, this value is ignored and the resource group's location is used. | `string` | n/a | yes |
 | managed\_disk\_configuration | Optional managed disk configuration. If supplied, the managed disks on each VM will be combined into an LVM volume mounted at the named mount point. | <pre>object({<br>    mount_point          = string<br>    disk_count           = number<br>    storage_account_type = string<br>    disk_size_gb         = number<br>  })</pre> | `null` | no |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.5"` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.8.6"` | no |
 | network\_address\_space | The network address space to use for the virtual network. | `list(string)` | <pre>[<br>  "10.0.0.0/16"<br>]</pre> | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | os\_disk\_caching | The type of caching to use for the OS disk. Possible values are None, ReadOnly, and ReadWrite. | `string` | `"ReadOnly"` | no |
@@ -225,7 +225,7 @@ The table below lists the variables and their default values that are used in th
 | vm\_sku | The SKU of Azure VMs to create | `string` | `"Standard_D8s_v4"` | no |
 | worker\_count | The number of worker VMs to create | `number` | `1` | no |
 | zookeeper\_dir | The ZooKeeper directory on each node | `string` | `"/data/zookeeper"` | no |
-| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.5.9"` | no |
+| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.8.0"` | no |
 
 The following outputs are returned by the `azure` Terraform configuration.
 
