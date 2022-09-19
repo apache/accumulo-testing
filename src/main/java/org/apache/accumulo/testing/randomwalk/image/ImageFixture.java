@@ -45,7 +45,7 @@ public class ImageFixture extends Fixture {
 
     AccumuloClient client = env.getAccumuloClient();
 
-    SortedSet<Text> splits = IntStream.range(1, 255).mapToObj(i -> String.format("%04x", i << 8))
+    SortedSet<Text> splits = IntStream.range(1, 256).mapToObj(i -> String.format("%04x", i << 8))
         .map(Text::new).collect(Collectors.toCollection(TreeSet::new));
 
     String hostname = InetAddress.getLocalHost().getHostName().replaceAll("[-.]", "_");

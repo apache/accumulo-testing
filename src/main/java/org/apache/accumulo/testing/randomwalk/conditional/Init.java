@@ -44,13 +44,13 @@ public class Init extends Test {
     int numAccts = state.getInteger("numAccts");
 
     // add some splits to spread ingest out a little
-    TreeSet<Text> splits = IntStream.range(1, 9).map(i -> (int) (numBanks * .1 * i))
+    TreeSet<Text> splits = IntStream.range(1, 10).map(i -> (int) (numBanks * .1 * i))
         .mapToObj(Utils::getBank).map(Text::new).collect(Collectors.toCollection(TreeSet::new));
 
     env.getAccumuloClient().tableOperations().addSplits(state.getString("tableName"), splits);
     log.info("Added splits " + splits);
 
-    List<Integer> banks = IntStream.range(0, numBanks - 1).boxed().collect(Collectors.toList());
+    List<Integer> banks = IntStream.range(0, numBanks).boxed().collect(Collectors.toList());
 
     // shuffle for case when multiple threads are adding banks
     Collections.shuffle(banks, state.getRandom());

@@ -36,6 +36,9 @@ public class Utils {
   }
 
   static Text getRowFromBank(Random rand, State state) {
-    return new Text(Utils.getBank(rand.nextInt(state.getInteger("numBanks"))));
+    Integer numBanks = state.getInteger("numBanks");
+    int randomBankIndex = rand.nextInt(numBanks);
+    String bank = Utils.getBank(randomBankIndex);
+    return new Text(bank);
   }
 }

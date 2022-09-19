@@ -43,7 +43,7 @@ public class BulkImport extends Test {
   public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
   public static final int ROWS = 1_000_000;
   public static final int COLS = 10;
-  public static final List<Column> COLNAMES = IntStream.range(0, COLS - 1)
+  public static final List<Column> COLNAMES = IntStream.range(0, COLS)
       .mapToObj(i -> String.format("%03d", i)).map(Text::new)
       .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
 
