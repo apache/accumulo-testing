@@ -30,6 +30,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket        = var.bucket
+  acl    = var.bucket_acl
   force_destroy = var.bucket_force_destroy
   tags = {
     Name = "accumulo-testing-tf-state"
@@ -51,11 +52,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
       sse_algorithm = "AES256"
     }
   }
-}
-
-resource "aws_s3_bucket_acl" "terraform_state" {
-  bucket = aws_s3_bucket.terraform_state.id
-  acl    = var.bucket_acl
 }
 
 resource "aws_dynamodb_table" "terraform_locks" {
