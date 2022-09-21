@@ -163,7 +163,7 @@ The table below lists the variables and their default values that are used in th
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
 | create\_route53\_records | Indicates whether or not route53 records will be created | `bool` | `false` | no |
 | hadoop\_dir | The Hadoop directory on each EC2 node | `string` | `"/data/hadoop"` | no |
-| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.3"` | no |
+| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.4"` | no |
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
 | instance\_type | The type of EC2 instances to create | `string` | `"m5.2xlarge"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
@@ -207,7 +207,7 @@ The table below lists the variables and their default values that are used in th
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
 | create\_resource\_group | Indicates whether or not resource\_group\_name should be created or is an existing resource group. | `bool` | `true` | no |
 | hadoop\_dir | The Hadoop directory on each node | `string` | `"/data/hadoop"` | no |
-| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.3"` | no |
+| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.4"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
 | location | The Azure region where resources are to be created. If an existing resource group is specified, this value is ignored and the resource group's location is used. | `string` | n/a | yes |
 | managed\_disk\_configuration | Optional managed disk configuration. If supplied, the managed disks on each VM will be combined into an LVM volume mounted at the named mount point. | <pre>object({<br>    mount_point          = string<br>    disk_count           = number<br>    storage_account_type = string<br>    disk_size_gb         = number<br>  })</pre> | `null` | no |
