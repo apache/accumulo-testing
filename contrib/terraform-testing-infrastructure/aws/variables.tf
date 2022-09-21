@@ -141,7 +141,7 @@ variable "zookeeper_version" {
 }
 
 variable "hadoop_version" {
-  default     = "3.3.3"
+  default     = "3.3.4"
   description = "The version of Hadoop to download and install"
   nullable    = false
 }
