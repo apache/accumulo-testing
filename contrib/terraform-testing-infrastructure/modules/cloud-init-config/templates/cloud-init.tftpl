@@ -64,6 +64,7 @@ packages:
   - g++
   - openjdk-11-jdk-headless
   - pdsh
+  - pssh
   - make
 %{ endif ~}
   - docker-ce
@@ -92,7 +93,7 @@ runcmd:
   # we install the epel-release package there and can't update
   # the yum repo in the middle to make it know about pdsh-mod-genders
   - yum -y update
-  - yum -y install pdsh-mod-genders
+  - yum -y install pdsh-mod-genders pssh
 %{ endif ~}
   - sysctl -w vm.swappiness=0
   - sysctl -p
