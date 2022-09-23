@@ -15,7 +15,7 @@ tserver:
 sserver:
   - default
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
 
 compaction:
