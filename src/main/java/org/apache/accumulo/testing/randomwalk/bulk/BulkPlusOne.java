@@ -94,7 +94,7 @@ public class BulkPlusOne extends BulkImportTest {
       writer.close();
     }
     env.getAccumuloClient().tableOperations().importDirectory(dir.toString())
-        .to(Setup.getTableName()).tableTime(true);
+        .to(Setup.getTableName()).tableTime(true).load();
     fs.delete(dir, true);
     log.debug("Finished bulk import, start rows " + printRows + " last row "
         + String.format(FMT, LOTS - 1) + " marker " + markerColumnQualifier);
