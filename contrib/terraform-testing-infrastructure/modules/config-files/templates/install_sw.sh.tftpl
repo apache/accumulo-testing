@@ -86,7 +86,7 @@ ${software_root}/accumulo/accumulo-${accumulo_version}/bin/accumulo-util build-n
 # Generate a 32-byte encryption key and put into ${software_root}/accumulo/accumulo-${accumulo_version}/conf.
 # This will get distributed to all nodes and the properties that use the file are in accumulo.properties
 #
-openssl rand -out ${software_root}/accumulo/accumulo-${accumulo_version}/conf/per-table-enc-key
+openssl rand -out ${software_root}/accumulo/accumulo-${accumulo_version}/conf/per-table-enc-key 32
 
 #
 # OpenTelemetry dependencies
