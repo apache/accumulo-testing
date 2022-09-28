@@ -83,6 +83,12 @@ fi
 ${software_root}/accumulo/accumulo-${accumulo_version}/bin/accumulo-util build-native
 
 #
+# Generate a 32-byte encryption key and put into ${software_root}/accumulo/accumulo-${accumulo_version}/conf.
+# This will get distributed to all nodes and the properties that use the file are in accumulo.properties
+#
+openssl rand -out ${software_root}/accumulo/accumulo-${accumulo_version}/conf/per-table-enc-key 32
+
+#
 # OpenTelemetry dependencies
 #
 if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.17.0.jar ]; then

@@ -19,7 +19,13 @@ compactor.port.search=true
 # OpenTelemetry settings
 general.opentelemetry.enabled=true
 
-#Micrometer settings
+# Micrometer settings
 general.micrometer.enabled=true
 general.micrometer.jvm.metrics.enabled=true
 general.micrometer.factory=org.apache.accumulo.test.metrics.TestStatsDRegistryFactory
+
+# Per-Table Encryption
+instance.crypto.opts.factory=org.apache.accumulo.core.spi.crypto.PerTableCryptoServiceFactory
+general.custom.crypto.recovery.service=org.apache.accumulo.core.spi.crypto.AESCryptoService
+general.custom.crypto.wal.service=org.apache.accumulo.core.spi.crypto.AESCryptoService
+general.custom.crypto.key.uri=file://${software_root}/accumulo/accumulo-${accumulo_version}/conf/per-table-enc-key
