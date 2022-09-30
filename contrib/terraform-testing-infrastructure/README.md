@@ -358,12 +358,12 @@ cd ${software_root}/sources/accumulo-repo
 git pull
 mvn clean package -DskipTests -DskipITs
 # Backup the Accumulo configs
-mkdir -p ~/backup
-cp ${software_root}/accumulo/accumulo-${accumulo_version}/conf/* ~/backup/.
+mkdir -p ~/accumulo-config-backup
+cp ${software_root}/accumulo/accumulo-${accumulo_version}/conf/* ~/accumulo-config-backup/.
 # Lay down the updated Accumulo distribution
 tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
 # Restore the Accumulo configs
-cp ~/backup/* ${software_root}/accumulo/accumulo-${accumulo_version}/conf/.
+cp ~/accumulo-config-backup/* ${software_root}/accumulo/accumulo-${accumulo_version}/conf/.
 # Sync the Accumulo changes with the worker nodes
 pdsh -R exec -g worker rsync -az ${software_root}/accumulo/ %h:${software_root}/accumulo/
 ```
