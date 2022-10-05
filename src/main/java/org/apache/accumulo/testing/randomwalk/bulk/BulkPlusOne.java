@@ -59,8 +59,8 @@ public class BulkPlusOne extends BulkImportTest {
     log.debug("Bulk loading from {}", dir);
     final int parts = env.getRandom().nextInt(10) + 1;
 
-    TreeSet<Integer> startRows = Stream.generate(() -> env.getRandom().nextInt(LOTS)).limit(parts)
-        .collect(Collectors.toCollection(TreeSet::new));
+    TreeSet<Integer> startRows = Stream.generate(() -> env.getRandom().nextInt(LOTS))
+        .limit(parts - 1).collect(Collectors.toCollection(TreeSet::new));
     startRows.add(0);
 
     List<String> printRows = startRows.stream().map(row -> String.format(FMT, row))
