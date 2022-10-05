@@ -77,33 +77,33 @@ public class Verify extends Test {
       scanner.clearColumns();
       scanner.fetchColumnFamily(BulkPlusOne.MARKER_CF);
       rowIter = new RowIterator(scanner);
-    }
 
-    while (rowIter.hasNext()) {
-      Iterator<Entry<Key,Value>> row = rowIter.next();
-      long prev = 0;
-      Text rowText = null;
-      while (row.hasNext()) {
-        Entry<Key,Value> entry = row.next();
+      while (rowIter.hasNext()) {
+        Iterator<Entry<Key,Value>> row = rowIter.next();
+        long prev = 0;
+        Text rowText = null;
+        while (row.hasNext()) {
+          Entry<Key,Value> entry = row.next();
 
-        if (rowText == null)
-          rowText = entry.getKey().getRow();
+          if (rowText == null)
+            rowText = entry.getKey().getRow();
 
-        long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
+          long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
 
-        if (curr - 1 != prev)
-          throw new Exception(
-              "Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
+          if (curr - 1 != prev)
+            throw new Exception(
+                "Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
 
-        if (!entry.getValue().toString().equals("1"))
-          throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());
+          if (!entry.getValue().toString().equals("1"))
+            throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());
 
-        prev = curr;
-      }
+          prev = curr;
+        }
 
-      if (BulkPlusOne.counter.get() != prev) {
-        throw new Exception("Row " + rowText + " does not have all markers "
-            + BulkPlusOne.counter.get() + " " + prev);
+        if (BulkPlusOne.counter.get() != prev) {
+          throw new Exception("Row " + rowText + " does not have all markers "
+              + BulkPlusOne.counter.get() + " " + prev);
+        }
       }
     }
 
