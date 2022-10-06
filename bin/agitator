@@ -41,7 +41,7 @@ function start_app_agitator() {
   local max_kill=$5
   local start_cmd=$6
   local kill_cmd=$7
-  local hosts_array; readarray -td' ' hosts_array < <(get_app_hosts "$app_name")
+  local hosts_array; read -a hosts_array < <(get_app_hosts "$app_name")
   local num_hosts=${#hosts_array[@]}
   local node_to_kill
   nodes_to_kill_array=()
@@ -148,7 +148,9 @@ function start_agitator() {
   echo "Starting manager and tserver agitation as $(whoami)"
   start_app_agitator manager "$AGTR_MANAGER_KILL_SLEEP_TIME" "$AGTR_MANAGER_RESTART_SLEEP_TIME" 1 1 "$manager_start_cmd" "$manager_kill_cmd" > "$manager_log" 2>&1 &
   start_app_agitator tserver "$AGTR_TSERVER_KILL_SLEEP_TIME" "$AGTR_TSERVER_RESTART_SLEEP_TIME" "$AGTR_TSERVER_MIN_KILL" "$AGTR_TSERVER_MAX_KILL" "$tserver_start_cmd" "$tserver_kill_cmd" > "$tserver_log" 2>&1 &
+  echo "Starting sserver agitation as $(whoami)"
   start_app_agitator sserver "$AGTR_TSERVER_KILL_SLEEP_TIME" "$AGTR_TSERVER_RESTART_SLEEP_TIME" "$AGTR_TSERVER_MIN_KILL" "$AGTR_TSERVER_MAX_KILL" "$sserver_start_cmd" "$sserver_kill_cmd" > "$sserver_log" 2>&1 &
+  echo "Starting compactor agitation as $(whoami)"
   start_app_agitator compactor "$AGTR_TSERVER_KILL_SLEEP_TIME" "$AGTR_TSERVER_RESTART_SLEEP_TIME" "$AGTR_TSERVER_MIN_KILL" "$AGTR_TSERVER_MAX_KILL" "$compactor_start_cmd" "$compactor_kill_cmd" > "$compactor_log" 2>&1 &
 
   if [[ $AGITATOR_USER != "$AGTR_HDFS_USER" ]]; then
@@ -167,9 +169,9 @@ function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
   echo "Stopping all processes in the same process group as 'agitator' as user $AGITATOR_USER"
   ## get process ids of all agitator processes (return 1 if none found)
-  local agitator_pids=(); agitator_pids=($(pgrep -f "agitator start")) || return 1
+  local agitator_pids=(); read -a agitator_pids < <(pgrep -f "agitator start") || return 1
   ## get the group process ids of all agitator processes
-  local group_pids=(); group_pids=($(ps -o pgid= -p "${agitator_pids[@]}"))
+  local group_pids=(); read -a group_pids < <(ps -o pgid= -p "${agitator_pids[@]}")
   ## kill all processes in the process groups (should include agitators and their sleep processes)
   kill -- "${group_pids[@]/#/-}"
 }
@@ -201,17 +203,17 @@ function read_cluster_conf() {
   sserver_file=$(mktemp -q)
   for group in $SSERVER_GROUPS; do
     G="SSERVER_HOSTS_${group}"
-    echo "$G" >> "$sserver_file"
+    echo "${!G}" >> "$sserver_file"
   done
-  local ss_array; readarray -td' ' ss_array < <(cat "$sserver_file" | tr ' ' '\n' | sort -u)
+  local ss_array; read -a ss_array < <(cat "$sserver_file" | tr ' ' '\n' | sort -u)
   export SSERVER_UNIQUE_HOSTS=${ss_array[@]}
 
   compactor_file=$(mktemp -q)
   for queue in $COMPACTION_QUEUES; do
     Q="COMPACTOR_HOSTS_${queue}"
-    echo "$Q" >> "$compactor_file"
+    echo "${!Q}" >> "$compactor_file"
   done
-  local c_array; readarray -td' ' c_array < <(cat "$compactor_file" | tr ' ' '\n' | sort -u)
+  local c_array; read -a c_array < <(cat "$compactor_file" | tr ' ' '\n' | sort -u)
   export COMPACTOR_UNIQUE_HOSTS=${c_array[@]}
 
 }
