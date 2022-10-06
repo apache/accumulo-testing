@@ -41,7 +41,7 @@ function start_app_agitator() {
   local max_kill=$5
   local start_cmd=$6
   local kill_cmd=$7
-  local hosts_array; readarray -td' ' hosts_array < <(get_app_hosts "$app_name")
+  local hosts_array; read -a hosts_array < <(get_app_hosts "$app_name")
   local num_hosts=${#hosts_array[@]}
   local node_to_kill
   nodes_to_kill_array=()
@@ -159,9 +159,9 @@ function stop_agitator() {
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
   echo "Stopping all processes in the same process group as 'agitator' as user $AGITATOR_USER"
   ## get process ids of all agitator processes (return 1 if none found)
-  local agitator_pids=(); agitator_pids=($(pgrep -f "agitator start")) || return 1
+  local agitator_pids=(); read -a agitator_pids < <(pgrep -f "agitator start") || return 1
   ## get the group process ids of all agitator processes
-  local group_pids=(); group_pids=($(ps -o pgid= -p "${agitator_pids[@]}"))
+  local group_pids=(); read -a group_pids < <(ps -o pgid= -p "${agitator_pids[@]}")
   ## kill all processes in the process groups (should include agitators and their sleep processes)
   kill -- "${group_pids[@]/#/-}"
 }
