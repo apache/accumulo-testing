@@ -59,6 +59,8 @@ public class BulkPlusOne extends BulkImportTest {
     log.debug("Bulk loading from {}", dir);
     final int parts = env.getRandom().nextInt(10) + 1;
 
+    // The set created below should always contain 0. So its very important that zero is first in
+    // concat below.
     TreeSet<Integer> startRows = Stream
         .concat(Stream.of(0), Stream.generate(() -> env.getRandom().nextInt(LOTS))).distinct()
         .limit(parts).collect(Collectors.toCollection(TreeSet::new));
