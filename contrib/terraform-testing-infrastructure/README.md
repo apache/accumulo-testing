@@ -401,6 +401,7 @@ The following components will run on the `worker` nodes:
 - Apache Hadoop Yarn NodeManager
 - Apache Accumulo TabletServer
 - Apache Accumulo Compactor(s)
+- Apache Accumulo Scan Server(s)
 
 ### Logs
 
