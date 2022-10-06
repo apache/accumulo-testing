@@ -13,7 +13,7 @@ tserver:
 %{ endfor ~}
 
 sserver:
-  - default
+  - default:
 %{ for ip in worker_ips ~}
       - ${ip}
 %{ endfor ~}
