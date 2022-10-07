@@ -9,7 +9,7 @@ export ACCUMULO_HOME=${software_root}/accumulo/accumulo-${accumulo_version}
 export ACCUMULO_LOG_DIR=${accumulo_dir}/logs
 export M2_HOME=${software_root}/apache-maven/apache-maven-${maven_version}
 
-export ACCUMULO_JAVA_OPTS="-javaagent:${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.17.0.jar -Dotel.traces.exporter=jaeger -Dotel.metrics.exporter=none -Dotel.logs.exporter=none -Dotel.exporter.jaeger.endpoint=http://${manager_ip}:14250 -Dtest.meter.registry.host=${manager_ip} -Dtest.meter.registry.port=8125"
+export ACCUMULO_JAVA_OPTS="-javaagent:${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.18.0.jar -Dotel.traces.exporter=jaeger -Dotel.metrics.exporter=none -Dotel.logs.exporter=none -Dotel.exporter.jaeger.endpoint=http://${manager_ip}:14250 -Dtest.meter.registry.host=${manager_ip} -Dtest.meter.registry.port=8125"
 
 # User specific environment and startup programs
 PATH=$PATH:$HOME/.local/bin:$HOME/bin:$ZOOKEEPER_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ACCUMULO_HOME/bin:$M2_HOME/bin
