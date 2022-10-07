@@ -205,7 +205,7 @@ function read_cluster_conf() {
     G="SSERVER_HOSTS_${group}"
     echo "${!G}" >> "$sserver_file"
   done
-  local ss_array; read -a ss_array < <(cat "$sserver_file" | tr ' ' '\n' | sort -u)
+  local ss_array; read -a ss_array < <(cat "$sserver_file" | tr ' ' '\n' | sort -u | tr '\n' ' ')
   export SSERVER_UNIQUE_HOSTS=${ss_array[@]}
 
   compactor_file=$(mktemp -q)
@@ -213,7 +213,7 @@ function read_cluster_conf() {
     Q="COMPACTOR_HOSTS_${queue}"
     echo "${!Q}" >> "$compactor_file"
   done
-  local c_array; read -a c_array < <(cat "$compactor_file" | tr ' ' '\n' | sort -u)
+  local c_array; read -a c_array < <(cat "$compactor_file" | tr ' ' '\n' | sort -u | tr '\n' ' ')
   export COMPACTOR_UNIQUE_HOSTS=${c_array[@]}
 
 }
