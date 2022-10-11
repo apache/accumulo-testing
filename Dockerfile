@@ -20,8 +20,8 @@ ARG HADOOP_USER_NAME
 ENV HADOOP_HOME ${HADOOP_HOME}
 ENV HADOOP_USER_NAME ${HADOOP_USER_NAME:-hadoop}
 
-RUN yum install -y java-1.8.0-openjdk-devel
-ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
+RUN yum install -y java-11-openjdk-devel
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
 
 ENV HADOOP_API_JAR /opt/at/hadoop-client-api.jar
 ENV HADOOP_RUNTIME_JAR /opt/at/hadoop-client-runtime.jar
@@ -36,7 +36,7 @@ RUN mkdir /opt/at/conf
 
 COPY ./conf/accumulo-client.properties /opt/at/conf/
 COPY ./conf/accumulo-testing.properties /opt/at/conf/
-COPY ./conf/log4j.properties* /opt/at/conf/
+COPY ./conf/log4j2.properties* /opt/at/conf/
 RUN touch /opt/at/conf/env.sh
 
 COPY ./bin/build /opt/at/bin
