@@ -17,7 +17,7 @@
  * under the License.
  */
 /**
- * A <a href="http://en.wikipedia.org/wiki/Merkle_tree">Merkle tree</a> is a hash tree and can be
+ * A <a href="https://en.wikipedia.org/wiki/Merkle_tree">Merkle tree</a> is a hash tree and can be
  * used to evaluate equality over large files with the ability to ascertain what portions of the
  * files differ. Each leaf of the Merkle tree is some hash of a portion of the file, with each leaf
  * corresponding to some "range" within the source file. As such, if all leaves are considered as

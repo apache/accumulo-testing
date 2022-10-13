@@ -138,7 +138,7 @@ public class TestEnv implements AutoCloseable {
       hadoopConfig = new Configuration();
       hadoopConfig.set("fs.defaultFS", getHdfsRoot());
       // Below is required due to bundled jar breaking default config.
-      // See http://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
+      // See https://stackoverflow.com/questions/17265002/hadoop-no-filesystem-for-scheme-file
       hadoopConfig.set("fs.hdfs.impl",
           org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
       hadoopConfig.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());

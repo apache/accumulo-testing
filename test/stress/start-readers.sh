@@ -19,7 +19,7 @@
 #
 
 # Start: Resolve Script Directory
-# Ref: http://stackoverflow.com/questions/59895/
+# Ref: https://stackoverflow.com/questions/59895/
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "${SOURCE}" ]; do # resolve $SOURCE until the file is no longer a symlink
    DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
