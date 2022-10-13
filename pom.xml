@@ -297,13 +297,11 @@
         <configuration>
           <excludes combine.children="append">
             <exclude>test/bench/lib/data/*</exclude>
-            <exclude>test/compat/japi-compliance/*</exclude>
+            <exclude>test/compat/japi-compliance/exclude_classes.txt</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/terraform.tfstate*</exclude>
-            <exclude>contrib/terraform-testing-infrastructure/**/*.tftpl</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/.terraform/**</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/.terraform*</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/*auto.tfvars*</exclude>
-            <exclude>contrib/terraform-testing-infrastructure/modules/config-files/**</exclude>
           </excludes>
         </configuration>
         <executions>
