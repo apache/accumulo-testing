@@ -140,6 +140,8 @@
               <exclude>**/NOTICE</exclude>
               <exclude>**/target/**</exclude>
               <exclude>**/lib/data/**</exclude>
+              <!-- template types are in various formats; update manually if needed -->
+              <exclude>**/*.tftpl</exclude>
             </excludes>
             <mapping combine.children="append">
               <!-- general mappings; module-specific mappings appear in their respective pom -->
@@ -166,7 +168,6 @@
               <java>SLASHSTAR_STYLE</java>
               <proto>SLASHSTAR_STYLE</proto>
               <tf>SCRIPT_STYLE</tf>
-              <tftpl>SCRIPT_STYLE</tftpl>
               <thrift>SLASHSTAR_STYLE</thrift>
               <uno>SCRIPT_STYLE</uno>
             </mapping>
@@ -303,6 +304,7 @@
             <exclude>test/bench/lib/data/*</exclude>
             <exclude>test/compat/japi-compliance/exclude_classes.txt</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/terraform.tfstate*</exclude>
+            <exclude>contrib/terraform-testing-infrastructure/**/*.tftpl</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/.terraform/**</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/.terraform*</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/*auto.tfvars*</exclude>
