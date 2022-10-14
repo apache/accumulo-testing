@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -16,6 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+#
 
 ../../../bin/accumulo org.apache.accumulo.test.TestIngest -u root -p secret --timestamp 3 --delete --rows 1000000 --start 0 --cols 1 &
 ../../../bin/accumulo org.apache.accumulo.test.TestIngest -u root -p secret --timestamp 3 --delete --rows 1000000 --start 1000000 --cols 1 &
