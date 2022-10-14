@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -20,13 +20,13 @@
 
 # Start: Resolve Script Directory
 SOURCE="${BASH_SOURCE[0]}"
-while [[ -h "${SOURCE}" ]]; do # resolve $SOURCE until the file is no longer a symlink
-   dir=$( cd -P "$( dirname "${SOURCE}" )" && pwd )
-   SOURCE=$(readlink "${SOURCE}")
-   [[ "${SOURCE}" != /* ]] && SOURCE="${dir}/${SOURCE}" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+while [[ -L ${SOURCE} ]]; do # resolve $SOURCE until the file is no longer a symlink
+  dir=$(cd -P "$(dirname "${SOURCE}")" && pwd)
+  SOURCE=$(readlink "${SOURCE}")
+  [[ ${SOURCE} != /* ]] && SOURCE="${dir}/${SOURCE}" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
-dir=$( cd -P "$( dirname "${SOURCE}" )" && pwd )
-script=$( basename "${SOURCE}" )
+dir=$(cd -P "$(dirname "${SOURCE}")" && pwd)
+script=$(basename "${SOURCE}")
 # Stop: Resolve Script Directory
 
 # Guess at ACCUMULO_HOME and ACCUMULO_CONF_DIR if not already defined
@@ -38,5 +38,5 @@ ACCUMULO_CONF_DIR=${ACCUMULO_CONF_DIR:-"$ACCUMULO_HOME/conf"}
 
 # Ingest data into the source table
 $ACCUMULO_HOME/bin/accumulo org.apache.accumulo.test.replication.merkle.ingest.RandomWorkload --table $SOURCE_TABLE_NAME \
-    -i $SOURCE_INSTANCE -z $SOURCE_ZOOKEEPERS -u $SOURCE_ACCUMULO_USER -p $SOURCE_ACCUMULO_PASSWORD -d $DELETE_PERCENT \
-    -cf $MAX_CF -cq $MAX_CQ -r $MAX_ROW -n $NUM_RECORDS
+  -i $SOURCE_INSTANCE -z $SOURCE_ZOOKEEPERS -u $SOURCE_ACCUMULO_USER -p $SOURCE_ACCUMULO_PASSWORD -d $DELETE_PERCENT \
+  -cf $MAX_CF -cq $MAX_CQ -r $MAX_ROW -n $NUM_RECORDS

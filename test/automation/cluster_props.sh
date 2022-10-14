@@ -28,4 +28,3 @@ export FLUO_MUCHOS_REPO=https://github.com/apache/fluo-muchos
 export FLUO_MUCHOS_BRANCH=main
 
 export MUCHOS_PROPS=${MUCHOS_PROPS:-/path/to/muchos/props}
-

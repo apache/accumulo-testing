@@ -18,8 +18,8 @@
 # under the License.
 #
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+at_home=$(cd "$(dirname "$bin_dir")" && pwd)
 
 function print_usage() {
   cat <<EOF
@@ -47,10 +47,10 @@ if [ -z "$HADOOP_HOME" ]; then
 fi
 
 case "$1" in
-  cingest|rwalk|gcs|monitor)
+  cingest | rwalk | gcs | monitor)
     "${at_home}"/bin/"$1" "${@:2}"
     ;;
-  -h|help)
+  -h | help)
     print_usage
     exit 1
     ;;

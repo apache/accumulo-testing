@@ -18,7 +18,7 @@
 # under the License.
 #
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${bin_dir}/build"
 
 function print_usage() {
@@ -51,6 +51,7 @@ case "$1" in
     echo "Unknown application: $1"
     print_usage
     exit 1
+    ;;
 esac
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"

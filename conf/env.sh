@@ -48,7 +48,7 @@ fi
 
 # Configuration
 # =============
-conf_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+conf_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 export TEST_PROPS="${conf_dir}/accumulo-testing.properties"
 if [ ! -f "$TEST_PROPS" ]; then
   echo "Please create and edit accumulo-testing.properties in $conf_dir"
@@ -63,13 +63,15 @@ fi
 # Shaded test jar
 # ===============
 # Versions set below will be what is included in the shaded jar
-ACCUMULO_VERSION="$("$ACCUMULO_HOME"/bin/accumulo version | grep -v 'DEBUG')"; export ACCUMULO_VERSION
-HADOOP_VERSION="$(hadoop version | head -n1 | awk '{print $2}')"; export HADOOP_VERSION
+ACCUMULO_VERSION="$("$ACCUMULO_HOME"/bin/accumulo version | grep -v 'DEBUG')"
+export ACCUMULO_VERSION
+HADOOP_VERSION="$(hadoop version | head -n1 | awk '{print $2}')"
+export HADOOP_VERSION
 export ZOOKEEPER_VERSION=3.8.0
 # Path to shaded test jar
-at_home=$( cd "$( dirname "$conf_dir" )" && pwd )
+at_home=$(cd "$(dirname "$conf_dir")" && pwd)
 export TEST_JAR_PATH="${at_home}/target/accumulo-testing-shaded.jar"
-if [[ ! -f "$TEST_JAR_PATH" ]]; then
+if [[ ! -f $TEST_JAR_PATH ]]; then
   echo "Building $TEST_JAR_PATH"
   cd "${at_home}" || exit 1
   mvn clean package -P create-shade-jar -D skipTests -D accumulo.version="$ACCUMULO_VERSION" -D hadoop.version="$HADOOP_VERSION" -D zookeeper.version="$ZOOKEEPER_VERSION"
@@ -79,14 +81,15 @@ fi
 # ===========
 export HADOOP_API_JAR="${at_home}"/target/dependency/hadoop-client-api.jar
 export HADOOP_RUNTIME_JAR="${at_home}"/target/dependency/hadoop-client-runtime.jar
-if [[ ! -f "$HADOOP_API_JAR" || ! -f "$HADOOP_RUNTIME_JAR" ]]; then
+if [[ ! -f $HADOOP_API_JAR || ! -f $HADOOP_RUNTIME_JAR ]]; then
   mvn dependency:copy-dependencies -Dmdep.stripVersion=true -DincludeArtifactIds=hadoop-client-api,hadoop-client-runtime -Dhadoop.version="$HADOOP_VERSION"
 fi
 
 # Agitator
 # ========
 # Accumulo user
-AGTR_ACCUMULO_USER=$(whoami); export AGTR_ACCUMULO_USER
+AGTR_ACCUMULO_USER=$(whoami)
+export AGTR_ACCUMULO_USER
 # Time (in minutes) between killing Accumulo managers
 export AGTR_MANAGER_KILL_SLEEP_TIME=60
 export AGTR_MANAGER_RESTART_SLEEP_TIME=2
@@ -104,9 +107,11 @@ export AGTR_DATANODE_RESTART_SLEEP_TIME=10
 export AGTR_DATANODE_MIN_KILL=1
 export AGTR_DATANODE_MAX_KILL=1
 # HDFS agitation
-AGTR_HDFS_USER=$(whoami); export AGTR_HDFS_USER
+AGTR_HDFS_USER=$(whoami)
+export AGTR_HDFS_USER
 export AGTR_HDFS=false
 export AGTR_HDFS_SLEEP_TIME=10
 export AGTR_HDFS_SUPERUSER=hdfs
 export AGTR_HDFS_COMMAND="${HADOOP_HOME}/bin/hdfs"
-AGTR_HDFS_SUDO=$(command -v sudo); export AGTR_HDFS_SUDO
+AGTR_HDFS_SUDO=$(command -v sudo)
+export AGTR_HDFS_SUDO

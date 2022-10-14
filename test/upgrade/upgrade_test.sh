@@ -18,11 +18,10 @@
 # under the License.
 #
 
-
 # This script test upgrading from Accumulo 1.9 to 2.0. This script is
 # not self verifying, its output must be inspected for correctness.
 
-if [[ $# != 1 ]] ; then
+if [[ $# != 1 ]]; then
   BASENAME=$(basename "$0")
   echo "Usage: $BASENAME clean|dirty"
   exit -1
@@ -51,12 +50,11 @@ cd $UNO_DIR
 
   hadoop fs -ls /accumulo/version
 
-
   hadoop fs -rmr "$BULK"
   hadoop fs -mkdir -p "$BULK/fail"
   accumulo org.apache.accumulo.test.TestIngest -i uno -u root -p secret --rfile $BULK/bulk/test --timestamp 1 --size 50 --random 56 --rows 200000 --start 200000 --cols 1
 
-  accumulo org.apache.accumulo.test.TestIngest -i uno -u root -p secret --timestamp 1 --size 50 --random 56 --rows 200000 --start 0 --cols 1  --createTable --splits 10
+  accumulo org.apache.accumulo.test.TestIngest -i uno -u root -p secret --timestamp 1 --size 50 --random 56 --rows 200000 --start 0 --cols 1 --createTable --splits 10
 
   accumulo shell -u root -p secret <<EOF
    table test_ingest
@@ -72,7 +70,7 @@ EOF
 )
 
 if [[ $1 == dirty ]]; then
-	pkill -9 -f accumulo\\.start
+  pkill -9 -f accumulo\\.start
 else
   (
     eval "$(./bin/uno env)"
