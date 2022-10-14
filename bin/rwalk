@@ -18,8 +18,8 @@
 # under the License.
 #
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+at_home=$(cd "$(dirname "$bin_dir")" && pwd)
 source "${bin_dir}/build"
 
 function print_usage() {

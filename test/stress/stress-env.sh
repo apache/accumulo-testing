@@ -1,3 +1,4 @@
+#! /usr/bin/env bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -28,7 +29,8 @@ elif hash parallel-ssh 2>/dev/null; then
   PSSH=parallel-ssh
   PSCP=parallel-scp
 else
-  echo >&2 "The stress test requires pssh/parallel-ssh and pscp/parallel-scp to be installed. Aborting."; exit 1;
+  echo >&2 "The stress test requires pssh/parallel-ssh and pscp/parallel-scp to be installed. Aborting."
+  exit 1
 fi
 
 # Edit the credentials to match your system

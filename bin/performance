@@ -22,8 +22,8 @@
 # config and only relies on cluster-control.sh script to get all environmental
 # information.
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-at_home=$( cd "$( dirname "$bin_dir" )" && pwd )
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+at_home=$(cd "$(dirname "$bin_dir")" && pwd)
 at_version=2.1.0-SNAPSHOT
 
 function print_usage() {
@@ -38,7 +38,6 @@ Possible commands:
   list                             List the performance test
 EOF
 }
-
 
 function build_shade_jar() {
   at_shaded_jar="$at_home/target/accumulo-testing-shaded.jar"
@@ -55,7 +54,6 @@ if [ ! -f "$log4j_config" ]; then
   exit 1
 fi
 
-
 if [ ! -f "$at_home/conf/cluster-control.sh" ]; then
   echo "Could not find cluster-control.sh"
   exit 1
@@ -63,7 +61,7 @@ fi
 
 source "$at_home"/conf/cluster-control.sh
 export TEST_JAR_PATH="${at_home}/target/accumulo-testing-shaded.jar"
-if [[ ! -f "$TEST_JAR_PATH" ]]; then
+if [[ ! -f $TEST_JAR_PATH ]]; then
   build_shade_jar
 fi
 CP="$at_shaded_jar:$(get_hadoop_client)"
@@ -79,7 +77,7 @@ case "$1" in
     # don't start unless we can find the class provided
     found=false
     CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.ListTests | while read -r test_class; do
-      if [[ "$test_class" == "$3" ]]; then
+      if [[ $test_class == "$3" ]]; then
         found=true
       fi
     done
@@ -96,28 +94,28 @@ case "$1" in
         pt_tmp=$(mktemp -d -t accumulo_pt_XXXXXXX)
         setup_accumulo
         get_config_file accumulo.properties "$pt_tmp"
-        CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config"  ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
+        CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.MergeSiteConfig "$test_class" "$pt_tmp"
         put_config_file "$pt_tmp/accumulo.properties"
         put_server_code "$at_home/target/accumulo-testing-$at_version.jar"
         start_accumulo
         get_config_file accumulo-client.properties "$pt_tmp"
-        CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config"  ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
+        CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.PerfTestRunner "$pt_tmp/accumulo-client.properties" "$test_class" "$(get_version 'ACCUMULO')" "$2"
       fi
     done
     stop_cluster
     ;;
   compare)
-    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config"  ${perf_pkg}.Compare "$2" "$3"
+    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.Compare "$2" "$3"
     ;;
   csv)
-    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config"  ${perf_pkg}.Csv "${@:2}"
+    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.Csv "${@:2}"
     ;;
   list)
-    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config"  ${perf_pkg}.ListTests
+    CLASSPATH="$CP" java $JAVA_OPTS -Dlog4j.configurationFile="file:$log4j_config" ${perf_pkg}.ListTests
     ;;
   *)
     echo "Unknown command : $1"
     print_usage
     exit 1
+    ;;
 esac
-

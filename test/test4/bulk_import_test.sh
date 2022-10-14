@@ -72,4 +72,3 @@ echo "creating second set of map files"
 ../../../bin/accumulo org.apache.accumulo.test.VerifyIngest $USERPASS --size 50 --timestamp 2 --random 57 --rows 1000000 --start 2000000 --cols 1 &
 ../../../bin/accumulo org.apache.accumulo.test.VerifyIngest $USERPASS --size 50 --timestamp 2 --random 57 --rows 1000000 --start 3000000 --cols 1 &
 ../../../bin/accumulo org.apache.accumulo.test.VerifyIngest $USERPASS --size 50 --timestamp 2 --random 57 --rows 1000000 --start 4000000 --cols 1 &
-

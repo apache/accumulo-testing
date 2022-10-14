@@ -18,7 +18,7 @@
 # under the License.
 #
 
-bin_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 source "${bin_dir}/build"
 
 function print_usage() {
@@ -80,12 +80,13 @@ case "$1" in
     echo "Unknown application: $1"
     print_usage
     exit 1
+    ;;
 esac
 
 export CLASSPATH="$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
 
 case "$1" in
-  verify|moru|bulk)
+  verify | moru | bulk)
     if [ -n "$HADOOP_HOME" ]; then
       export HADOOP_USE_CLIENT_CLASSLOADER=true
       "$HADOOP_HOME"/bin/yarn jar "$TEST_JAR_PATH" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
@@ -96,4 +97,5 @@ case "$1" in
     ;;
   *)
     java $JAVA_OPTS -Dlog4j.configurationFile="file:$TEST_LOG4J" "$ci_main" "${@:2}" "$TEST_PROPS" "$ACCUMULO_CLIENT_PROPS"
+    ;;
 esac

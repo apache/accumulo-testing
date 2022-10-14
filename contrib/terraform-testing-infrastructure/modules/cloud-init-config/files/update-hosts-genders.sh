@@ -21,7 +21,7 @@
 set -eo pipefail
 
 if [ $# -ne 2 ]; then
-  echo  "usage: $0 additional_hosts_file additional_genders_file" >&2
+  echo "usage: $0 additional_hosts_file additional_genders_file" >&2
   exit 1
 fi
 
@@ -36,7 +36,7 @@ end_genders_marker="##### END GENERATED GENDERS #####"
 # Update the hosts file locally
 # Wrap the supplied host additions with markers that we'll use to strip it back out.
 TMPHOSTS=/tmp/hosts$$
-cat > $TMPHOSTS <<EOF
+cat >$TMPHOSTS <<EOF
 $begin_hosts_marker
 ##### DO NOT EDIT THIS SECTION #####
 $(<"$HOSTS_ADDITIONS")
@@ -44,17 +44,17 @@ $end_hosts_marker
 EOF
 # Strip out any previously applied hosts additiona, and then tack the new ones on to the end of /etc/hosts.
 sudo sed -ri '/^'"$begin_hosts_marker"'$/,/^'"$end_hosts_marker"'$/d' /etc/hosts
-cat "$TMPHOSTS" | sudo tee -a /etc/hosts > /dev/null
+cat "$TMPHOSTS" | sudo tee -a /etc/hosts >/dev/null
 
 # Update the genders file locally
 TMPGENDERS=/tmp/genders$$
-cat > $TMPGENDERS <<EOF
+cat >$TMPGENDERS <<EOF
 $begin_genders_marker
 $(<"$GENDERS_ADDITIONS")
 $end_genders_marker
 EOF
 [[ -f /etc/genders ]] && sudo sed -ri '/^'"$begin_genders_marker"'$/,/^'"$end_genders_marker"'$/d' /etc/genders
-cat "$TMPGENDERS" | sudo tee -a /etc/genders > /dev/null
+cat "$TMPGENDERS" | sudo tee -a /etc/genders >/dev/null
 echo "Check genders file validity..."
 nodeattr -k
 
