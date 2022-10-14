@@ -298,7 +298,6 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>0.15</version>
         <configuration>
           <excludes combine.children="append">
             <exclude>test/bench/lib/data/*</exclude>
