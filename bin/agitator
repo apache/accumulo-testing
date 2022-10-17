@@ -73,7 +73,7 @@ function start_app_agitator() {
     sleep $((kill_sleep_time * 60))
 
     T="$(date +'%Y%m%d %H:%M:%S')"
-    if ((max_kill == 1)); then
+    if ((num_hosts == 1)); then
       node_to_kill=${hosts_array[0]}
       echo "$T Killing $app_name at $node_to_kill"
       ssh "$node_to_kill" "$kill_cmd"
