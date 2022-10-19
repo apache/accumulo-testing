@@ -73,7 +73,7 @@ function start_app_agitator() {
     sleep $((kill_sleep_time * 60))
 
     T="$(date +'%Y%m%d %H:%M:%S')"
-    if ((max_kill == 1)); then
+    if ((num_hosts == 1)); then
       node_to_kill=${hosts_array[0]}
       echo "$T Killing $app_name at $node_to_kill"
       ssh "$node_to_kill" "$kill_cmd"
@@ -82,7 +82,7 @@ function start_app_agitator() {
       # get the random nodes to kill
       local count=0
       while [[ $count -lt $num_to_kill ]]; do
-        randomHostIndex=$((1 + RANDOM % num_hosts))
+        randomHostIndex=$((RANDOM % num_hosts))
         node_to_kill=${hosts_array[randomHostIndex]}
         # only add host to the array if its not already there
         if [[ ! " ${nodes_to_kill_array[*]} " =~ $node_to_kill ]]; then
@@ -92,6 +92,7 @@ function start_app_agitator() {
       done
       echo "$T Killing $count $app_name nodes"
       for i in "${nodes_to_kill_array[@]}"; do
+        echo "$T Killing $app_name at $i"
         ssh "$i" "$kill_cmd"
       done
     fi
@@ -101,7 +102,7 @@ function start_app_agitator() {
     sleep $((restart_sleep_time * 60))
 
     T="$(date +'%Y%m%d %H:%M:%S')"
-    if ((max_kill == 1)); then
+    if ((num_hosts == 1)); then
       echo "$T Restarting $app_name at $node_to_kill"
       ssh "$node_to_kill" "bash -c '${ENV_VARS} $start_cmd'"
     else
