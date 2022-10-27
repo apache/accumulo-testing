@@ -33,6 +33,15 @@ accumulo init --instance-name "$1" --password "$2"
 #
 # Launch jaegertracing and telegraf containers
 #
+%{ if os_type == "centos" ~}
+sudo yum install -y docker-ce docker-ce-cli containerd.io --enablerepo=docker
+%{ endif ~}
+%{ if os_type == "ubuntu" ~}
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+%{ endif ~}
+sudo systemctl enable docker
+sudo systemctl start docker
+
 docker run -d --name jaeger \
     --restart always \
     -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \

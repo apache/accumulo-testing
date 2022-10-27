@@ -36,7 +36,7 @@ yum_repos:
   docker:
     name: Docker CE Stable - $basearch
     baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
-    enabled: true
+    enabled: false
     gpgcheck: true
     gpgkey: https://download.docker.com/linux/centos/gpg
 %{ endif ~}
@@ -68,9 +68,6 @@ packages:
   - make
 %{ endif ~}
   - openssl
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
   - wget
 
 #
@@ -82,8 +79,6 @@ runcmd:
 %{ endif ~}
   - mkdir -p ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
   - chown hadoop.hadoop ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
-  - systemctl enable docker
-  - systemctl start docker
 %{ if os_type == "ubuntu" ~}
   # Use bash instead of dash for the default shell
   - ln -s bash /bin/sh.bash
