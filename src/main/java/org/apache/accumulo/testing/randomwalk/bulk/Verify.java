@@ -67,12 +67,15 @@ public class Verify extends Test {
     String user = env.getAccumuloClient().whoami();
     Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
     RowIterator rowIter;
+    Boolean errorFound = false;
     try (Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths)) {
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       for (Entry<Key,Value> entry : scanner) {
         byte[] value = entry.getValue().get();
         if (!Arrays.equals(value, zero)) {
-          throw new Exception("Bad key at " + entry);
+          log.error("Bad key found at {}", entry);
+          errorFound = true;
+          break;
         }
       }
 
@@ -87,25 +90,35 @@ public class Verify extends Test {
         while (row.hasNext()) {
           Entry<Key,Value> entry = row.next();
 
-          if (rowText == null)
+          if (rowText == null) {
             rowText = entry.getKey().getRow();
+          }
 
           long curr = Long.parseLong(entry.getKey().getColumnQualifier().toString());
 
-          if (curr - 1 != prev)
-            throw new Exception(
-                "Bad marker count " + entry.getKey() + " " + entry.getValue() + " " + prev);
+          if (curr - 1 != prev) {
+            log.error("Bad market count. Current row: {} {}, Previous row marker: {}",
+                entry.getKey(), entry.getValue(), prev);
+            break;
+          }
 
-          if (!entry.getValue().toString().equals("1"))
-            throw new Exception("Bad marker value " + entry.getKey() + " " + entry.getValue());
+          if (!entry.getValue().toString().equals("1")) {
+            log.error("Bad marker value for row {} {}.\n Value expected to be one", entry.getKey(),
+                entry.getValue());
+            break;
+          }
 
           prev = curr;
         }
 
         if (BulkPlusOne.counter.get() != prev) {
-          throw new Exception("Row " + rowText + " does not have all markers "
-              + BulkPlusOne.counter.get() + " " + prev);
+          log.error("Row {} does not have all markers. Current marker: {}, Previous marker:{}",
+              rowText, BulkPlusOne.counter.get(), prev);
+          break;
         }
+      }
+      if (errorFound) {
+        throw new Exception("Error found during Verify");
       }
     }
 
