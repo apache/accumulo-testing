@@ -67,7 +67,7 @@ public class Verify extends Test {
     String user = env.getAccumuloClient().whoami();
     Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
     RowIterator rowIter;
-    Boolean errorFound = false;
+    boolean errorFound = false;
     try (Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths)) {
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       for (Entry<Key,Value> entry : scanner) {
@@ -99,12 +99,14 @@ public class Verify extends Test {
           if (curr - 1 != prev) {
             log.error("Bad market count. Current row: {} {}, Previous row marker: {}",
                 entry.getKey(), entry.getValue(), prev);
+            errorFound = true;
             break;
           }
 
           if (!entry.getValue().toString().equals("1")) {
             log.error("Bad marker value for row {} {}.\n Value expected to be one", entry.getKey(),
                 entry.getValue());
+            errorFound = true;
             break;
           }
 
@@ -114,6 +116,7 @@ public class Verify extends Test {
         if (BulkPlusOne.counter.get() != prev) {
           log.error("Row {} does not have all markers. Current marker: {}, Previous marker:{}",
               rowText, BulkPlusOne.counter.get(), prev);
+          errorFound = true;
           break;
         }
       }
