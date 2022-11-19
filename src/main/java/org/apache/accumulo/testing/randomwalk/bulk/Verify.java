@@ -75,7 +75,6 @@ public class Verify extends Test {
         if (!Arrays.equals(value, zero)) {
           log.error("Bad key found at {}", entry);
           errorFound = true;
-          break;
         }
       }
 
@@ -100,14 +99,12 @@ public class Verify extends Test {
             log.error("Bad market count. Current row: {} {}, Previous row marker: {}",
                 entry.getKey(), entry.getValue(), prev);
             errorFound = true;
-            break;
           }
 
           if (!entry.getValue().toString().equals("1")) {
             log.error("Bad marker value for row {} {}.\n Value expected to be one", entry.getKey(),
                 entry.getValue());
             errorFound = true;
-            break;
           }
 
           prev = curr;
@@ -117,7 +114,6 @@ public class Verify extends Test {
           log.error("Row {} does not have all markers. Current marker: {}, Previous marker:{}",
               rowText, BulkPlusOne.counter.get(), prev);
           errorFound = true;
-          break;
         }
       }
       if (errorFound) {
