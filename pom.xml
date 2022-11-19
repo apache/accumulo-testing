@@ -32,7 +32,7 @@
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
   <properties>
-    <accumulo.version>2.1.0-SNAPSHOT</accumulo.version>
+    <accumulo.version>3.0.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
