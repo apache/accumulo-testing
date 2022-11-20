@@ -45,7 +45,6 @@ public class SortTool extends Configured implements Tool {
     this.splits = splits;
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   public int run(String[] args) throws Exception {
     Job job = Job.getInstance(getConf(), this.getClass().getSimpleName());
@@ -60,18 +59,16 @@ public class SortTool extends Configured implements Tool {
     SequenceFileInputFormat.setInputPaths(job, seqFile);
 
     job.setPartitionerClass(
-        org.apache.accumulo.core.client.mapreduce.lib.partition.KeyRangePartitioner.class);
-    org.apache.accumulo.core.client.mapreduce.lib.partition.KeyRangePartitioner.setSplitFile(job,
-        splitFile);
+        org.apache.accumulo.hadoop.mapreduce.partition.KeyRangePartitioner.class);
+    org.apache.accumulo.hadoop.mapreduce.partition.KeyRangePartitioner.setSplitFile(job, splitFile);
 
     job.setMapOutputKeyClass(Key.class);
     job.setMapOutputValueClass(Value.class);
 
     job.setNumReduceTasks(splits.size() + 1);
 
-    job.setOutputFormatClass(
-        org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat.class);
-    org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat.setOutputPath(job,
+    job.setOutputFormatClass(org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat.class);
+    org.apache.accumulo.hadoop.mapreduce.AccumuloFileOutputFormat.setOutputPath(job,
         new Path(outputDir));
 
     job.waitForCompletion(true);
