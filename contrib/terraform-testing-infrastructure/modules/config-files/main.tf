@@ -60,6 +60,7 @@ locals {
   accumulo_root_pw = coalesce(var.accumulo_root_password, random_string.accumulo_root_password.result)
 
   template_vars = {
+    os_type                      = var.os_type
     manager_ip                   = var.manager_ip
     worker_ips                   = var.worker_ips
     java_home                    = local.java_home
