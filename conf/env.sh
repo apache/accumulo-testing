@@ -82,7 +82,7 @@ fi
 export HADOOP_API_JAR="${at_home}"/target/dependency/hadoop-client-api.jar
 export HADOOP_RUNTIME_JAR="${at_home}"/target/dependency/hadoop-client-runtime.jar
 if [[ ! -f $HADOOP_API_JAR || ! -f $HADOOP_RUNTIME_JAR ]]; then
-  mvn dependency:copy-dependencies -Dmdep.stripVersion=true -DincludeArtifactIds=hadoop-client-api,hadoop-client-runtime -Dhadoop.version="$HADOOP_VERSION"
+  mvn dependency:copy-dependencies -Dmdep.stripVersion=true -DincludeArtifactIds=hadoop-client-api,hadoop-client-runtime -Dhadoop.version="$HADOOP_VERSION" -D accumulo.version="$ACCUMULO_VERSION"
 fi
 
 # Agitator
