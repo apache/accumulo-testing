@@ -54,8 +54,7 @@ public class Config extends Test {
     return new Setting(property, min, max);
   }
 
-  @SuppressWarnings("deprecation")
-  final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_READ_AHEAD_MAXCONCURRENT;
+  final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_SCAN_EXECUTORS_DEFAULT_THREADS;
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
