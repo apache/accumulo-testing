@@ -26,9 +26,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.testing.cli.ClientOpts;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 
 import com.beust.jcommander.Parameter;
 
@@ -38,23 +35,15 @@ public class BulkImportDirectory {
     String tableName;
     @Parameter(names = {"-s", "--source"}, description = "directory to import from")
     String source = null;
-    @Parameter(names = {"-f", "--failures"},
-        description = "directory to copy failures into: will be deleted before the bulk import")
-    String failures = null;
   }
 
-  @SuppressWarnings("deprecation")
   public static void main(String[] args)
       throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException {
-    final FileSystem fs = FileSystem.get(new Configuration());
     Opts opts = new Opts();
-    System.err.println(
-        "Deprecated syntax for BulkImportDirectory, please use the new style (see --help)");
     opts.parseArgs(BulkImportDirectory.class.getName(), args);
-    fs.delete(new Path(opts.failures), true);
-    fs.mkdirs(new Path(opts.failures));
     try (AccumuloClient client = Accumulo.newClient().from(opts.getClientProps()).build()) {
-      client.tableOperations().importDirectory(opts.tableName, opts.source, opts.failures, false);
+      client.tableOperations().importDirectory(opts.source).to(opts.tableName).tableTime(false)
+          .load();
     }
   }
 }

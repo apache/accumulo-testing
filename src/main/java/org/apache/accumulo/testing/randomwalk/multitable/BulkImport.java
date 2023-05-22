@@ -35,7 +35,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -98,18 +97,8 @@ public class BulkImport extends Test {
     }
     log.debug("Starting {} bulk import to {}", useLegacyBulk ? "legacy" : "new", tableName);
     try {
-      if (useLegacyBulk) {
-        env.getAccumuloClient().tableOperations().importDirectory(tableName, dir.toString(),
-            fail.toString(), true);
-        FileStatus[] failures = fs.listStatus(fail);
-        if (failures != null && failures.length > 0) {
-          state.set("bulkImportSuccess", "false");
-          throw new Exception(failures.length + " failure files found importing files from " + dir);
-        }
-      } else {
-        env.getAccumuloClient().tableOperations().importDirectory(dir.toString()).to(tableName)
-            .tableTime(true).load();
-      }
+      env.getAccumuloClient().tableOperations().importDirectory(dir.toString()).to(tableName)
+          .tableTime(true).load();
 
       fs.delete(dir, true);
       fs.delete(fail, true);

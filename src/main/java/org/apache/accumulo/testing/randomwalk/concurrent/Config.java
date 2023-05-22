@@ -58,10 +58,6 @@ public class Config extends Test {
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
-			s(Property.TSERV_BULK_PROCESS_THREADS, 1, 10),
-			s(Property.TSERV_BULK_RETRY, 1, 10),
-			s(Property.TSERV_BULK_TIMEOUT, 10, 600),
-			s(Property.TSERV_BULK_ASSIGNMENT_THREADS, 1, 10),
 			s(Property.TSERV_DATACACHE_SIZE, 0, 1000000000L),
 			s(Property.TSERV_INDEXCACHE_SIZE, 0, 1000000000L),
 			s(Property.TSERV_CLIENT_TIMEOUT, 100, 10000),
@@ -84,8 +80,6 @@ public class Config extends Test {
 			s(Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN, 5, 100),
 			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,1024 * 1024 * 1024 * 10L),
 			s(Property.TSERV_WORKQ_THREADS, 1, 10),
-			s(Property.MANAGER_BULK_THREADPOOL_SIZE, 1, 10),
-			s(Property.MANAGER_BULK_RETRIES, 1, 10),
 			s(Property.MANAGER_BULK_TIMEOUT, 10, 600),
 			s(Property.MANAGER_FATE_THREADPOOL_SIZE, 1, 100),
 			s(Property.MANAGER_RECOVERY_DELAY, 0, 100),

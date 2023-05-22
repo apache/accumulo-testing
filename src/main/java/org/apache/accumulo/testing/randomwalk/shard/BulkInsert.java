@@ -18,7 +18,6 @@
  */
 package org.apache.accumulo.testing.randomwalk.shard;
 
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.BufferedOutputStream;
@@ -29,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -43,7 +41,6 @@ import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
@@ -137,39 +134,17 @@ public class BulkInsert extends Test {
     sort(env, fs, indexTableName, rootDir + "/index.seq", rootDir + "/index_bulk",
         rootDir + "/index_work", maxSplits);
 
-    bulkImport(fs, env, dataTableName, rootDir, "data");
-    bulkImport(fs, env, indexTableName, rootDir, "index");
+    bulkImport(env, dataTableName, rootDir, "data");
+    bulkImport(env, indexTableName, rootDir, "index");
 
     fs.delete(new Path(rootDir), true);
   }
 
-  @SuppressWarnings("deprecation")
-  private void bulkImport(FileSystem fs, RandWalkEnv env, String tableName, String rootDir,
-      String prefix) throws Exception {
-    while (true) {
-      String bulkDir = rootDir + "/" + prefix + "_bulk";
-      String failDir = rootDir + "/" + prefix + "_failure";
-      Path failPath = new Path(failDir);
-      fs.delete(failPath, true);
-      fs.mkdirs(failPath);
-      env.getAccumuloClient().tableOperations().importDirectory(tableName, bulkDir, failDir, true);
-
-      FileStatus[] failures = fs.listStatus(failPath);
-
-      if (failures == null || failures.length == 0)
-        break;
-
-      log.warn("Failed to bulk import some files, retrying ");
-
-      for (FileStatus failure : failures) {
-        if (!failure.getPath().getName().endsWith(".seq"))
-          fs.rename(failure.getPath(), new Path(new Path(bulkDir), failure.getPath().getName()));
-        else
-          log.debug("Ignoring " + failure.getPath());
-      }
-      sleepUninterruptibly(3, TimeUnit.SECONDS);
-
-    }
+  private void bulkImport(RandWalkEnv env, String tableName, String rootDir, String prefix)
+      throws Exception {
+    String bulkDir = rootDir + "/" + prefix + "_bulk";
+    env.getAccumuloClient().tableOperations().importDirectory(bulkDir).to(tableName).tableTime(true)
+        .load();
   }
 
   private void sort(RandWalkEnv env, FileSystem fs, String tableName, String seqFile,

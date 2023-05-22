@@ -62,9 +62,7 @@ public class CreateTable {
       // retrieve and set tserver props
       Map<String,String> props = getProps(env, TestProps.CI_COMMON_ACCUMULO_SERVER_PROPS);
       try {
-        for (Map.Entry<String,String> entry : props.entrySet()) {
-          client.instanceOperations().setProperty(entry.getKey(), entry.getValue());
-        }
+        client.instanceOperations().modifyProperties(properties -> properties.putAll(props));
       } catch (AccumuloException | AccumuloSecurityException e) {
         log.error("Failed to set tserver props");
         throw new Exception(e);
