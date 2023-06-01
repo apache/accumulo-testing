@@ -35,7 +35,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.apache.accumulo.testing.randomwalk.Test;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -55,9 +54,8 @@ public class BulkImport extends Test {
   private static final Value ONE = new Value("1".getBytes());
 
   /**
-   * Tests both the legacy (deprecated) and new bulk import methods.
+   * Tests both the bulk import methods.
    */
-  @SuppressWarnings({"deprecation", "unchecked"})
   public void visit(final State state, final RandWalkEnv env, Properties props) throws Exception {
     List<String> tables = (List<String>) state.get("tableList");
 
@@ -74,14 +72,13 @@ public class BulkImport extends Test {
     final FileSystem fs = (FileSystem) state.get("fs");
     fs.mkdirs(fail);
     final int parts = env.getRandom().nextInt(10) + 1;
-    final boolean useLegacyBulk = env.getRandom().nextBoolean();
 
     TreeSet<String> rows = new TreeSet<>();
     for (int i = 0; i < ROWS; i++)
       rows.add(uuid + String.format("__%06d", i));
 
     String markerColumnQualifier = String.format("%07d", counter.incrementAndGet());
-    log.debug("Preparing {} bulk import to {}", useLegacyBulk ? "legacy" : "new", tableName);
+    log.debug("Preparing bulk import to {}", tableName);
 
     for (int i = 0; i < parts; i++) {
       String fileName = dir + "/" + String.format("part_%d.rf", i);
@@ -96,26 +93,15 @@ public class BulkImport extends Test {
         }
       }
     }
-    log.debug("Starting {} bulk import to {}", useLegacyBulk ? "legacy" : "new", tableName);
+    log.debug("Starting bulk import to {}", tableName);
     try {
-      if (useLegacyBulk) {
-        env.getAccumuloClient().tableOperations().importDirectory(tableName, dir.toString(),
-            fail.toString(), true);
-        FileStatus[] failures = fs.listStatus(fail);
-        if (failures != null && failures.length > 0) {
-          state.set("bulkImportSuccess", "false");
-          throw new Exception(failures.length + " failure files found importing files from " + dir);
-        }
-      } else {
-        env.getAccumuloClient().tableOperations().importDirectory(dir.toString()).to(tableName)
-            .tableTime(true).load();
-      }
+      env.getAccumuloClient().tableOperations().importDirectory(dir.toString()).to(tableName)
+          .tableTime(true).load();
 
       fs.delete(dir, true);
       fs.delete(fail, true);
-      log.debug("Finished {} bulk import to {} start: {} last: {} marker: {}",
-          useLegacyBulk ? "legacy" : "new", tableName, rows.first(), rows.last(),
-          markerColumnQualifier);
+      log.debug("Finished bulk import to {} start: {} last: {} marker: {}", tableName, rows.first(),
+          rows.last(), markerColumnQualifier);
     } catch (TableNotFoundException tnfe) {
       log.debug("Table {} was deleted", tableName);
       tables.remove(tableName);

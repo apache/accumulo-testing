@@ -21,7 +21,7 @@
 
 # Running a bulk ingest test
 
-Continous ingest supports bulk ingest in addition to live ingest. A map reduce
+Continuous ingest supports bulk ingest in addition to live ingest. A map reduce
 job that generates rfiles using the tables splits can be run.  This can be run
 in a loop like the following to continually bulk import data.
 
