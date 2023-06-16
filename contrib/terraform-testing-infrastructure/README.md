@@ -382,7 +382,7 @@ mvn clean
 ./bin/build
 ```
 
-Accumulo testing builds a shaded jar.  The build script above determines the versions of ZK and Accumulo on your system and places those in the shaded jar.  The build script will not rebuild the shaded jar, so mvn clean must be run before build. If using an unreleased version Accumulo you must ensure its jars are in the local maven repo before rebuilding Accumulo testing.
+Accumulo Testing builds a shaded jar.  The build script above determines the versions of ZK and Accumulo on your system and places those in the shaded jar.  The build script will not rebuild the shaded jar, so mvn clean must be run before build. If using an unreleased version of Accumulo you must ensure its jars are in the local maven repo before rebuilding Accumulo Testing.
 
 ## Deployment Overview
 
