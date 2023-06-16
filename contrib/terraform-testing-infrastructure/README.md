@@ -378,8 +378,11 @@ doing the following:
 ```bash
 cd ${software_root}/sources/accumulo-testing-repo
 git pull
-mvn clean package -DskipTests -DskipITs
+mvn clean
+./bin/build
 ```
+
+Accumulo testing builds a shaded jar.  The build script above determines the versions of ZK and Accumulo on your system and places those in the shaded jar.  The build script will not rebuild the shaded jar, so mvn clean must be run before build. If using an unreleased version Accumulo you must ensure its jars are in the local maven repo before rebuilding Accumulo testing.
 
 ## Deployment Overview
 
