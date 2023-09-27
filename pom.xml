@@ -24,7 +24,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>27</version>
+    <version>30</version>
   </parent>
   <groupId>org.apache.accumulo</groupId>
   <artifactId>accumulo-testing</artifactId>
@@ -32,7 +32,7 @@
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
   <properties>
-    <accumulo.version>3.0.0-SNAPSHOT</accumulo.version>
+    <accumulo.version>3.1.0-SNAPSHOT</accumulo.version>
     <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
@@ -277,7 +277,7 @@
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
-            <version>9.1</version>
+            <version>10.12.3</version>
           </dependency>
         </dependencies>
         <executions>
