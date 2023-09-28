@@ -40,7 +40,8 @@ import com.google.common.collect.Iterables;
 
 public class ScanFewFamiliesPT implements PerformanceTest {
 
-  private static final String DESC = "This test times fetching a few column families when rows have many column families.";
+  private static final String DESC =
+      "This test times fetching a few column families when rows have many column families.";
 
   private static final int NUM_ROWS = 500;
   private static final int NUM_FAMS = 10000;

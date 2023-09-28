@@ -62,8 +62,8 @@ public class AlterTablePerm extends Test {
     } else
       tabPerm = TablePermission.valueOf(perm);
     String tableName = WalkingSecurity.get(state, env).getTableName();
-    boolean hasPerm = WalkingSecurity.get(state, env).hasTablePermission(target, tableName,
-        tabPerm);
+    boolean hasPerm =
+        WalkingSecurity.get(state, env).hasTablePermission(target, tableName, tabPerm);
     boolean canGive;
     String sourceUser;
     AuthenticationToken sourceToken;

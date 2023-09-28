@@ -93,8 +93,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     env.getClient().tableOperations().create(tableName);
 
-    ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
-        new ConditionalWriterConfig());
+    ConditionalWriter cw =
+        env.getClient().createConditionalWriter(tableName, new ConditionalWriterConfig());
 
     // warm-up run
     conditionalMutationsTime(cw, 0);
@@ -169,8 +169,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
 
     env.getClient().tableOperations().create(tableName);
 
-    ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
-        new ConditionalWriterConfig());
+    ConditionalWriter cw =
+        env.getClient().createConditionalWriter(tableName, new ConditionalWriterConfig());
 
     // warm-up run
     randomizeConditionalMutationsTime(cw, 0);
@@ -343,8 +343,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
     writeData(env, tableName, numRows, numCols);
     writeLgData(env, tableName, numRows);
 
-    ConditionalWriter cw = env.getClient().createConditionalWriter(tableName,
-        new ConditionalWriterConfig());
+    ConditionalWriter cw =
+        env.getClient().createConditionalWriter(tableName, new ConditionalWriterConfig());
 
     double rateSum = 0;
     for (int i = 0; i < numTest; i++) {
@@ -397,8 +397,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
     Mutation m = new Mutation(r);
 
     for (int col = 0; col < numCols; col++) {
-      String c = String.format("%04x",
-          Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
+      String c =
+          String.format("%04x", Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
       m.put("data", c, "1");
     }
     return m;
@@ -427,8 +427,8 @@ public class ConditionalMutationsPT implements PerformanceTest {
     HashSet<String> cols = new HashSet<>();
     while (cols.size() < num) {
       int col = rand.nextInt(numCols);
-      String c = String.format("%04x",
-          Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
+      String c =
+          String.format("%04x", Math.abs(Hashing.murmur3_32_fixed().hashInt(col).asInt() & 0xffff));
       cols.add(c);
     }
     return cols;

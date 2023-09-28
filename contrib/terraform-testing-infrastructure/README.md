@@ -47,7 +47,7 @@ This Git repository contains several [Terraform](https://www.terraform.io/) conf
        [D8s v4](https://docs.microsoft.com/en-us/azure/virtual-machines/dv4-dsv4-series#dsv4-series)
        VMs, providing 8 vCPUs and 32GiB RAM with an Azure storage backed OS drive.
     4. Runs commands on the VMs after cloud-init provisioning is complete in order to install and
-       configure Hadoop, Zookeeper, Accumulo, and the Accumulo Testing repository. 
+       configure Hadoop, Zookeeper, Accumulo, and the Accumulo Testing repository.
 
 ## Prerequisites
 
@@ -64,7 +64,7 @@ or DynamoDB table, or an Azure resource group, storage account, and container. T
 need to be created once and are used for sharing the Terraform state with a team. To read more
 about this see [remote state](https://www.terraform.io/docs/language/state/remote.html). The AWS
 shared state instructions are based on
-[this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa). 
+[this article](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa).
 
 To generate the storage, run `terraform init` followed by `terraform apply`. Note that the shell
 working directory must be the `shared_state/aws` or `shared_state/azure` directory when you run
@@ -74,6 +74,7 @@ The default AWS configuration generates the S3 bucket name when `terraform apply
 ensures that a globally unique S3 bucket name is used. It is not required to set any variables for
 the shared state. However, if you wish to override any variable values, this can be done by
 creating an `aws.auto.tfvars` file in the `shared_state/aws` directory. For example:
+
 ```bash
 cd shared_state/aws
 cat > aws.auto.tfvars << EOF
@@ -83,13 +84,16 @@ EOF
 
 Assuming the bucket variable is not overridden, the generated S3 bucket name will appear in the
 `terraform` apply output, like the following example:
+
 ```
 Outputs:
 
 bucket_name = "terraform-20220209131315353700000001"
 ```
+
 This value should be supplied to `terraform init` in the [aws](./aws) directory as described below.
 Using the example above, the init command for the aws directory would be:
+
 ```bash
 terraform init -backend-config=bucket=terraform-20220209131315353700000001
 ```
@@ -98,7 +102,8 @@ If you change any of the backend storage configuration parameters over their def
 need to override them when you initialize terraform for the `aws` or `azure` configuration
 below. For example, if you change the region where the S3 bucket is deployed from `us-east-1` to
 `us-west-2`, then you would need to run `terraform init` in the `aws` directory (not the
-shared_state initialization, but the main `aws` directory initialization) with:
+`shared_state` initialization, but the main `aws` directory initialization) with:
+
 ```bash
 terraform init -backend-config=region=us-west-2
 ```
@@ -118,7 +123,6 @@ For Azure:
 * `-backend-config=storage_account_name=<storage_account_name>`: Override the name of the Azure storage account holding Terraform state
 * `-backend-config=container_name=<container_name>`: Override the name of the container within the storage account that is holding Terraform state
 * `-backend-config=key=<blob_name>`: Override the name of the blob within the container that will be used to hold Terraform state
-
 
 ## Test Cluster
 
@@ -382,7 +386,11 @@ mvn clean
 ./bin/build
 ```
 
-Accumulo Testing builds a shaded jar.  The build script above determines the versions of ZK and Accumulo on your system and places those in the shaded jar.  The build script will not rebuild the shaded jar, so mvn clean must be run before build. If using an unreleased version of Accumulo you must ensure its jars are in the local maven repo before rebuilding Accumulo Testing.
+Accumulo Testing builds a shaded jar. The build script above determines the
+versions of ZK and Accumulo on your system and places those in the shaded jar.
+The build script will not rebuild the shaded jar, so mvn clean must be run
+before build. If using an unreleased version of Accumulo you must ensure its
+jars are in the local maven repo before rebuilding Accumulo Testing.
 
 ## Deployment Overview
 
@@ -417,12 +425,14 @@ directory on each node (`/data/${service}/logs` unless you changed the propertie
 
 The `aws` Terraform configuration creates DNS entries of the following form:
 
-  <node_name>-<branch_name>-<workspace_name>.${route53_zone}
+```
+<node_name>-<branch_name>-<workspace_name>.${route53_zone}
+```
 
 For example:
 
-- manager-main-default.${route53_zone}
-- worker#-main-default.${route53_zone} (where # is 0, 1, 2, ...)
+- `manager-main-default.${route53_zone}`
+- `worker#-main-default.${route53_zone}` (where # is 0, 1, 2, ...)
 
 The `azure` configuration does not current create public DNS entries for the nodes, and it is
 recommended that the public IP addresses be used instead.
@@ -432,7 +442,7 @@ recommended that the public IP addresses be used instead.
   1. Change to either the `aws` or `azure` directory in your shell. This must be the current
      directory when you run the following `terraform` commands.
   2. Once you have created a `.auto.tfvars` file, or set the properties some other way, run
-     `terraform init`. If you have modified shared_state backend configuration over the default,
+     `terraform init`. If you have modified `shared_state` backend configuration over the default,
      you can override the values here. For example, the following configuration updates the
      `resource_group_name` and `storage_account_name` for the `azurerm` backend:
      ```bash
@@ -455,22 +465,24 @@ Short Term access keys in your environment
 ### Accessing Web Pages
 
 For an `aws` cluster, you can access the software configuration/management web pages here:
-- Hadoop NameNode: http://manager-main-default.${route53_zone}:9870
-- Yarn ResourceManager: http://manager-main-default.${route53_zone}:8088
-- Hadoop DataNode: http://worker#-main-default.${route53_zone}:9864
-- Yarn NodeManager: http://worker#-main-default.${route53_zone}:8042
-- Accumulo Monitor: http://manager-main-default.${route53_zone}:9995
-- Jaeger Tracing UI: http://manager-main-default.${route53_zone}:16686
-- Grafana: http://manager-main-default.${route53_zone}:3003
+- Hadoop NameNode: `http://manager-main-default.${route53_zone}:9870`
+- Yarn ResourceManager: `http://manager-main-default.${route53_zone}:8088`
+- Hadoop DataNode: `http://worker#-main-default.${route53_zone}:9864`
+- Yarn NodeManager: `http://worker#-main-default.${route53_zone}:8042`
+- Accumulo Monitor: `http://manager-main-default.${route53_zone}:9995`
+- Jaeger Tracing UI: `http://manager-main-default.${route53_zone}:16686`
+- Grafana: `http://manager-main-default.${route53_zone}:3003`
 
 The `azure` cluster creates a network security group that limits public access to port 22 (SSH).
 Therefore, to access configuration/management web pages, you should create a SOCKS proxy and use
 a browser plugin such as
 [FoxyProxy Standard](https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp)
 to point the browser to the SOCKS proxy. Create the proxy with
+
 ```bash
 ssh -C2qTnNf -D 9876 hadoop@<manager-public-ip-address>
 ```
+
 Configure FoxyProxy (or your browser directly) to connect to the proxy on localhost port 9876
 (change the port specified in the `-D` option above to use a different proxy port). If you
 configure FoxyProxy with a SOCKS 5 proxy to match the URL regex patterns `https?://manager:.*` and
@@ -484,7 +496,6 @@ the proxy while other web pages will not use the proxy.
 - Accumulo Monitor: http://manager:9995
 - Jaeger Tracing UI: http://manager:16686
 - Grafana: http://manager:3003
-
 
 ## Accessing the cluster nodes
 

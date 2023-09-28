@@ -34,10 +34,8 @@ public abstract class Node {
   /**
    * Visits node
    *
-   * @param state
-   *          Random walk state passed between nodes
-   * @param env
-   *          test environment
+   * @param state Random walk state passed between nodes
+   * @param env test environment
    */
   public abstract void visit(State state, RandWalkEnv env, Properties props) throws Exception;
 

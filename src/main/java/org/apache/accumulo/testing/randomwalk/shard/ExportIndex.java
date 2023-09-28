@@ -95,10 +95,10 @@ public class ExportIndex extends Test {
     fs.delete(exportDir, true);
     fs.delete(copyDir, true);
 
-    HashSet<Text> splits1 = new HashSet<>(
-        env.getAccumuloClient().tableOperations().listSplits(indexTableName));
-    HashSet<Text> splits2 = new HashSet<>(
-        env.getAccumuloClient().tableOperations().listSplits(tmpIndexTableName));
+    HashSet<Text> splits1 =
+        new HashSet<>(env.getAccumuloClient().tableOperations().listSplits(indexTableName));
+    HashSet<Text> splits2 =
+        new HashSet<>(env.getAccumuloClient().tableOperations().listSplits(tmpIndexTableName));
 
     if (!splits1.equals(splits2))
       throw new Exception("Splits not equals " + indexTableName + " " + tmpIndexTableName);

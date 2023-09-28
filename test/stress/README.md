@@ -19,8 +19,7 @@
 
 -->
 
-Accumulo Stress Test
-====================
+# Accumulo Stress Test
 
 This is an attempt to observe the behavior Accumulo displays when compacting and
 reading cells. There are two components to this package:
@@ -69,19 +68,25 @@ provides defaults for many of the configuration options for the stress utilities
 Before starting a fresh write test, clear out the test table using the Accumulo
 shell.
 
-    > deletetable -f stress_test
-    > createtable stress_test
+```
+deletetable -f stress_test
+createtable stress_test
+```
 
 To run a writer:
 
-    $ ./writer.sh
+```bash
+./writer.sh
+```
 
 The writer will begin logging into a "logs" subdirectory, using timestamped
 filenames. You can stop the writer by killing it or using Control-C.
 
 To run a reader:
 
-    $ ./reader.sh
+```bash
+./reader.sh
+```
 
 The reader logs like the writer. By default, the reader reads forever, but
 it can be configured for a fixed number of scan iterations.
@@ -93,8 +98,10 @@ host that will run a writer, one per line.
 
 Finally, to start and stop the writers:
 
-    $ ./start-writers.sh
-    $ ./stop-writers.sh
+```bash
+./start-writers.sh
+./stop-writers.sh
+```
 
 For readers, make a similar readers file, and use `start-readers.sh` and
 `stop-readers.sh`.

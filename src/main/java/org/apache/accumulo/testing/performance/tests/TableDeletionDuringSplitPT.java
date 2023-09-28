@@ -119,8 +119,8 @@ public class TableDeletionDuringSplitPT implements PerformanceTest {
     reportBuilder.result("remaining_submitted_tasks", queued.size(), "task count",
         "The number of remaining submitted tasks.");
 
-    long totalRemainingTables = Arrays.stream(tableNames)
-        .filter((name) -> client.tableOperations().exists(name)).count();
+    long totalRemainingTables =
+        Arrays.stream(tableNames).filter((name) -> client.tableOperations().exists(name)).count();
     reportBuilder.result("total_remaining_tables", totalRemainingTables, "table count",
         "The total number of unsuccessfully deleted tables.");
     Long deletionTime = deletionTimes.sum() / deletedTables.get();

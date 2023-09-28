@@ -32,15 +32,11 @@ final class ContinuousUtil {
   /**
    * Attempt to create a table scanner, or fail if the table does not exist.
    *
-   * @param client
-   *          A populated AccumuloClient object
-   * @param table
-   *          The table name to scan over
-   * @param auths
-   *          The authorizations to use for the scanner
+   * @param client A populated AccumuloClient object
+   * @param table The table name to scan over
+   * @param auths The authorizations to use for the scanner
    * @return a scanner for the requested table
-   * @throws TableNotFoundException
-   *           If the table does not exist
+   * @throws TableNotFoundException If the table does not exist
    */
   static Scanner createScanner(AccumuloClient client, String table, Authorizations auths)
       throws TableNotFoundException {

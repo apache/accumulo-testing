@@ -56,7 +56,8 @@ public class ScanExecutorPT implements PerformanceTest {
   private static final int NUM_QUALS = 10;
 
   private static final String SCAN_EXECUTOR_THREADS = "2";
-  private static final String SCAN_PRIORITIZER = "org.apache.accumulo.core.spi.scan.HintScanPrioritizer";
+  private static final String SCAN_PRIORITIZER =
+      "org.apache.accumulo.core.spi.scan.HintScanPrioritizer";
 
   private static final String TEST_DESC = "Scan Executor Test. Test running lots of short scans "
       + "while long scans are running in the background. Each short scan reads a random row and "

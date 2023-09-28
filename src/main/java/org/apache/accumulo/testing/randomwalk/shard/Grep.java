@@ -57,8 +57,8 @@ public class Grep extends Test {
 
     HashSet<Text> documentsFoundInIndex = new HashSet<>();
 
-    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
-        Authorizations.EMPTY, 16)) {
+    try (BatchScanner bs =
+        env.getAccumuloClient().createBatchScanner(indexTableName, Authorizations.EMPTY, 16)) {
       IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class.getName());
       IntersectingIterator.setColumnFamilies(ii, words);
       bs.addScanIterator(ii);
@@ -72,8 +72,8 @@ public class Grep extends Test {
 
     HashSet<Text> documentsFoundByGrep = new HashSet<>();
 
-    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(dataTableName,
-        Authorizations.EMPTY, 16)) {
+    try (BatchScanner bs =
+        env.getAccumuloClient().createBatchScanner(dataTableName, Authorizations.EMPTY, 16)) {
 
       for (int i = 0; i < words.length; i++) {
         IteratorSetting more = new IteratorSetting(20 + i, "ii" + i, RegExFilter.class);

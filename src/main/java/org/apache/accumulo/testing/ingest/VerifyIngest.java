@@ -184,8 +184,8 @@ public class VerifyIngest {
 
           byte[] value;
           if (opts.random != null) {
-            value = TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow,
-                colNum);
+            value =
+                TestIngest.genRandomValue(random, randomValue, opts.random, expectedRow, colNum);
           } else {
             value = bytevals[colNum % bytevals.length];
           }

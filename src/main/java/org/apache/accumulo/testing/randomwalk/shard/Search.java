@@ -65,8 +65,8 @@ public class Search extends Test {
 
     log.debug("Looking up terms " + searchTerms + " expect to find " + docID);
 
-    try (BatchScanner bs = env.getAccumuloClient().createBatchScanner(indexTableName,
-        Authorizations.EMPTY, 10)) {
+    try (BatchScanner bs =
+        env.getAccumuloClient().createBatchScanner(indexTableName, Authorizations.EMPTY, 10)) {
 
       IteratorSetting ii = new IteratorSetting(20, "ii", IntersectingIterator.class);
       IntersectingIterator.setColumnFamilies(ii, columns);
@@ -85,8 +85,8 @@ public class Search extends Test {
 
   static Entry<Key,Value> findRandomDocument(RandWalkEnv env, String dataTableName, Random rand)
       throws Exception {
-    try (Scanner scanner = env.getAccumuloClient().createScanner(dataTableName,
-        Authorizations.EMPTY)) {
+    try (Scanner scanner =
+        env.getAccumuloClient().createScanner(dataTableName, Authorizations.EMPTY)) {
       scanner.setBatchSize(1);
       scanner.setRange(new Range(Integer.toString(rand.nextInt(0xfffffff), 16), null));
       var entry = scanner.stream().findAny();

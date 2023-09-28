@@ -91,8 +91,8 @@ public class BulkIngest extends Configured implements Tool {
       // make sure splits file is closed before continuing
       try (PrintStream out = new PrintStream(
           new BufferedOutputStream(fs.create(fs.makeQualified(new Path(splitsFile)))))) {
-        Collection<Text> splits = client.tableOperations().listSplits(tableName,
-            env.getBulkReducers() - 1);
+        Collection<Text> splits =
+            client.tableOperations().listSplits(tableName, env.getBulkReducers() - 1);
         splits.stream().map(Text::copyBytes).map(split -> Base64.getEncoder().encodeToString(split))
             .forEach(out::println);
         job.setNumReduceTasks(splits.size() + 1);

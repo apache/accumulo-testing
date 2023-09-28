@@ -29,15 +29,19 @@ Configure the agitator using the example agitator.ini file provided.
 
 Create a list of hosts to be agitated:
 
-	$ cp ../../../conf/tservers hosts
-	$ echo master >> hosts
-	$ echo namenode >> hosts
+```bash
+cp ../../../conf/tservers hosts
+echo master >> hosts
+echo namenode >> hosts
+```
 
 The agitator can be used to kill and restart any part of the accumulo
 ecosystem: zookeepers, namenode, datanodes, tablet servers and master.
 You can choose to agitate them all with "--all"
 
-	$ ./agitator.py --all --hosts=hosts --config=agitator.ini --log DEBUG
+```bash
+./agitator.py --all --hosts=hosts --config=agitator.ini --log DEBUG
+```
 
-You will need to be able to ssh, without passwords, to all your hosts as 
+You will need to be able to ssh, without passwords, to all your hosts as
 the user that can kill and start the services.

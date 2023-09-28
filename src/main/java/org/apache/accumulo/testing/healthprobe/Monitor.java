@@ -73,8 +73,8 @@ public class Monitor {
       while (scanning_condition.keepScanning()) {
 
         Random tablet_index_generator = new Random();
-        TabletId pickedTablet = pickTablet(client.tableOperations(), opts.tableName,
-            tablet_index_generator);
+        TabletId pickedTablet =
+            pickTablet(client.tableOperations(), opts.tableName, tablet_index_generator);
         Range range = pickedTablet.toRange();
         scanner.setRange(range);
 

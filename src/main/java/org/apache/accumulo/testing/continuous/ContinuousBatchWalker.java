@@ -54,19 +54,19 @@ public class ContinuousBatchWalker {
       Authorizations auths = env.getRandomAuthorizations();
       AccumuloClient client = env.getAccumuloClient();
 
-      try (Scanner scanner = ContinuousUtil.createScanner(client, env.getAccumuloTableName(),
-          auths)) {
+      try (Scanner scanner =
+          ContinuousUtil.createScanner(client, env.getAccumuloTableName(), auths)) {
         int scanBatchSize = Integer.parseInt(env.getTestProperty(TestProps.CI_BW_BATCH_SIZE));
         scanner.setBatchSize(scanBatchSize);
         ConsistencyLevel cl = TestProps
             .getScanConsistencyLevel(env.getTestProperty(TestProps.CI_BW_CONSISTENCY_LEVEL));
         scanner.setConsistencyLevel(cl);
-        Duration bwSleep = Duration
-            .ofMillis(Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS)));
+        Duration bwSleep =
+            Duration.ofMillis(Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS)));
         while (true) {
           try (BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths)) {
-            Set<Text> batch = getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize,
-                env.getRandom());
+            Set<Text> batch =
+                getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, env.getRandom());
             List<Range> ranges = batch.stream().map(Range::new).collect(Collectors.toList());
             runBatchScan(scanBatchSize, bs, batch, ranges);
           }

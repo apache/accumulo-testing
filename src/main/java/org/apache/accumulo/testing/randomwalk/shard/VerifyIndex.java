@@ -41,10 +41,10 @@ public class VerifyIndex extends Test {
 
     // scan new and old index and verify identical
     try (
-        Scanner indexScanner1 = env.getAccumuloClient().createScanner(tmpIndexTableName,
-            Authorizations.EMPTY);
-        Scanner indexScanner2 = env.getAccumuloClient().createScanner(indexTableName,
-            Authorizations.EMPTY)) {
+        Scanner indexScanner1 =
+            env.getAccumuloClient().createScanner(tmpIndexTableName, Authorizations.EMPTY);
+        Scanner indexScanner2 =
+            env.getAccumuloClient().createScanner(indexTableName, Authorizations.EMPTY)) {
 
       Iterator<Entry<Key,Value>> iter = indexScanner2.iterator();
 

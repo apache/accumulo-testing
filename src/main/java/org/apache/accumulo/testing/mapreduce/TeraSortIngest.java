@@ -206,8 +206,7 @@ public class TeraSortIngest extends Configured implements Tool {
     /**
      * Start the random number generator on the given iteration.
      *
-     * @param initalIteration
-     *          the iteration number to start on
+     * @param initalIteration the iteration number to start on
      */
     RandomGenerator(long initalIteration) {
       int baseIndex = (int) ((initalIteration & mask32) / seedSkip);
@@ -295,8 +294,7 @@ public class TeraSortIngest extends Configured implements Tool {
      * Add the required filler bytes. Each row consists of 7 blocks of 10 characters and 1 block of
      * 8 characters.
      *
-     * @param rowId
-     *          the current row number
+     * @param rowId the current row number
      */
     private void addFiller(long rowId) {
       int base = (int) ((rowId * 8) % 26);

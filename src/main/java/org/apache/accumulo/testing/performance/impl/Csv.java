@@ -88,8 +88,8 @@ public class Csv {
       Instant minStart = reports.stream().map(cr -> cr.startTime).map(Instant::parse)
           .min(Instant::compareTo).get();
 
-      String version = Iterables
-          .getOnlyElement(reports.stream().map(cr -> cr.accumuloVersion).collect(toSet()));
+      String version =
+          Iterables.getOnlyElement(reports.stream().map(cr -> cr.accumuloVersion).collect(toSet()));
 
       Map<String,Double> row = new HashMap<>();
 

@@ -70,8 +70,8 @@ public class ScanMeta extends Test {
       }
 
       // use batch scanner to verify all of these exist in index
-      try (BatchScanner indexScanner = client.createBatchScanner(indexTableName,
-          Authorizations.EMPTY, 3)) {
+      try (BatchScanner indexScanner =
+          client.createBatchScanner(indexTableName, Authorizations.EMPTY, 3)) {
         List<Range> ranges = hashes.keySet().stream().map(Range::new).collect(Collectors.toList());
 
         indexScanner.setRanges(ranges);

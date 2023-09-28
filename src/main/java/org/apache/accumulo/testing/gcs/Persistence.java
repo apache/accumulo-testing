@@ -89,8 +89,8 @@ public class Persistence {
   }
 
   private String toHexWithHash(long l1, long l2, long l3) {
-    int hc = Hashing.murmur3_32_fixed().newHasher().putLong(l1).putLong(l2).putLong(l3).hash()
-        .asInt();
+    int hc =
+        Hashing.murmur3_32_fixed().newHasher().putLong(l1).putLong(l2).putLong(l3).hash().asInt();
     return toHex(hc) + ":" + toHex(l1) + ":" + toHex(l2) + ":" + toHex(l3);
   }
 
@@ -110,8 +110,8 @@ public class Persistence {
     Map<Integer,Mutation> mutations = new HashMap<>();
 
     for (ItemRef itemRef : refsToAdd) {
-      Mutation m = mutations.computeIfAbsent(itemRef.bucket,
-          bucket -> new Mutation("R:" + toHex(bucket)));
+      Mutation m =
+          mutations.computeIfAbsent(itemRef.bucket, bucket -> new Mutation("R:" + toHex(bucket)));
       m.put("ref", toHex(itemRef.clientId, itemRef.groupId, itemRef.itemId), "");
     }
 
@@ -162,8 +162,8 @@ public class Persistence {
     Map<Integer,Mutation> mutations = new HashMap<>();
 
     for (ItemRef itemRef : refsToDelete) {
-      Mutation m = mutations.computeIfAbsent(itemRef.bucket,
-          bucket -> new Mutation("R:" + toHex(bucket)));
+      Mutation m =
+          mutations.computeIfAbsent(itemRef.bucket, bucket -> new Mutation("R:" + toHex(bucket)));
       m.putDelete("ref", toHex(itemRef.clientId, itemRef.groupId, itemRef.itemId));
     }
 

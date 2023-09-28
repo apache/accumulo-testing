@@ -49,8 +49,8 @@ public class Reindex extends Test {
 
     try (
         Scanner scanner = env.getAccumuloClient().createScanner(docTableName, Authorizations.EMPTY);
-        BatchWriter tbw = env.getAccumuloClient().createBatchWriter(tmpIndexTableName,
-            new BatchWriterConfig())) {
+        BatchWriter tbw =
+            env.getAccumuloClient().createBatchWriter(tmpIndexTableName, new BatchWriterConfig())) {
 
       for (Entry<Key,Value> entry : scanner) {
         String docID = entry.getKey().getRow().toString();

@@ -42,8 +42,7 @@ public class ConcurrentFixture extends Fixture {
 
   /**
    *
-   * @param rand
-   *          A Random to use
+   * @param rand A Random to use
    * @return A two element list with first being smaller than the second, but either value (or both)
    *         can be null
    */

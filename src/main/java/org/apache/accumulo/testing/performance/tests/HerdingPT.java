@@ -61,9 +61,9 @@ public class HerdingPT implements PerformanceTest {
   private static final int NUM_LOAD_ATTEMPTS = 1_000;
 
   private static final String TABLE_NAME = "herd";
-  private static final String DESCRIPTION = "Test herding performance with " + NUM_THREADS
-      + " threads attempting to " + "simultaneously load the same block " + NUM_LOAD_ATTEMPTS
-      + " times.";
+  private static final String DESCRIPTION =
+      "Test herding performance with " + NUM_THREADS + " threads attempting to "
+          + "simultaneously load the same block " + NUM_LOAD_ATTEMPTS + " times.";
 
   private final Random random = new Random();
 

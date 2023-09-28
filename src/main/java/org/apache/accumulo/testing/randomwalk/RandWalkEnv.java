@@ -43,10 +43,9 @@ public class RandWalkEnv extends TestEnv {
    * reset.
    *
    * @return multitable batch writer
-   * @throws NumberFormatException
-   *           if any of the numeric batch writer configuration properties cannot be parsed
-   * @throws NumberFormatException
-   *           if any configuration property cannot be parsed
+   * @throws NumberFormatException if any of the numeric batch writer configuration properties
+   *         cannot be parsed
+   * @throws NumberFormatException if any configuration property cannot be parsed
    */
   public MultiTableBatchWriter getMultiTableBatchWriter() {
     if (mtbw == null) {

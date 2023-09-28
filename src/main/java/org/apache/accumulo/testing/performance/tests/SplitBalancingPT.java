@@ -98,8 +98,8 @@ public class SplitBalancingPT implements PerformanceTest {
 
   private Map<String,Integer> getTablets(final AccumuloClient client) {
     Map<String,Integer> tablets = new HashMap<>();
-    try (Scanner scanner = client.createScanner(TestProps.METADATA_TABLE_NAME,
-        Authorizations.EMPTY)) {
+    try (Scanner scanner =
+        client.createScanner(TestProps.METADATA_TABLE_NAME, Authorizations.EMPTY)) {
       scanner.fetchColumnFamily(TSERVER_ASSIGNED_TABLETS_COL_FAM);
       Range range = new Range(null, false, RESERVED_PREFIX, false);
       scanner.setRange(range);

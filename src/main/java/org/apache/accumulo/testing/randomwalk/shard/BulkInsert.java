@@ -121,8 +121,8 @@ public class BulkInsert extends Test {
         BatchWriter indexWriter = new SeqfileBatchWriter(conf, fs, rootDir + "/index.seq")) {
 
       for (int i = 0; i < numToInsert; i++) {
-        String docID = Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter,
-            numPartitions, rand);
+        String docID =
+            Insert.insertRandomDocument(nextDocID++, dataWriter, indexWriter, numPartitions, rand);
         log.debug("Bulk inserting document " + docID);
       }
 

@@ -227,10 +227,10 @@ public class UndefinedAnalyzer {
     }
 
     TabletAssignment findMostRecentAssignment(String row, long time2) {
-      Optional<TabletAssignment> ret1 = assignments.stream()
-          .filter(assignment -> assignment.contains(row))
-          .filter(assignment -> assignment.time <= time2)
-          .max(Comparator.comparingLong(assignment -> assignment.time));
+      Optional<TabletAssignment> ret1 =
+          assignments.stream().filter(assignment -> assignment.contains(row))
+              .filter(assignment -> assignment.time <= time2)
+              .max(Comparator.comparingLong(assignment -> assignment.time));
       return ret1.orElse(null);
     }
   }

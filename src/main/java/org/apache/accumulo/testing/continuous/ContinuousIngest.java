@@ -137,10 +137,10 @@ public class ContinuousIngest {
 
       final int maxColF = env.getMaxColF();
       final int maxColQ = env.getMaxColQ();
-      final boolean checksum = Boolean
-          .parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
-      final long numEntries = Long
-          .parseLong(testProps.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
+      final boolean checksum =
+          Boolean.parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
+      final long numEntries =
+          Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_CLIENT_ENTRIES));
       log.info("Total entries to be written: {}", numEntries);
 
       visibilities = parseVisibilities(testProps.getProperty(TestProps.CI_INGEST_VISIBILITIES));

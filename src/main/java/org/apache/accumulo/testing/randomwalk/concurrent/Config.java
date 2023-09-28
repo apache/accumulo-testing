@@ -54,7 +54,8 @@ public class Config extends Test {
     return new Setting(property, min, max);
   }
 
-  final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated = Property.TSERV_SCAN_EXECUTORS_DEFAULT_THREADS;
+  final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated =
+      Property.TSERV_SCAN_EXECUTORS_DEFAULT_THREADS;
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
@@ -170,8 +171,8 @@ public class Config extends Test {
     Setting setting = tableSettings[choice];
 
     // pick a random table
-    SortedSet<String> tables = env.getAccumuloClient().tableOperations().list().tailSet("ctt")
-        .headSet("ctu");
+    SortedSet<String> tables =
+        env.getAccumuloClient().tableOperations().list().tailSet("ctt").headSet("ctu");
     if (tables.isEmpty())
       return;
     String table = random.nextSample(tables, 1)[0].toString();
@@ -198,8 +199,8 @@ public class Config extends Test {
     Setting setting = tableSettings[choice];
 
     // pick a random table
-    SortedSet<String> namespaces = env.getAccumuloClient().namespaceOperations().list()
-        .tailSet("nspc").headSet("nspd");
+    SortedSet<String> namespaces =
+        env.getAccumuloClient().namespaceOperations().list().tailSet("nspc").headSet("nspd");
     if (namespaces.isEmpty())
       return;
     String namespace = random.nextSample(namespaces, 1)[0].toString();

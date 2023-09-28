@@ -220,8 +220,8 @@ public class Module extends Node {
       fixture.setUp(state, env);
     }
 
-    ExecutorService service = ThreadPools.getServerThreadPools().createFixedThreadPool(1,
-        "RandomWalk Runner", false);
+    ExecutorService service =
+        ThreadPools.getServerThreadPools().createFixedThreadPool(1, "RandomWalk Runner", false);
 
     try {
       Node initNode = getNode(initNodeId);
@@ -508,8 +508,8 @@ public class Module extends Node {
 
     // set the schema
     SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-    Schema moduleSchema = sf
-        .newSchema(this.getClass().getClassLoader().getResource("randomwalk/module.xsd"));
+    Schema moduleSchema =
+        sf.newSchema(this.getClass().getClassLoader().getResource("randomwalk/module.xsd"));
     dbf.setSchema(moduleSchema);
 
     // parse the document

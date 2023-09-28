@@ -42,10 +42,8 @@ public class State {
   /**
    * Sets a state object.
    *
-   * @param key
-   *          key for object
-   * @param value
-   *          object
+   * @param key key for object
+   * @param value object
    */
   public void set(String key, Object value) {
     stateMap.put(key, value);
@@ -68,8 +66,7 @@ public class State {
   /**
    * Removes a state object.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    */
   public void remove(String key) {
     stateMap.remove(key);
@@ -78,11 +75,9 @@ public class State {
   /**
    * Gets a state object.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    * @return value object
-   * @throws RuntimeException
-   *           if state object is not present
+   * @throws RuntimeException if state object is not present
    */
   public Object get(String key) {
     if (!stateMap.containsKey(key)) {
@@ -127,8 +122,7 @@ public class State {
   /**
    * Gets a state object, returning null if it is absent.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    * @return value object, or null if not present
    */
   public Object getOkIfAbsent(String key) {
@@ -148,11 +142,9 @@ public class State {
   /**
    * Gets a state object as a string.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    * @return value as string
-   * @throws ClassCastException
-   *           if the value object is not a string
+   * @throws ClassCastException if the value object is not a string
    */
   public String getString(String key) {
     return (String) stateMap.get(key);
@@ -161,11 +153,9 @@ public class State {
   /**
    * Gets a state object as an integer.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    * @return value as integer
-   * @throws ClassCastException
-   *           if the value object is not an integer
+   * @throws ClassCastException if the value object is not an integer
    */
   public Integer getInteger(String key) {
     return (Integer) stateMap.get(key);
@@ -174,11 +164,9 @@ public class State {
   /**
    * Gets a state object as a long.
    *
-   * @param key
-   *          key for object
+   * @param key key for object
    * @return value as long
-   * @throws ClassCastException
-   *           if the value object is not a long
+   * @throws ClassCastException if the value object is not a long
    */
   public Long getLong(String key) {
     return (Long) stateMap.get(key);

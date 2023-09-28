@@ -22,9 +22,9 @@
 # Running a long continuous ingest test
 
 Running continuous ingest for long periods on a cluster is a good way to
-validate an Accumulo release.  This document outlines one possible way to do
-that.  The commands below show how to start different types of ingest into 
-multiple tables.  These commands assume the docker image was created for 
+validate an Accumulo release. This document outlines one possible way to do
+that. The commands below show how to start different types of ingest into
+multiple tables. These commands assume the docker image was created for
 accumulo-testing and that docker swarm is available on the cluster.
 
 ```bash
@@ -37,8 +37,8 @@ docker service create --network="host" --replicas $NUM_NODES --name ci \
    accumulo-testing cingest ingest \
    -o test.ci.ingest.pause.enabled=false
 
-# Write data with pauses.  Should cause tablets to not have data in some write
-# ahead logs.  But there is still enough write pressure to cause minor
+# Write data with pauses. Should cause tablets to not have data in some write
+# ahead logs. But there is still enough write pressure to cause minor
 # compactions.
 #
 # Some of the write ahead log recovery bugs fixed in 1.9.1 and 1.9.2 were not
@@ -55,9 +55,9 @@ for i in $(seq 1 $NUM_NODES); do
      -o test.ci.ingest.pause.enabled=true
 done
 
-# Write very small amounts of data with long pauses in between.  Should cause
-# data to be spread across lots of write ahead logs.  So little data is written
-# that minor compactions may not happen because of writes.  If Accumulo does
+# Write very small amounts of data with long pauses in between. Should cause
+# data to be spread across lots of write ahead logs. So little data is written
+# that minor compactions may not happen because of writes. If Accumulo does
 # nothing then this will result in tablet servers having lots of write ahead
 # logs.
 #
@@ -78,10 +78,9 @@ for FLUSH_SIZE in 97 101 997 1009 ; do
 done
 ```
 
-After starting the ingest, consider starting the agitator.  Testing with and
-without agitation is valuable.  Let the ingest run for a period of 12 to 36
+After starting the ingest, consider starting the agitator. Testing with and
+without agitation is valuable. Let the ingest run for a period of 12 to 36
 hours. Then stop it as follows.
-
 
 ```bash
 # stop the agitator if started
@@ -102,5 +101,4 @@ accumulo shell -u root -p secret -e tables | grep ci | while read table ; do
           &> logs/verify_$table.log &
 done
 ```
-
 

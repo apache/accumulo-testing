@@ -58,8 +58,8 @@ public class TableOp extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String tablePrincipal = WalkingSecurity.get(state, env).getTabUserName();
-    try (AccumuloClient client = env.createClient(tablePrincipal,
-        WalkingSecurity.get(state, env).getTabToken())) {
+    try (AccumuloClient client =
+        env.createClient(tablePrincipal, WalkingSecurity.get(state, env).getTabToken())) {
       TableOperations tableOps = client.tableOperations();
       SecurityOperations secOps = client.securityOperations();
 
@@ -86,10 +86,10 @@ public class TableOp extends Test {
             return;
           }
           Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
-          boolean ambiguousZone = WalkingSecurity.get(state, env).inAmbiguousZone(client.whoami(),
-              tp);
-          boolean ambiguousAuths = WalkingSecurity.get(state, env)
-              .ambiguousAuthorizations(client.whoami());
+          boolean ambiguousZone =
+              WalkingSecurity.get(state, env).inAmbiguousZone(client.whoami(), tp);
+          boolean ambiguousAuths =
+              WalkingSecurity.get(state, env).ambiguousAuthorizations(client.whoami());
 
           Scanner scan = null;
           try {
@@ -232,8 +232,8 @@ public class TableOp extends Test {
           Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
           Path fail = new Path(dir.toString() + "_fail");
           FileSystem fs = WalkingSecurity.get(state, env).getFs();
-          RFileWriter rFileWriter = RFile.newWriter().to(dir + "/securityBulk.rf")
-              .withFileSystem(fs).build();
+          RFileWriter rFileWriter =
+              RFile.newWriter().to(dir + "/securityBulk.rf").withFileSystem(fs).build();
           rFileWriter.startDefaultLocalityGroup();
           fs.mkdirs(fail);
           for (Key k : keys)
@@ -269,8 +269,8 @@ public class TableOp extends Test {
         case ALTER_TABLE:
           boolean tablePerm;
           try {
-            tablePerm = secOps.hasTablePermission(tablePrincipal, tableName,
-                TablePermission.ALTER_TABLE);
+            tablePerm =
+                secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.ALTER_TABLE);
           } catch (AccumuloSecurityException ase) {
             if (tableExists)
               throw new AccumuloException("Table didn't exist when it should have: " + tableName,

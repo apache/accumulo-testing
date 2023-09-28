@@ -65,8 +65,8 @@ public class DeleteWord extends Test {
     }
 
     // use a batch scanner to fetch all documents
-    try (BatchScanner bscanner = env.getAccumuloClient().createBatchScanner(docTableName,
-        Authorizations.EMPTY, 8)) {
+    try (BatchScanner bscanner =
+        env.getAccumuloClient().createBatchScanner(docTableName, Authorizations.EMPTY, 8)) {
       bscanner.setRanges(documentsToDelete);
 
       BatchWriter ibw = env.getMultiTableBatchWriter().getBatchWriter(indexTableName);

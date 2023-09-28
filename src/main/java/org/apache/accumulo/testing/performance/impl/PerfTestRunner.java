@@ -64,8 +64,8 @@ public class PerfTestRunner {
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String time = Instant.now().atZone(ZoneId.systemDefault()).format(formatter);
-    Path outputFile = Paths.get(outputDir,
-        perfTest.getClass().getSimpleName() + "_" + time + ".json");
+    Path outputFile =
+        Paths.get(outputDir, perfTest.getClass().getSimpleName() + "_" + time + ".json");
 
     try (Writer writer = Files.newBufferedWriter(outputFile)) {
       gson.toJson(report, writer);

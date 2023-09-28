@@ -51,8 +51,8 @@ public class BatchVerify extends Test {
 
     AccumuloClient client = env.getAccumuloClient();
 
-    try (BatchScanner scanner = client.createBatchScanner(state.getString("seqTableName"),
-        new Authorizations(), 2)) {
+    try (BatchScanner scanner =
+        client.createBatchScanner(state.getString("seqTableName"), new Authorizations(), 2)) {
       int count = 0;
       List<Range> ranges = new ArrayList<>();
       while (count < numVerify) {

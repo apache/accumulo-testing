@@ -19,28 +19,35 @@
 
 -->
 
-1. Download and Install Terraform
+# Terraform QuickStart Guide
 
-  wget https://releases.hashicorp.com/terraform/1.1.5/terraform_1.1.5_linux_amd64.zip
-  unzip into /usr/local/bin
+## Download and Install Terraform
 
-2. Create the Shared State
+```sh
+wget https://releases.hashicorp.com/terraform/1.1.5/terraform_1.1.5_linux_amd64.zip
+unzip into /usr/local/bin
+```
 
-  NOTE: You only need to do this once. If you are sharing the cluster with a team,
-        then only one person needs to do it and they need to share the bucket with
-        the other team members.
+## Create the Shared State
 
-  cd shared_state/aws
-  terraform init
-  terraform apply
+NOTE: You only need to do this once. If you are sharing the cluster with a
+team, then only one person needs to do it and they need to share the bucket
+with the other team members.
 
-3. Create the Configuration
+```sh
+cd shared_state/aws
+terraform init
+terraform apply
+```
 
-  You will need to create a configuration file that includes values for the
-  variables that do not have a default value. See the Variables section in
-  the README. For example, you can create a file "aws.auto.tfvars" file in
-  the `aws` directory with the following content (replace as appropriate):
+## Create the Configuration
 
+You will need to create a configuration file that includes values for the
+variables that do not have a default value. See the Variables section in
+the README. For example, you can create a file `aws.auto.tfvars` file in
+the `aws` directory with the following content (replace as appropriate):
+
+```hcl
 create_route53_records = "true"
 private_network = "true"
 accumulo_root_password = "secret"
@@ -55,24 +62,26 @@ authorized_ssh_keys = [
   "ssh-rsa .... user2",
   "ssh-rsa .... user3"
 ]
+```
 
+## Create the Resources
 
-4. Create the Resources
+NOTE: ensure that the private key corresponding to the first ssh key in
+`authorized_ssh_keys` in the configuration above has been loaded into your
+ssh agent, or else terraform apply will fail.
 
-  NOTE: ensure that the private key corresponding to the first ssh key in 
-        `authorized_ssh_keys` in the configuration above has been loaded
-        into your ssh agent, or else terraform apply will fail.
+```sh
+cd aws
+terraform init --backend-config=bucket=<bucket-name-goes-here>
+terraform apply
+```
 
-  cd aws
-  terraform init --backend-config=bucket=<bucket-name-goes-here>
-  terraform apply
+## Accessing the cluster
 
-5. Accessing the cluster
-
-  The output of the apply step above will include the IP addresses of the
-  resources that were created. If created correctly, you should be able to
-  ssh to the nodes using "ssh hadoop@ip". If you created DNS addresses for
-  the nodes, then you should be able to ssh using those addresses also. You
-  should also be able to access the web pages (see the "Accessing Web
-  Pages" section of the README for ports)
+The output of the apply step above will include the IP addresses of the
+resources that were created. If created correctly, you should be able to
+ssh to the nodes using `ssh hadoop@ip`. If you created DNS addresses for
+the nodes, then you should be able to ssh using those addresses also. You
+should also be able to access the web pages (see the "Accessing Web
+Pages" section of the README for ports)
 

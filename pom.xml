@@ -33,12 +33,18 @@
   <description>Testing tools for Apache Accumulo</description>
   <properties>
     <accumulo.version>3.1.0-SNAPSHOT</accumulo.version>
-    <eclipseFormatterStyle>${project.basedir}/contrib/Eclipse-Accumulo-Codestyle.xml</eclipseFormatterStyle>
+    <!-- prevent introduction of new compiler warnings -->
+    <maven.compiler.failOnWarning>true</maven.compiler.failOnWarning>
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
+    <maven.javadoc.failOnWarnings>true</maven.javadoc.failOnWarnings>
+    <maven.site.deploy.skip>true</maven.site.deploy.skip>
+    <maven.site.skip>true</maven.site.skip>
+    <!-- versions-maven-plugin ignore patterns for snapshots, alpha, beta, milestones, and release candidates -->
+    <maven.version.ignore>.+-SNAPSHOT,(?i).*(alpha|beta)[0-9.-]*,(?i).*[.-](m|rc)[0-9]+</maven.version.ignore>
     <minimalJavaBuildVersion>11</minimalJavaBuildVersion>
-    <minimalMavenBuildVersion>3.5.0</minimalMavenBuildVersion>
+    <minimalMavenBuildVersion>3.6.0</minimalMavenBuildVersion>
     <!-- timestamp for reproducible outputs, updated on release by the release plugin -->
     <project.build.outputTimestamp>2021-12-15T00:00:00Z</project.build.outputTimestamp>
   </properties>
@@ -122,27 +128,28 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.11.0</version>
+          <version>2.16.1</version>
         </plugin>
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>4.1</version>
+          <version>4.3</version>
           <configuration>
-            <header>${session.executionRootDirectory}/contrib/license-header.txt</header>
-            <excludes combine.children="append">
-              <exclude>**/DEPENDENCIES</exclude>
-              <exclude>**/LICENSE</exclude>
-              <exclude>**/NOTICE</exclude>
-              <exclude>**/target/**</exclude>
-              <exclude>**/lib/data/**</exclude>
-              <!-- template types are in various formats; update manually if needed -->
-              <exclude>**/*.tftpl</exclude>
-            </excludes>
-            <mapping combine.children="append">
-              <!-- general mappings; module-specific mappings appear in their respective pom -->
-              <!-- individual files; it'd be better if most of these were renamed to end in .sh -->
-              <Makefile>SCRIPT_STYLE</Makefile>
+            <licenseSets>
+              <licenseSet>
+                <header>src/build/license-header.txt</header>
+                <excludes>
+                  <exclude>**/DEPENDENCIES</exclude>
+                  <exclude>**/LICENSE</exclude>
+                  <exclude>**/NOTICE</exclude>
+                  <exclude>**/target/**</exclude>
+                  <exclude>**/lib/data/**</exclude>
+                  <!-- template types are in various formats; update manually if needed -->
+                  <exclude>**/*.tftpl</exclude>
+                </excludes>
+              </licenseSet>
+            </licenseSets>
+            <mapping>
               <agitator>SCRIPT_STYLE</agitator>
               <build>SCRIPT_STYLE</build>
               <cingest>SCRIPT_STYLE</cingest>
@@ -155,16 +162,10 @@
               <rwalk>SCRIPT_STYLE</rwalk>
               <writers>SCRIPT_STYLE</writers>
               <!-- extensions -->
-              <c>SLASHSTAR_STYLE</c>
-              <cc>SLASHSTAR_STYLE</cc>
               <conf>SCRIPT_STYLE</conf>
-              <css>SLASHSTAR_STYLE</css>
               <example>SCRIPT_STYLE</example>
-              <h>SLASHSTAR_STYLE</h>
               <java>SLASHSTAR_STYLE</java>
-              <proto>SLASHSTAR_STYLE</proto>
               <tf>SCRIPT_STYLE</tf>
-              <thrift>SLASHSTAR_STYLE</thrift>
               <uno>SCRIPT_STYLE</uno>
             </mapping>
           </configuration>
@@ -195,7 +196,7 @@
         <plugin>
           <groupId>com.github.ekryd.sortpom</groupId>
           <artifactId>sortpom-maven-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>3.3.0</version>
           <configuration>
             <createBackupFile>false</createBackupFile>
             <expandEmptyElements>false</expandEmptyElements>
@@ -212,24 +213,21 @@
         <plugin>
           <groupId>net.revelc.code.formatter</groupId>
           <artifactId>formatter-maven-plugin</artifactId>
-          <version>2.19.0</version>
+          <version>2.23.0</version>
           <configuration>
-            <configFile>${eclipseFormatterStyle}</configFile>
-            <compilerCompliance>${maven.compiler.source}</compilerCompliance>
-            <compilerSource>${maven.compiler.source}</compilerSource>
-            <compilerTargetPlatform>${maven.compiler.target}</compilerTargetPlatform>
+            <configFile>src/build/eclipse-codestyle.xml</configFile>
             <lineEnding>LF</lineEnding>
-            <skipJsFormatting>true</skipJsFormatting>
-            <skipHtmlFormatting>true</skipHtmlFormatting>
-            <skipXmlFormatting>true</skipXmlFormatting>
-            <skipJsonFormatting>true</skipJsonFormatting>
             <skipCssFormatting>true</skipCssFormatting>
+            <skipHtmlFormatting>true</skipHtmlFormatting>
+            <skipJsFormatting>true</skipJsFormatting>
+            <skipJsonFormatting>true</skipJsonFormatting>
+            <skipXmlFormatting>true</skipXmlFormatting>
           </configuration>
         </plugin>
         <plugin>
           <groupId>net.revelc.code</groupId>
           <artifactId>impsort-maven-plugin</artifactId>
-          <version>1.8.0</version>
+          <version>1.9.0</version>
           <configuration>
             <removeUnused>true</removeUnused>
             <groups>java.,javax.,jakarta.,org.,com.</groups>
@@ -242,7 +240,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <optimize>true</optimize>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
           <compilerArgs>
@@ -272,7 +269,7 @@
         <!-- This was added to ensure project only uses public API -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.3.0</version>
         <dependencies>
           <dependency>
             <groupId>com.puppycrawl.tools</groupId>
@@ -287,7 +284,7 @@
               <goal>check</goal>
             </goals>
             <configuration>
-              <configLocation>contrib/checkstyle.xml</configLocation>
+              <configLocation>src/build/checkstyle/checkstyle.xml</configLocation>
             </configuration>
           </execution>
         </executions>
@@ -296,7 +293,7 @@
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
-          <excludes combine.children="append">
+          <excludes>
             <exclude>test/bench/lib/data/*</exclude>
             <exclude>test/compat/japi-compliance/exclude_classes.txt</exclude>
             <exclude>contrib/terraform-testing-infrastructure/**/terraform.tfstate*</exclude>

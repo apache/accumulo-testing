@@ -46,9 +46,9 @@ public class BulkPlusOne extends BulkImportTest {
   public static final int HEX_SIZE = (int) Math.ceil(Math.log(LOTS) / Math.log(16));
   public static final String FMT = "r%0" + HEX_SIZE + "x";
   public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
-  public static final List<Column> COLNAMES = IntStream.range(0, COLS)
-      .mapToObj(i -> String.format("%03d", i)).map(Text::new)
-      .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
+  public static final List<Column> COLNAMES =
+      IntStream.range(0, COLS).mapToObj(i -> String.format("%03d", i)).map(Text::new)
+          .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
 
   public static final Text MARKER_CF = new Text("marker");
   static final AtomicLong counter = new AtomicLong();
@@ -63,12 +63,12 @@ public class BulkPlusOne extends BulkImportTest {
 
     // The set created below should always contain 0. So its very important that zero is first in
     // concat below.
-    TreeSet<Integer> startRows = Stream
-        .concat(Stream.of(0), Stream.generate(() -> env.getRandom().nextInt(LOTS))).distinct()
-        .limit(parts).collect(Collectors.toCollection(TreeSet::new));
+    TreeSet<Integer> startRows =
+        Stream.concat(Stream.of(0), Stream.generate(() -> env.getRandom().nextInt(LOTS))).distinct()
+            .limit(parts).collect(Collectors.toCollection(TreeSet::new));
 
-    List<String> printRows = startRows.stream().map(row -> String.format(FMT, row))
-        .collect(Collectors.toList());
+    List<String> printRows =
+        startRows.stream().map(row -> String.format(FMT, row)).collect(Collectors.toList());
 
     String markerColumnQualifier = String.format("%07d", counter.incrementAndGet());
     log.debug("preparing bulk files with start rows " + printRows + " last row "

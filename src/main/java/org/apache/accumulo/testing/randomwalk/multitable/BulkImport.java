@@ -44,9 +44,9 @@ public class BulkImport extends Test {
   public static final Text CHECK_COLUMN_FAMILY = new Text("cf");
   public static final int ROWS = 1_000_000;
   public static final int COLS = 10;
-  public static final List<Column> COLNAMES = IntStream.range(0, COLS)
-      .mapToObj(i -> String.format("%03d", i)).map(Text::new)
-      .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
+  public static final List<Column> COLNAMES =
+      IntStream.range(0, COLS).mapToObj(i -> String.format("%03d", i)).map(Text::new)
+          .map(t -> new Column(CHECK_COLUMN_FAMILY, t)).collect(Collectors.toList());
 
   public static final Text MARKER_CF = new Text("marker");
   static final AtomicLong counter = new AtomicLong();
@@ -57,6 +57,7 @@ public class BulkImport extends Test {
    * Tests both the bulk import methods.
    */
   public void visit(final State state, final RandWalkEnv env, Properties props) throws Exception {
+    @SuppressWarnings({"unchecked"})
     List<String> tables = (List<String>) state.get("tableList");
 
     if (tables.isEmpty()) {

@@ -112,8 +112,8 @@ public class TestIngest {
   public static void createTable(AccumuloClient client, Opts args)
       throws AccumuloException, AccumuloSecurityException, TableExistsException {
     if (args.createTable) {
-      TreeSet<Text> splits = getSplitPoints(args.startRow, args.startRow + args.rows,
-          args.numsplits);
+      TreeSet<Text> splits =
+          getSplitPoints(args.startRow, args.startRow + args.rows, args.numsplits);
 
       if (!client.tableOperations().exists(args.tableName)) {
         client.tableOperations().create(args.tableName,

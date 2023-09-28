@@ -19,8 +19,7 @@
 
 -->
 
-Distributed Replication Test
-===========================
+# Distributed Replication Test
 
 Ingests random data into a table configured for replication, and then
 verifies that the original table and the replicated table have equivalent

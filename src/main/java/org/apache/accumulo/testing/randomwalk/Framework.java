@@ -40,12 +40,9 @@ public class Framework {
   /**
    * Run random walk framework
    *
-   * @param startName
-   *          Full name of starting graph or test
-   * @param env
-   *          the test environment
-   * @param state
-   *          Random walk state passed between nodes
+   * @param startName Full name of starting graph or test
+   * @param env the test environment
+   * @param state Random walk state passed between nodes
    *
    * @return 0 if successful, -1 if an exception is thrown during the random walk
    */
@@ -64,8 +61,7 @@ public class Framework {
   /**
    * Creates node (if it does not already exist) and inserts into map
    *
-   * @param id
-   *          Name of node
+   * @param id Name of node
    * @return Node specified by id
    */
   Node getNode(String id) throws Exception {

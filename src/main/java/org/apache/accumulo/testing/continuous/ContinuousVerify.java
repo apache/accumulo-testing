@@ -152,8 +152,8 @@ public class ContinuousVerify extends Configured implements Tool {
 
       job.setInputFormatClass(AccumuloInputFormat.class);
 
-      boolean scanOffline = Boolean
-          .parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
+      boolean scanOffline =
+          Boolean.parseBoolean(env.getTestProperty(TestProps.CI_VERIFY_SCAN_OFFLINE));
       int maxMaps = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_MAX_MAPS));
       int reducers = Integer.parseInt(env.getTestProperty(TestProps.CI_VERIFY_REDUCERS));
       String outputDir = env.getTestProperty(TestProps.CI_VERIFY_OUTPUT_DIR);

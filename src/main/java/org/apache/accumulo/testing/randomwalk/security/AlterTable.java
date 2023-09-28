@@ -38,8 +38,8 @@ public class AlterTable extends Test {
   @Override
   public void visit(State state, RandWalkEnv env, Properties props) throws Exception {
     String systemUser = WalkingSecurity.get(state, env).getSysUserName();
-    try (AccumuloClient client = env.createClient(systemUser,
-        WalkingSecurity.get(state, env).getSysToken())) {
+    try (AccumuloClient client =
+        env.createClient(systemUser, WalkingSecurity.get(state, env).getSysToken())) {
 
       String tableName = WalkingSecurity.get(state, env).getTableName();
 

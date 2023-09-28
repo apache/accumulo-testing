@@ -25,7 +25,7 @@
   <module name="TreeWalker">
     <!--check that only Accumulo public APIs are imported-->
     <module name="ImportControl">
-      <property name="file" value="contrib/import-control.xml"/>
+      <property name="file" value="src/build/checkstyle/import-control.xml"/>
     </module>
   </module>
 </module>

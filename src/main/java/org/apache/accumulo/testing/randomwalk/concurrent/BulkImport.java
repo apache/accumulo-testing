@@ -106,8 +106,8 @@ public class BulkImport extends Test {
     fs.mkdirs(new Path(bulkDir + "_f"));
 
     try {
-      try (BatchWriter bw = new RFileBatchWriter(env.getHadoopConfiguration(), fs,
-          bulkDir + "/file01.rf")) {
+      try (BatchWriter bw =
+          new RFileBatchWriter(env.getHadoopConfiguration(), fs, bulkDir + "/file01.rf")) {
         TreeSet<Long> rows = new TreeSet<>();
         int numRows = rand.nextInt(100000);
         for (int i = 0; i < numRows; i++) {
