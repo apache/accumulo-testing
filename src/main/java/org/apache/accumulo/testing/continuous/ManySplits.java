@@ -22,20 +22,34 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.NamespaceExistsException;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
+import org.apache.accumulo.core.conf.ConfigurationTypeHelper;
 import org.apache.accumulo.core.conf.Property;
+import org.apache.accumulo.core.data.TableId;
+import org.apache.accumulo.core.dataImpl.KeyExtent;
+import org.apache.accumulo.core.metadata.MetadataTable;
+import org.apache.accumulo.core.metadata.schema.DataFileValue;
+import org.apache.accumulo.core.metadata.schema.MetadataSchema;
+import org.apache.accumulo.testing.TestProps;
+import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,22 +60,32 @@ public class ManySplits {
 
   private static final String NAMESPACE = "manysplits";
 
-  static int tableCount = 3;
-  static int initialSplits = 0;
-  static int initialData = 10_000_000;
-  static String splitThreshold = "1G";
-  static int reductionFactor = 10;
-  static int testRoundsToPerform = 3;
-
   public static void main(String[] args) throws Exception {
     try (ContinuousEnv env = new ContinuousEnv(args)) {
 
       AccumuloClient client = env.getAccumuloClient();
-      final long rowMin = 0;
-      final long rowMax = Long.MAX_VALUE;
       Properties testProps = env.getTestProperties();
-      final int maxColF = 32767;
-      final int maxColQ = 32767;
+      final int tableCount =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_TABLE_COUNT));
+      final long rowMin = Long.parseLong(testProps.getProperty(TestProps.CI_SPLIT_INGEST_ROW_MIN));
+      final long rowMax = Long.parseLong(testProps.getProperty(TestProps.CI_SPLIT_INGEST_ROW_MAX));
+      final int maxColF = Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INGEST_MAX_CF));
+      final int maxColQ = Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INGEST_MAX_CQ));
+      final int initialSplits =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INITIAL_SPLITS));
+      final int initialData =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_WRITE_SIZE));
+      String initialSplitThresholdStr = testProps.getProperty(TestProps.CI_SPLIT_THRESHOLD);
+      final long initialSplitThreshold =
+          ConfigurationTypeHelper.getFixedMemoryAsBytes(initialSplitThresholdStr);
+      final int splitThresholdReductionFactor =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_THRESHOLD_REDUCTION_FACTOR));
+      final int testRounds =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_TEST_ROUNDS));
+
+      // disable deletes for ingest
+      testProps.setProperty(TestProps.CI_INGEST_DELETE_PROBABILITY, "0.0");
+
       final Random random = env.getRandom();
 
       Preconditions.checkArgument(tableCount > 0, "Test cannot run without any tables");
@@ -77,12 +101,12 @@ public class ManySplits {
       }
 
       final NewTableConfiguration ntc = new NewTableConfiguration();
-      ntc.setProperties(Map.of(Property.TABLE_SPLIT_THRESHOLD.getKey(), splitThreshold));
+      ntc.setProperties(Map.of(Property.TABLE_SPLIT_THRESHOLD.getKey(), initialSplitThresholdStr));
 
       log.info("Properties being used to create tables for this test: {}",
           ntc.getProperties().toString());
 
-      String firstTable = tableNames.get(0);
+      final String firstTable = tableNames.get(0);
 
       log.info("Creating initial table: {}", firstTable);
       try {
@@ -98,7 +122,7 @@ public class ManySplits {
       client.tableOperations().flush(firstTable);
 
       // clone tables instead of ingesting into each. it's a lot quicker
-      log.info("Creating {} tables by cloning the first", tableCount);
+      log.info("Creating {} more tables by cloning the first", tableCount - 1);
       tableNames.stream().parallel().skip(1).forEach(tableName -> {
         try {
           client.tableOperations().clone(firstTable, tableName,
@@ -112,20 +136,19 @@ public class ManySplits {
         }
       });
 
-      Map<String,Integer> thresholdToExpectedTabletCount = new LinkedHashMap<>(3);
-      thresholdToExpectedTabletCount.put("100M", 4);
-      thresholdToExpectedTabletCount.put("10M", 32);
-      thresholdToExpectedTabletCount.put("1M", 512);
-
       // main loop
-      // reduce the split threshold then wait for the expected number of tablets to appear
-      for (var entry : thresholdToExpectedTabletCount.entrySet()) {
-        String oldSplitThreshold = splitThreshold;
-        splitThreshold = entry.getKey();
-        final int expectedTabletCount = entry.getValue();
+      // reduce the split threshold then wait for the expected file size per tablet to be reached
+      long previousSplitThreshold = initialSplitThreshold;
+      for (int i = 0; i < testRounds; i++) {
 
-        log.info("Changing split threshold on all tables from {} to {}", oldSplitThreshold,
-            splitThreshold);
+        // apply the reduction factor to the previous threshold
+        final long splitThreshold = previousSplitThreshold / splitThresholdReductionFactor;
+        final String splitThresholdStr = bytesToMemoryString(splitThreshold);
+
+        log.info("Changing split threshold on all tables from {} to {}",
+            bytesToMemoryString(previousSplitThreshold), splitThresholdStr);
+
+        previousSplitThreshold = splitThreshold;
 
         long beforeThresholdUpdate = System.nanoTime();
 
@@ -133,28 +156,40 @@ public class ManySplits {
         tableNames.stream().parallel().forEach(tableName -> {
           try {
             client.tableOperations().setProperty(tableName, Property.TABLE_SPLIT_THRESHOLD.getKey(),
-                splitThreshold);
+                splitThresholdStr);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
         });
 
-        log.info("Waiting for tablet count on all tables to be greater than {}.",
-            expectedTabletCount - 1);
+        log.info("Waiting for all tablets to have a sum file size <= {}", splitThreshold);
 
-        // wait for all tables to reach the expected number of tablets
+        // wait for all tablets to reach the expected sum file size
         tableNames.stream().parallel().forEach(tableName -> {
-          int tabletCount;
-          int ellapsedMillis = 0;
-          int sleepMillis = 1000;
+          int elapsedMillis = 0;
+          long sleepMillis = SECONDS.toMillis(1);
           try {
-            while ((tabletCount = client.tableOperations().listSplits(tableName).size() + 1)
-                < expectedTabletCount) {
-              ellapsedMillis += sleepMillis;
+            // wait for each tablet to reach the expected sum file size
+            while (true) {
+              Collection<Long> tabletFileSizes = getTabletFileSizes(client, tableName).values();
+              // filter out the tablets that are already the expected size
+              Set<Long> offendingTabletSizes =
+                  tabletFileSizes.stream().filter(tabletFileSize -> tabletFileSize > splitThreshold)
+                      .collect(Collectors.toSet());
+              // if all tablets are good, move on
+              if (offendingTabletSizes.isEmpty()) {
+                break;
+              }
+
+              elapsedMillis += sleepMillis;
               // log every 3 seconds
-              if (ellapsedMillis % SECONDS.toMillis(3) == 0) {
-                log.info("{} has {} tablets. waiting for > {}", tableName, tabletCount,
-                    expectedTabletCount - 1);
+              if (elapsedMillis % SECONDS.toMillis(3) == 0) {
+                double averageFileSize =
+                    offendingTabletSizes.stream().mapToLong(l -> l).average().orElse(0);
+                log.info(
+                    "{} has {} tablets whose file sizes are not yet <= {}. Avg. offending file size: {}",
+                    tableName, offendingTabletSizes.size(), splitThreshold,
+                    String.format("%.0f", averageFileSize));
               }
               MILLISECONDS.sleep(sleepMillis);
             }
@@ -166,11 +201,53 @@ public class ManySplits {
         long timeTaken = System.nanoTime() - beforeThresholdUpdate;
 
         log.info(
-            "Time taken for all tables to reach expected tablet count ({} tablets): {} seconds ({}ms {}ns)",
-            expectedTabletCount, NANOSECONDS.toSeconds(timeTaken), NANOSECONDS.toMillis(timeTaken),
-            timeTaken);
+            "Time taken for all tables to reach expected total file size ({}): {} seconds ({}ms)",
+            splitThresholdStr, NANOSECONDS.toSeconds(timeTaken), NANOSECONDS.toMillis(timeTaken));
       }
 
+      log.info("Deleting tables");
+      tableNames.stream().parallel().forEach(tableName -> {
+        try {
+          client.tableOperations().delete(tableName);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      });
+      log.info("Deleting namespace");
+      client.namespaceOperations().delete(NAMESPACE);
+
+    }
+  }
+
+  /**
+   * @return a map of tablets to the sum of their file size
+   */
+  private static Map<Text,Long> getTabletFileSizes(AccumuloClient client, String tableName)
+      throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    TableId tableId = TableId.of(client.tableOperations().tableIdMap().get(tableName));
+    try (Scanner scanner = client.createScanner(MetadataTable.NAME)) {
+      scanner.fetchColumnFamily(MetadataSchema.TabletsSection.DataFileColumnFamily.NAME);
+      scanner.setRange(new KeyExtent(tableId, null, null).toMetaRange());
+
+      Map<Text,Long> result = new HashMap<>();
+      for (var entry : scanner) {
+        long tabletFileSize = new DataFileValue(entry.getValue().get()).getSize();
+        result.merge(entry.getKey().getRow(), tabletFileSize, Long::sum);
+      }
+
+      return result;
+    }
+  }
+
+  public static String bytesToMemoryString(long bytes) {
+    if (bytes < 1024) {
+      return bytes + "B"; // Bytes
+    } else if (bytes < 1024 * 1024) {
+      return (bytes / 1024) + "K"; // Kilobytes
+    } else if (bytes < 1024 * 1024 * 1024) {
+      return (bytes / (1024 * 1024)) + "M"; // Megabytes
+    } else {
+      return (bytes / (1024 * 1024 * 1024)) + "G"; // Gigabytes
     }
   }
 
