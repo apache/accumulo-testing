@@ -18,6 +18,7 @@
  */
 package org.apache.accumulo.testing.continuous;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -43,11 +44,8 @@ import org.apache.accumulo.core.client.admin.CloneConfiguration;
 import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.ConfigurationTypeHelper;
 import org.apache.accumulo.core.conf.Property;
+import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TableId;
-import org.apache.accumulo.core.dataImpl.KeyExtent;
-import org.apache.accumulo.core.metadata.MetadataTable;
-import org.apache.accumulo.core.metadata.schema.DataFileValue;
-import org.apache.accumulo.core.metadata.schema.MetadataSchema;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
@@ -225,13 +223,15 @@ public class ManySplits {
   private static Map<Text,Long> getTabletFileSizes(AccumuloClient client, String tableName)
       throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
     TableId tableId = TableId.of(client.tableOperations().tableIdMap().get(tableName));
-    try (Scanner scanner = client.createScanner(MetadataTable.NAME)) {
-      scanner.fetchColumnFamily(MetadataSchema.TabletsSection.DataFileColumnFamily.NAME);
-      scanner.setRange(new KeyExtent(tableId, null, null).toMetaRange());
+    try (Scanner scanner = client.createScanner("accumulo.metadata")) {
+      scanner.fetchColumnFamily("file");
+      scanner.setRange(createMetaRangeForDefaultTablet(tableId.canonical()));
 
       Map<Text,Long> result = new HashMap<>();
       for (var entry : scanner) {
-        long tabletFileSize = new DataFileValue(entry.getValue().get()).getSize();
+        String encodedDFV = new String(entry.getValue().get(), UTF_8);
+        String[] ba = encodedDFV.split(",", 2);
+        long tabletFileSize = Long.parseLong(ba[0]);
         result.merge(entry.getKey().getRow(), tabletFileSize, Long::sum);
       }
 
@@ -249,6 +249,20 @@ public class ManySplits {
     } else {
       return (bytes / (1024 * 1024 * 1024)) + "G"; // Gigabytes
     }
+  }
+
+  private static Range createMetaRangeForDefaultTablet(String tableId) {
+    Text startRow = encodeRowForDefaultTablet(tableId);
+    Text endRow = new Text(startRow);
+    endRow.append(new byte[] {0}, 0, 1);
+
+    return new Range(startRow, true, endRow, false);
+  }
+
+  private static Text encodeRowForDefaultTablet(String tableId) {
+    Text entry = new Text(tableId);
+    entry.append(new byte[] {'<'}, 0, 1); // Delimiter for default tablet
+    return entry;
   }
 
 }
