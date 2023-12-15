@@ -223,7 +223,7 @@ public class ManySplits {
     TableId tableId = TableId.of(client.tableOperations().tableIdMap().get(tableName));
     try (Scanner scanner = client.createScanner("accumulo.metadata")) {
       scanner.fetchColumnFamily("file");
-      scanner.setRange(createMetaRangeForDefaultTablet(tableId.canonical()));
+      scanner.setRange(getMetaRangeForTable(tableId.canonical()));
 
       Map<Text,Long> result = new HashMap<>();
       for (var entry : scanner) {
@@ -249,18 +249,8 @@ public class ManySplits {
     }
   }
 
-  private static Range createMetaRangeForDefaultTablet(String tableId) {
-    Text startRow = encodeRowForDefaultTablet(tableId);
-    Text endRow = new Text(startRow);
-    endRow.append(new byte[] {0}, 0, 1);
-
-    return new Range(startRow, true, endRow, false);
-  }
-
-  private static Text encodeRowForDefaultTablet(String tableId) {
-    Text entry = new Text(tableId);
-    entry.append(new byte[] {'<'}, 0, 1); // Delimiter for default tablet
-    return entry;
+  private static Range getMetaRangeForTable(String tableId) {
+    return new Range(tableId + ";", false, tableId + "<", true);
   }
 
 }
