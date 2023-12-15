@@ -127,6 +127,11 @@ public class ManySplits {
         }
       });
 
+      StringBuilder testResults = new StringBuilder();
+      testResults.append("Test results:\n");
+      testResults.append("Total test rounds: ").append(testRounds).append("\n");
+      testResults.append("Table count: ").append(tableCount).append("\n");
+
       SECONDS.sleep(5);
 
       // main loop
@@ -137,11 +142,10 @@ public class ManySplits {
         // apply the reduction factor to the previous threshold
         final long splitThreshold = previousSplitThreshold / splitThresholdReductionFactor;
         final String splitThresholdStr = bytesToMemoryString(splitThreshold);
+        final int totalSplitCountBefore = getTotalSplitCount(client, tableNames);
 
         log.info("Changing split threshold on all tables from {} to {}",
             bytesToMemoryString(previousSplitThreshold), splitThresholdStr);
-
-        previousSplitThreshold = splitThreshold;
 
         long beforeThresholdUpdate = System.nanoTime();
 
@@ -155,7 +159,7 @@ public class ManySplits {
           }
         });
 
-        log.info("Waiting for all tablets to have a sum file size <= {}", splitThreshold);
+        log.info("Waiting for each tablet to have a sum file size <= {}", splitThresholdStr);
 
         // wait for all tablets to reach the expected sum file size
         tableNames.stream().parallel().forEach(tableName -> {
@@ -192,15 +196,31 @@ public class ManySplits {
           }
         });
 
-        long timeTaken = System.nanoTime() - beforeThresholdUpdate;
+        long timeTakenNanos = System.nanoTime() - beforeThresholdUpdate;
+        long seconds = NANOSECONDS.toSeconds(timeTakenNanos);
+        long millis = NANOSECONDS.toMillis(timeTakenNanos);
+
+        final int splitCountAfter = getTotalSplitCount(client, tableNames);
+        final int splitCountThisRound = splitCountAfter - totalSplitCountBefore;
 
         log.info(
             "Time taken for all tables to reach expected total file size ({}): {} seconds ({}ms)",
-            splitThresholdStr, NANOSECONDS.toSeconds(timeTaken), NANOSECONDS.toMillis(timeTaken));
+            splitThresholdStr, seconds, millis);
+
+        testResults.append("Test round ").append(i).append(":\n");
+        testResults.append("TABLE_SPLIT_THRESHOLD ")
+            .append(bytesToMemoryString(previousSplitThreshold)).append(" -> ")
+            .append(splitThresholdStr).append("\n");
+        testResults.append("Splits count:         ").append(totalSplitCountBefore).append(" -> ")
+            .append(splitCountAfter).append("\n");
+        String splitsPerSecond = String.format("%.2f", (double) splitCountThisRound / seconds);
+        testResults.append("Splits per second:    ").append(splitsPerSecond).append("\n");
+
+        previousSplitThreshold = splitThreshold;
       }
 
       log.info("Test completed successfully.");
-
+      log.info(testResults.toString());
       log.info("Deleting tables");
       tableNames.stream().parallel().forEach(tableName -> {
         try {
@@ -251,6 +271,19 @@ public class ManySplits {
 
   private static Range getMetaRangeForTable(String tableId) {
     return new Range(tableId + ";", false, tableId + "<", true);
+  }
+
+  /**
+   * @return the total number of splits across all given tables
+   */
+  private static int getTotalSplitCount(AccumuloClient client, List<String> tableNames) {
+    return tableNames.stream().parallel().mapToInt(tableName -> {
+      try {
+        return client.tableOperations().listSplits(tableName).size();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }).sum();
   }
 
 }
