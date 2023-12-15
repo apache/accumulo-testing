@@ -40,8 +40,6 @@ import org.apache.accumulo.core.client.NamespaceExistsException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.admin.CloneConfiguration;
-import org.apache.accumulo.core.client.admin.NewTableConfiguration;
 import org.apache.accumulo.core.conf.ConfigurationTypeHelper;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Range;
@@ -69,8 +67,8 @@ public class ManySplits {
       final long rowMax = Long.parseLong(testProps.getProperty(TestProps.CI_SPLIT_INGEST_ROW_MAX));
       final int maxColF = Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INGEST_MAX_CF));
       final int maxColQ = Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INGEST_MAX_CQ));
-      final int initialSplits =
-          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INITIAL_SPLITS));
+      final int initialTabletCount =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_INITIAL_TABLETS));
       final int initialData =
           Integer.parseInt(testProps.getProperty(TestProps.CI_SPLIT_WRITE_SIZE));
       String initialSplitThresholdStr = testProps.getProperty(TestProps.CI_SPLIT_THRESHOLD);
@@ -94,24 +92,20 @@ public class ManySplits {
       try {
         client.namespaceOperations().create(NAMESPACE);
       } catch (NamespaceExistsException e) {
-        log.info("The namespace '{}' already exists. Continuing with existing namespace.",
+        log.warn("The namespace '{}' already exists. Continuing with existing namespace.",
             NAMESPACE);
       }
 
-      final NewTableConfiguration ntc = new NewTableConfiguration();
-      ntc.setProperties(Map.of(Property.TABLE_SPLIT_THRESHOLD.getKey(), initialSplitThresholdStr));
-
-      log.info("Properties being used to create tables for this test: {}",
-          ntc.getProperties().toString());
-
       final String firstTable = tableNames.get(0);
 
+      Map<String,String> tableProps =
+          Map.of(Property.TABLE_SPLIT_THRESHOLD.getKey(), initialSplitThresholdStr);
+
+      log.info("Properties being used to create tables for this test: {}", tableProps);
+
       log.info("Creating initial table: {}", firstTable);
-      try {
-        client.tableOperations().create(firstTable, ntc);
-      } catch (TableExistsException e) {
-        log.info("Test probably wont work if the table already exists with data present", e);
-      }
+      CreateTable.createTable(client, firstTable, initialTabletCount, rowMin, rowMax, tableProps,
+          Map.of());
 
       log.info("Ingesting {} entries into first table, {}.", initialData, firstTable);
       ContinuousIngest.doIngest(client, rowMin, rowMax, firstTable, testProps, maxColF, maxColQ,
@@ -123,16 +117,17 @@ public class ManySplits {
       log.info("Creating {} more tables by cloning the first", tableCount - 1);
       tableNames.stream().parallel().skip(1).forEach(tableName -> {
         try {
-          client.tableOperations().clone(firstTable, tableName,
-              CloneConfiguration.builder().build());
+          client.tableOperations().clone(firstTable, tableName, true, null, null);
         } catch (TableExistsException e) {
-          log.info(
-              "table {} already exists. Continuing with existing table. This might mess with the expected values",
+          log.warn(
+              "table {} already exists. Continuing with existing table. Previous data will affect splits",
               tableName);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
       });
+
+      SECONDS.sleep(5);
 
       // main loop
       // reduce the split threshold then wait for the expected file size per tablet to be reached
@@ -184,10 +179,11 @@ public class ManySplits {
               if (elapsedMillis % SECONDS.toMillis(3) == 0) {
                 double averageFileSize =
                     offendingTabletSizes.stream().mapToLong(l -> l).average().orElse(0);
+                long diff = (long) (averageFileSize - splitThreshold);
                 log.info(
-                    "{} has {} tablets whose file sizes are not yet <= {}. Avg. offending file size: {}",
-                    tableName, offendingTabletSizes.size(), splitThreshold,
-                    String.format("%.0f", averageFileSize));
+                    "{} tablets have file sizes not yet <= {} on table {}. Diff of avg offending file(s): {}",
+                    offendingTabletSizes.size(), splitThresholdStr, tableName,
+                    bytesToMemoryString(diff));
               }
               MILLISECONDS.sleep(sleepMillis);
             }
@@ -202,6 +198,8 @@ public class ManySplits {
             "Time taken for all tables to reach expected total file size ({}): {} seconds ({}ms)",
             splitThresholdStr, NANOSECONDS.toSeconds(timeTaken), NANOSECONDS.toMillis(timeTaken));
       }
+
+      log.info("Test completed successfully.");
 
       log.info("Deleting tables");
       tableNames.stream().parallel().forEach(tableName -> {

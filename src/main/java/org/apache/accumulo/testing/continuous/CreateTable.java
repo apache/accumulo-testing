@@ -41,54 +41,67 @@ public class CreateTable {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
       AccumuloClient client = env.getAccumuloClient();
-
       String tableName = env.getAccumuloTableName();
-      if (client.tableOperations().exists(tableName)) {
-        log.error("Accumulo table {} already exists", tableName);
-        System.exit(-1);
-      }
-
       int numTablets = Integer.parseInt(env.getTestProperty(CI_COMMON_ACCUMULO_NUM_TABLETS));
+      long rowMin = env.getRowMin();
+      long rowMax = env.getRowMax();
+      Map<String,String> serverProps = getProps(env, TestProps.CI_COMMON_ACCUMULO_SERVER_PROPS);
+      Map<String,String> tableProps = getProps(env, TestProps.CI_COMMON_ACCUMULO_TABLE_PROPS);
 
-      if (numTablets < 1) {
-        log.error("numTablets < 1");
-        System.exit(-1);
-      }
-      if (env.getRowMin() >= env.getRowMax()) {
-        log.error("min >= max");
-        System.exit(-1);
-      }
+      createTable(client, tableName, numTablets, rowMin, rowMax, serverProps, tableProps);
+    }
+  }
 
-      // retrieve and set tserver props
-      Map<String,String> props = getProps(env, TestProps.CI_COMMON_ACCUMULO_SERVER_PROPS);
+  public static void createTable(AccumuloClient client, String tableName, int numTablets,
+      long rowMin, long rowMax, Map<String,String> serverProps, Map<String,String> tableProps)
+      throws Exception {
+    if (client.tableOperations().exists(tableName)) {
+      log.error("Accumulo table {} already exists", tableName);
+      System.exit(-1);
+    }
+
+    if (numTablets < 1) {
+      log.error("numTablets < 1");
+      System.exit(-1);
+    }
+    if (rowMin >= rowMax) {
+      log.error("min >= max");
+      System.exit(-1);
+    }
+
+    // set tserver props
+    if (!serverProps.isEmpty()) {
       try {
-        client.instanceOperations().modifyProperties(properties -> properties.putAll(props));
+        client.instanceOperations().modifyProperties(properties -> properties.putAll(serverProps));
       } catch (AccumuloException | AccumuloSecurityException e) {
         log.error("Failed to set tserver props");
         throw new Exception(e);
       }
+    }
 
+    NewTableConfiguration ntc = new NewTableConfiguration();
+
+    if (numTablets > 1) {
       SortedSet<Text> splits = new TreeSet<>();
       final int numSplits = numTablets - 1;
-      final long distance = ((env.getRowMax() - env.getRowMin()) / numTablets) + 1;
+      final long distance = ((rowMax - rowMin) / numTablets) + 1;
       long split = distance;
       for (int i = 0; i < numSplits; i++) {
-        String s = String.format("%016x", split + env.getRowMin());
+        String s = String.format("%016x", split + rowMin);
         while (s.charAt(s.length() - 1) == '0') {
           s = s.substring(0, s.length() - 1);
         }
         splits.add(new Text(s));
         split += distance;
       }
-
-      NewTableConfiguration ntc = new NewTableConfiguration();
       ntc.withSplits(splits);
-      ntc.setProperties(getProps(env, TestProps.CI_COMMON_ACCUMULO_TABLE_PROPS));
-
-      client.tableOperations().create(tableName, ntc);
-
-      log.info("Created Accumulo table {} with {} tablets", tableName, numTablets);
     }
+
+    ntc.setProperties(tableProps);
+
+    client.tableOperations().create(tableName, ntc);
+
+    log.info("Created Accumulo table {} with {} tablets", tableName, numTablets);
   }
 
   private static Map<String,String> getProps(ContinuousEnv env, String propType) {

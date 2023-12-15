@@ -155,7 +155,7 @@ public class TestProps {
   public static final String CI_SPLIT_INGEST_ROW_MAX = CI_SPLIT + "ingest.row.max";
   public static final String CI_SPLIT_INGEST_MAX_CF = CI_SPLIT + "ingest.max.cf";
   public static final String CI_SPLIT_INGEST_MAX_CQ = CI_SPLIT + "ingest.max.cq";
-  public static final String CI_SPLIT_INITIAL_SPLITS = CI_SPLIT + "initial.splits";
+  public static final String CI_SPLIT_INITIAL_TABLETS = CI_SPLIT + "initial.tablets";
   public static final String CI_SPLIT_WRITE_SIZE = CI_SPLIT + "write.size";
   public static final String CI_SPLIT_THRESHOLD = CI_SPLIT + "threshold";
   public static final String CI_SPLIT_THRESHOLD_REDUCTION_FACTOR =
