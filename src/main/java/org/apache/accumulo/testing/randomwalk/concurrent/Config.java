@@ -56,15 +56,24 @@ public class Config extends Test {
 
   final Property TSERV_READ_AHEAD_MAXCONCURRENT_deprecated =
       Property.TSERV_SCAN_EXECUTORS_DEFAULT_THREADS;
+
+  @SuppressWarnings("deprecation")
+  final Property TSERV_COMPACTION_SERVICE_DEFAULT_MAX_OPEN_deprecated =
+      Property.TSERV_COMPACTION_SERVICE_DEFAULT_MAX_OPEN;
+
+  @SuppressWarnings("deprecation")
+  final Property TSERV_COMPACTION_SERVICE_DEFAULT_EXECUTORS_deprecated =
+      Property.TSERV_COMPACTION_SERVICE_DEFAULT_EXECUTORS;
+
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
 			s(Property.TSERV_DATACACHE_SIZE, 0, 1000000000L),
 			s(Property.TSERV_INDEXCACHE_SIZE, 0, 1000000000L),
 			s(Property.TSERV_CLIENT_TIMEOUT, 100, 10000),
-			s(Property.TSERV_COMPACTION_SERVICE_DEFAULT_EXECUTORS, 1, 10),
+			s(TSERV_COMPACTION_SERVICE_DEFAULT_EXECUTORS_deprecated, 1, 10),
 			s(Property.TSERV_MAJC_DELAY, 100, 10000),
-			s(Property.TSERV_COMPACTION_SERVICE_DEFAULT_MAX_OPEN, 3, 100),
+			s(TSERV_COMPACTION_SERVICE_DEFAULT_MAX_OPEN_deprecated, 3, 100),
 			s(Property.TSERV_MINC_MAXCONCURRENT, 1, 10),
 			s(Property.TSERV_DEFAULT_BLOCKSIZE, 100000, 10000000L),
 			s(Property.TSERV_MAX_IDLE, 10000, 500 * 1000),
