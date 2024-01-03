@@ -134,6 +134,8 @@ module "cloud_init_config" {
   accumulo_version     = var.accumulo_version
   authorized_ssh_keys  = local.ssh_keys[*]
   cluster_type         = "aws"
+  os_distro            = var.os_distro
+  os_version           = var.os_version
 
   optional_cloudinit_config = var.optional_cloudinit_config
   cloudinit_merge_type      = var.cloudinit_merge_type
@@ -229,6 +231,7 @@ locals {
 module "config_files" {
   source = "../modules/config-files"
 
+  os_distro     = var.os_distro
   software_root = var.software_root
   upload_host   = var.private_network ? local.manager_private_ip : local.manager_ip
   manager_ip    = local.manager_private_ip

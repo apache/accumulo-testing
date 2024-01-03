@@ -67,7 +67,6 @@ provider "azurerm" {
 }
 
 locals {
-  os_type = can(regex("^.*[Uu]buntu.*$", var.vm_image.offer)) ? "ubuntu" : "centos"
 
   ssh_keys = toset(concat(var.authorized_ssh_keys, [for k in var.authorized_ssh_key_files : file(k)]))
 
@@ -168,7 +167,9 @@ module "cloud_init_config" {
   accumulo_branch_name = var.accumulo_branch_name
   accumulo_version     = var.accumulo_version
   authorized_ssh_keys  = local.ssh_keys[*]
-  os_type              = local.os_type
+  os_distro            = var.os_distro
+  os_version           = var.os_version
+
   cluster_type         = "azure"
 
   optional_cloudinit_config = var.optional_cloudinit_config
@@ -418,8 +419,7 @@ resource "null_resource" "wait_for_workers_cloud_init" {
 module "config_files" {
   source = "../modules/config-files"
 
-  os_type = local.os_type
-
+  os_distro     = var.os_distro
   software_root = var.software_root
   upload_host   = local.manager_ip
   manager_ip    = local.manager_private_ip

@@ -17,9 +17,7 @@
 # under the License.
 #
 
-variable "os_type" {
-  default = "centos"
-}
+variable "os_distro" {}
 variable "software_root" {}
 variable "upload_host" {}
 variable "manager_ip" {}
@@ -56,14 +54,16 @@ locals {
   files_dir     = "${path.module}/files"
   templates_dir = "${path.module}/templates"
 
-  java_home        = var.os_type == "ubuntu" ? "/usr/lib/jvm/java-11-openjdk-amd64" : "/usr/lib/jvm/java-11-openjdk"
+  java_11_home        = var.os_distro == "ubuntu" ? "/usr/lib/jvm/java-11-openjdk-amd64" : "/usr/lib/jvm/java-11-openjdk"
+  java_17_home        = var.os_distro == "ubuntu" ? "/usr/lib/jvm/java-17-openjdk-amd64" : "/usr/lib/jvm/java-17-openjdk"
   accumulo_root_pw = coalesce(var.accumulo_root_password, random_string.accumulo_root_password.result)
 
   template_vars = {
-    os_type                      = var.os_type
+    os_distro                    = var.os_distro
     manager_ip                   = var.manager_ip
     worker_ips                   = var.worker_ips
-    java_home                    = local.java_home
+    java_11_home                 = local.java_11_home
+    java_17_home                 = local.java_17_home
     accumulo_branch_name         = var.accumulo_branch_name
     accumulo_dir                 = var.accumulo_dir
     accumulo_repo                = var.accumulo_repo
