@@ -28,14 +28,16 @@ Usage: cingest <application> {-o test.<prop>=<value>}
 
 Available applications:
 
-    createtable   Creates Accumulo table for continous ingest
+    createtable   Creates Accumulo table for continuous ingest
     ingest        Inserts data into Accumulo that will form random graph.
     walk          Randomly walks the graph using a scanner
     batchwalk     Randomly walks the graph using a batch scanner
     scan          Scans the graph
-    verify        Verifies continous ingest test. Stop ingest before running.
+    verify        Verifies continuous ingest test. Stop ingest before running.
     moru          Stresses Accumulo by reading and writing to the ingest table.
                   Stop ingest before running.
+    manysplits    Repeatedly lowers the split threshold on a table to create
+                  many splits in order to test split performance
     bulk          Create RFiles in a Map Reduce job and calls importDirectory if successful
 EOF
 }
@@ -68,6 +70,9 @@ case "$1" in
     ;;
   moru)
     ci_main="${ci_package}.ContinuousMoru"
+    ;;
+  manysplits)
+    ci_main="${ci_package}.ManySplits"
     ;;
   bulk)
     if [ "$#" -ne 2 ]; then
