@@ -33,7 +33,7 @@ accumulo init --instance-name "$1" --password "$2"
 #
 # Launch jaegertracing and telegraf containers
 #
-%{ if os_distro == "centos" ~}
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
 sudo yum install -y docker-ce docker-ce-cli containerd.io --enablerepo=docker
 %{ endif ~}
 %{ if os_distro == "ubuntu" ~}
