@@ -27,8 +27,9 @@ gc:
   - ${manager_ip}
 
 tserver:
+  default:
 %{ for ip in worker_ips ~}
-  - ${ip}
+    - ${ip}
 %{ endfor ~}
 
 sserver:
@@ -37,17 +38,18 @@ sserver:
       - ${ip}
 %{ endfor ~}
 
-compaction:
-  coordinator:
-    - ${manager_ip}
-  compactor:
-    - q1:
+compactor:
+  accumulo_meta:
 %{ for ip in worker_ips ~}
-        - ${ip}
+    - ${ip}
 %{ endfor ~}
-    - q2:
+  user_small:
 %{ for ip in worker_ips ~}
-        - ${ip}
+    - ${ip}
+%{ endfor ~}
+  user_large:
+%{ for ip in worker_ips ~}
+    - ${ip}
 %{ endfor ~}
 
 #
