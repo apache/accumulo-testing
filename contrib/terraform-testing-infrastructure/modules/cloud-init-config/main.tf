@@ -27,6 +27,8 @@ variable "hadoop_version" {}
 variable "accumulo_branch_name" {}
 variable "accumulo_version" {}
 variable "authorized_ssh_keys" {}
+variable "os_distro" {}
+variable "os_version" {}
 variable "lvm_mount_point" {
   default = null
   description = "Mount point for the LVM volume containing managed disks. If not specified, then no LVM volume is created."
@@ -44,15 +46,6 @@ variable "cloudinit_merge_type" {
 variable "optional_cloudinit_config" {
   default  = ""
   nullable = false
-}
-variable "os_type" {
-  default  = "centos"
-  type     = string
-  nullable = false
-  validation {
-    condition     = contains(["centos", "ubuntu"], var.os_type)
-    error_message = "The value of os_type must be either 'centos' or 'ubuntu'."
-  }
 }
 variable "cluster_type" {
   type     = string
@@ -90,7 +83,9 @@ locals {
     authorized_ssh_keys  = local.ssh_keys[*]
     lvm_mount_point      = var.lvm_mount_point != null ? var.lvm_mount_point : ""
     lvm_disk_count       = var.lvm_disk_count != null ? var.lvm_disk_count : ""
-    os_type              = var.os_type
+    os_distro            = var.os_distro
+    os_version           = var.os_version
+    centos7              = substr(var.os_version, 0, 1) == "7" ? "true" : "false"
     cluster_type         = var.cluster_type
     hadoop_public_key    = indent(6, tls_private_key.hadoop.public_key_openssh)
     hadoop_private_key   = indent(6, tls_private_key.hadoop.private_key_pem)

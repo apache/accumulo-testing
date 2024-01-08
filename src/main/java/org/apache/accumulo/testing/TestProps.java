@@ -41,6 +41,7 @@ public class TestProps {
   private static final String CI_SCANNER = CI + "scanner.";
   private static final String CI_VERIFY = CI + "verify.";
   private static final String CI_BULK = CI + "bulk.";
+  private static final String CI_SPLIT = CI + "split.";
   public static final String TERASORT = PREFIX + "terasort.";
   public static final String ROWHASH = PREFIX + "rowhash.";
 
@@ -147,6 +148,19 @@ public class TestProps {
   public static final String CI_BULK_MAP_TASK = CI_BULK + "map.task";
   public static final String CI_BULK_MAP_NODES = CI_BULK + "map.nodes";
   public static final String CI_BULK_REDUCERS = CI_BULK + "reducers.max";
+
+  /** Split **/
+  public static final String CI_SPLIT_TABLE_COUNT = CI_SPLIT + "table.count";
+  public static final String CI_SPLIT_INGEST_ROW_MIN = CI_SPLIT + "ingest.row.min";
+  public static final String CI_SPLIT_INGEST_ROW_MAX = CI_SPLIT + "ingest.row.max";
+  public static final String CI_SPLIT_INGEST_MAX_CF = CI_SPLIT + "ingest.max.cf";
+  public static final String CI_SPLIT_INGEST_MAX_CQ = CI_SPLIT + "ingest.max.cq";
+  public static final String CI_SPLIT_INITIAL_TABLETS = CI_SPLIT + "initial.tablets";
+  public static final String CI_SPLIT_WRITE_SIZE = CI_SPLIT + "write.size";
+  public static final String CI_SPLIT_THRESHOLD = CI_SPLIT + "threshold";
+  public static final String CI_SPLIT_THRESHOLD_REDUCTION_FACTOR =
+      CI_SPLIT + "threshold.reduction.factor";
+  public static final String CI_SPLIT_TEST_ROUNDS = CI_SPLIT + "test.rounds";
 
   /** TeraSort **/
   public static final String TERASORT_TABLE = TERASORT + "table";

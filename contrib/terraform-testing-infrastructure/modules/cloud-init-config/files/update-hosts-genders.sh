@@ -42,7 +42,7 @@ $begin_hosts_marker
 $(<"$HOSTS_ADDITIONS")
 $end_hosts_marker
 EOF
-# Strip out any previously applied hosts additiona, and then tack the new ones on to the end of /etc/hosts.
+# Strip out any previously applied hosts additions, and then tack the new ones on to the end of /etc/hosts.
 sudo sed -ri '/^'"$begin_hosts_marker"'$/,/^'"$end_hosts_marker"'$/d' /etc/hosts
 cat "$TMPHOSTS" | sudo tee -a /etc/hosts >/dev/null
 
@@ -55,6 +55,7 @@ $end_genders_marker
 EOF
 [[ -f /etc/genders ]] && sudo sed -ri '/^'"$begin_genders_marker"'$/,/^'"$end_genders_marker"'$/d' /etc/genders
 cat "$TMPGENDERS" | sudo tee -a /etc/genders >/dev/null
+sudo chmod 644 /etc/genders
 echo "Check genders file validity..."
 nodeattr -k
 

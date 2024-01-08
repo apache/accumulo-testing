@@ -100,9 +100,9 @@ data "aws_subnet" "subnet_1e" {
 }
 
 #
-# Looks up the latest CentOS AMI
+# Looks up the latest AMI
 #
-data "aws_ami" "centos_ami" {
+data "aws_ami" "ami" {
   owners = ["${var.ami_owner}"]
   filter {
     name   = "name"
@@ -134,6 +134,8 @@ module "cloud_init_config" {
   accumulo_version     = var.accumulo_version
   authorized_ssh_keys  = local.ssh_keys[*]
   cluster_type         = "aws"
+  os_distro            = var.os_distro
+  os_version           = var.os_version
 
   optional_cloudinit_config = var.optional_cloudinit_config
   cloudinit_merge_type      = var.cloudinit_merge_type
@@ -158,7 +160,7 @@ module "cloud_init_config" {
 #    - creates some files on the filesystem to use later
 #
 resource "aws_instance" "accumulo-testing" {
-  ami                    = data.aws_ami.centos_ami.id
+  ami                    = data.aws_ami.ami.id
   instance_type          = var.instance_type
   count                  = var.instance_count
   subnet_id              = data.aws_subnet.subnet_1b.id
@@ -229,6 +231,7 @@ locals {
 module "config_files" {
   source = "../modules/config-files"
 
+  os_distro     = var.os_distro
   software_root = var.software_root
   upload_host   = var.private_network ? local.manager_private_ip : local.manager_ip
   manager_ip    = local.manager_private_ip
@@ -320,4 +323,9 @@ output "worker_ips" {
 output "accumulo_root_password" {
   value       = module.config_files.accumulo_root_password
   description = "The supplied, or automatically generated Accumulo root user password."
+}
+
+output "cloud-init-content" {
+  value       = module.cloud_init_config.cloud_init_data
+  description = "The output of the cloud-init templatefile"
 }

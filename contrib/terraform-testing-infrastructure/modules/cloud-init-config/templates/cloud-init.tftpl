@@ -31,7 +31,7 @@ users:
       - ${key}
 %{ endfor ~}
 
-%{ if os_type == "centos" ~}
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
 yum_repos:
   docker:
     name: Docker CE Stable - $basearch
@@ -40,7 +40,7 @@ yum_repos:
     gpgcheck: true
     gpgkey: https://download.docker.com/linux/centos/gpg
 %{ endif ~}
-%{ if os_type == "ubuntu" ~}
+%{ if os_distro == "ubuntu" ~}
 apt:
   sources:
     docker.list:
@@ -52,44 +52,58 @@ apt:
 # yum/apt install the following packages
 #
 packages:
-%{ if os_type == "centos" ~}
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
+%{ if os_distro == "centos" ~}
   - epel-release
+%{ endif ~}
+%{ if os_distro == "rhel" ~}
+  - https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+%{ endif ~}
   - yum-utils
   - gcc-c++
   - java-11-openjdk-devel
+%{ if centos7  == "false" ~}
+  - java-17-openjdk-devel
+%{ endif ~}
   - git
 %{ endif ~}
-%{ if os_type == "ubuntu" ~}
+%{ if os_distro == "ubuntu" ~}
   - net-tools
   - g++
   - openjdk-11-jdk-headless
+  - openjdk-17-jdk
   - pdsh
   - pssh
-  - make
 %{ endif ~}
+  - make
   - openssl
   - wget
 
-#
-# Make directories on each node
-#
 runcmd:
 %{ if cluster_type == "azure" && lvm_mount_point != "" ~}
   - /usr/local/bin/format-lvm-data-disk.sh ${lvm_disk_count} ${lvm_mount_point} hadoop.hadoop
 %{ endif ~}
   - mkdir -p ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
   - chown hadoop.hadoop ${software_root} ${zookeeper_dir} ${hadoop_dir} ${accumulo_dir}
-%{ if os_type == "ubuntu" ~}
+%{ if os_distro == "ubuntu" ~}
   # Use bash instead of dash for the default shell
   - ln -s bash /bin/sh.bash
   - mv /bin/sh.bash /bin/sh
 %{ endif ~}
-%{ if os_type == "centos" ~}
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
   # This has to be done here vs in the packages section because
   # we install the epel-release package there and can't update
   # the yum repo in the middle to make it know about pdsh-mod-genders
   - yum -y update
   - yum -y install pdsh-mod-genders pssh
+%{ if os_distro == "rhel" ~}
+  - yum -y install pdsh-rcmd-ssh
+%{ endif ~}
+%{ if centos7 == "true" ~}
+  - wget -O /tmp/jdk17.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.9_9.tar.gz
+  - mkdir /usr/lib/jvm/java-17-openjdk
+  - tar zxf /tmp/jdk17.tar.gz --strip-components=1 -C /usr/lib/jvm/java-17-openjdk
+%{ endif ~}
 %{ endif ~}
   - sysctl -w vm.swappiness=0
   - sysctl -p
@@ -107,7 +121,7 @@ runcmd:
 write_files:
 # Set up PDSH to skip strict host key checking. Also, on ubuntu, we need
 # to set ssh as the default method for the rcmd module.
-%{ if os_type == "ubuntu" ~}
+%{ if os_distro == "ubuntu" ~}
   - path: /etc/pdsh/rcmd_default
     permissions: '0644'
     content: |

@@ -22,7 +22,7 @@ Description=ZooKeeper start/stop
 After=remote-fs.target
 
 [Service]
-Environment=JAVA_HOME=${java_home}
+Environment=JAVA_HOME=${java_11_home}
 Environment=ZOOKEEPER_HOME=${software_root}/zookeeper/apache-zookeeper-${zookeeper_version}-bin
 Environment=ZOO_LOG_DIR=${zookeeper_dir}/logs
 User=hadoop
