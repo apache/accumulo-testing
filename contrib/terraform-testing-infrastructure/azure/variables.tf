@@ -275,3 +275,18 @@ variable "cloudinit_merge_type" {
   description = "Describes the merge behavior for overlapping config blocks in cloud-init."
   nullable    = true
 }
+
+variable "os_distro" {
+  description = "The distribution name of the operating system used by the AMI. Expected values: centos, rhel, or ubuntu"
+  nullable    = false
+  validation {
+    condition     = contains(["centos", "rhel", "ubuntu"], var.os_distro)
+    error_message = "The value of os_distro must be either 'centos', 'rhel', or 'ubuntu'."
+  }
+}
+
+variable "os_version" {
+  description = "The version of the operating system used by the AMI"
+  nullable    = false
+}
+

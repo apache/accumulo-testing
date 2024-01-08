@@ -22,7 +22,7 @@ Description=Yarn ResourceManager start/stop
 After=hadoop-namenode.service
 
 [Service]
-Environment=JAVA_HOME=${java_home}
+Environment=JAVA_HOME=${java_11_home}
 Environment=YARN_HOME=${software_root}/hadoop/hadoop-${hadoop_version}
 Environment=HADOOP_LOG_DIR=${hadoop_dir}/logs
 User=hadoop

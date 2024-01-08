@@ -20,7 +20,7 @@
 
 set -eo pipefail
 
-export JAVA_HOME=${java_home}
+export JAVA_HOME=${java_11_home}
 
 SOURCES_DIR="${software_root}/sources"
 
@@ -94,7 +94,14 @@ else
   git clone ${accumulo_repo} accumulo-repo
   cd accumulo-repo
   git checkout ${accumulo_branch_name}
+  # Java 17 required for Accumulo build
+  OLDPATH="$PATH"
+  export JAVA_HOME=${java_17_home}
+  export PATH=$JAVA_HOME/bin:$PATH
   ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean install -PskipQA
+  # Reset JAVA HOME to Java 11 for the remainder of the script
+  export JAVA_HOME=${java_11_home}
+  export PATH=$OLDPATH
   mkdir -p ${software_root}/accumulo
   tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo
 fi
@@ -109,8 +116,8 @@ openssl rand -out ${software_root}/accumulo/accumulo-${accumulo_version}/conf/pe
 #
 # OpenTelemetry dependencies
 #
-if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.19.0.jar ]; then
-  wget https://search.maven.org/remotecontent?filepath=io/opentelemetry/javaagent/opentelemetry-javaagent/1.19.0/opentelemetry-javaagent-1.19.0.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.19.0.jar
+if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.32.0.jar ]; then
+  wget https://search.maven.org/remotecontent?filepath=io/opentelemetry/javaagent/opentelemetry-javaagent/1.32.0/opentelemetry-javaagent-1.32.0.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-1.32.0.jar
 fi
 #
 # Micrometer dependencies
@@ -122,8 +129,8 @@ if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/accumulo-te
     echo "accumulo-test-${accumulo_version}.jar not found, metrics won't work..."
   fi
 fi
-if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.9.5.jar ]; then
-  wget https://search.maven.org/remotecontent?filepath=io/micrometer/micrometer-registry-statsd/1.9.5/micrometer-registry-statsd-1.9.5.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.9.5.jar
+if [ ! -f ${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.12.1.jar ]; then
+  wget https://search.maven.org/remotecontent?filepath=io/micrometer/micrometer-registry-statsd/1.12.1/micrometer-registry-statsd-1.12.1.jar -O ${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.12.1.jar
 fi
 
 #
