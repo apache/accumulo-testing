@@ -220,8 +220,8 @@ public class Module extends Node {
       fixture.setUp(state, env);
     }
 
-    ExecutorService service =
-        ThreadPools.getServerThreadPools().createFixedThreadPool(1, "RandomWalk Runner", false);
+    ExecutorService service = ThreadPools.getServerThreadPools().getPoolBuilder("RandomWalk Runner")
+        .numCoreThreads(1).build();
 
     try {
       Node initNode = getNode(initNodeId);

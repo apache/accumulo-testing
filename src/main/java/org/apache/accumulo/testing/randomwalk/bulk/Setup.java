@@ -61,8 +61,8 @@ public class Setup extends Test {
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set("bulkImportSuccess", "true");
     BulkPlusOne.counter.set(0L);
-    ThreadPoolExecutor e = ThreadPools.getServerThreadPools().createFixedThreadPool(MAX_POOL_SIZE,
-        "bulkImportPool", false);
+    ThreadPoolExecutor e = ThreadPools.getServerThreadPools().getPoolBuilder("bulkImportPool")
+        .numCoreThreads(MAX_POOL_SIZE).build();
     state.set("pool", e);
   }
 
