@@ -68,6 +68,10 @@ public class Config extends Test {
   @SuppressWarnings("deprecation")
   final Property TSERV_WORKQ_THREADS_deprecated = Property.TSERV_WORKQ_THREADS;
 
+  @SuppressWarnings("deprecation")
+  final Property TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN_deprecated =
+      Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN;
+
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
@@ -90,7 +94,7 @@ public class Config extends Test {
 			s(Property.TSERV_MINTHREADS, 1, 100),
 			s(Property.TSERV_SESSION_MAXIDLE, 100, 5 * 60 * 1000),
 			s(Property.TSERV_WAL_SORT_BUFFER_SIZE, 1024 * 1024, 1024 * 1024 * 1024L),
-			s(Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN, 5, 100),
+			s(TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN_deprecated, 5, 100),
 			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,1024 * 1024 * 1024 * 10L),
 			s(TSERV_WORKQ_THREADS_deprecated, 1, 10),
 			s(Property.MANAGER_BULK_TIMEOUT, 10, 600),
