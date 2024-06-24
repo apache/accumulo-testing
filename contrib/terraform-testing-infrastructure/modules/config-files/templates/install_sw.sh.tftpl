@@ -154,6 +154,48 @@ else
 fi
 
 #
+# Install Telegraf
+# (doing this in cloud-init puts it over the size limit)
+#
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
+sudo cp ${software_root}/conf/telegraf.repo /etc/yum.repos.d/.
+sudo yum clean all
+sudo yum install -y telegraf
+pdcp -g worker ${software_root}/conf/telegraf.repo /tmp/.
+pdsh -S -g worker sudo mv /tmp/telegraf.repo /etc/yum.repos.d/.
+pdsh -S -g worker sudo yum clean all
+pdsh -S -g worker sudo yum install -y telegraf
+%{ endif ~}
+%{ if os_distro == "ubuntu" ~}
+wget https://repos.influxdata.com/influxdata-archive.key
+echo '943666881a1b8d9b849b74caebf02d3465d6beb716510d86a39f6c8e8dac7515 influxdata-archive.key' | sha256sum -c && cat influxdata-archive.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive.gpg > /dev/null
+echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+sudo apt-get install telegraf
+pdcp -g worker /etc/apt/trusted.gpg.d/influxdata-archive.gpg /tmp/.
+pdcp -g worker /etc/apt/sources.list.d/influxdata.list /tmp/.
+pdsh -S -g worker sudo mv /tmp/influxdata-archive.gpg  /etc/apt/trusted.gpg.d/influxdata-archive.gpg
+pdsh -S -g worker sudo mv /tmp/influxdata.list /etc/apt/sources.list.d/influxdata.list
+pdsh -S -g worker sudo apt-get install telegraf
+%{ endif ~}
+
+
+#
+# Build the timely-grafana Docker image
+#
+%{ if os_distro == "centos" || os_distro == "rhel" ~}
+sudo yum install -y docker-ce docker-ce-cli containerd.io --enablerepo=docker
+%{ endif ~}
+%{ if os_distro == "ubuntu" ~}
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+%{ endif ~}
+sudo systemctl enable docker
+sudo systemctl start docker
+
+cd $SOURCES_DIR/accumulo-testing-repo/contrib/terraform-testing-infrastructure/timely-grafana
+./build-image.sh
+cp build_output/lib-accumulo/timely*.jar ${software_root}/accumulo/accumulo-${accumulo_version}/lib/.
+
+#
 # Copy the configuration files to the correct places
 #
 cp ${software_root}/conf/zoo.cfg ${software_root}/zookeeper/apache-zookeeper-${zookeeper_version}-bin/conf/zoo.cfg
@@ -163,8 +205,6 @@ cp ${software_root}/conf/yarn-site.xml ${software_root}/hadoop/hadoop-${hadoop_v
 cp ${software_root}/conf/cluster.yaml ${software_root}/accumulo/accumulo-${accumulo_version}/conf/cluster.yaml
 cp ${software_root}/conf/accumulo.properties ${software_root}/accumulo/accumulo-${accumulo_version}/conf/accumulo.properties
 cp ${software_root}/conf/accumulo-client.properties ${software_root}/accumulo/accumulo-${accumulo_version}/conf/accumulo-client.properties
-mkdir -p ${software_root}/telegraf/conf
-cp ${software_root}/conf/telegraf.conf ${software_root}/telegraf/conf/.
 
 # Update configuration properties for accumulo-testing
 defaultFS=$(hdfs getconf -confKey fs.defaultFS)
@@ -174,10 +214,8 @@ sed -ri "s|^test.common.yarn.resource.manager=.*$|test.common.yarn.resource.mana
 #
 # Make directories that will be needed for metrics collection
 #
-sudo mkdir -p /data/metrics/influxdb
 sudo mkdir -p /data/metrics/grafana
 sudo chown -R hadoop.hadoop /data/metrics
-sudo chmod 777 /data/metrics/influxdb
 
 # Sync the software root dir to all of the worker nodes, but exclude accumulo source, maven, and conf dirs.
 echo "Sycing ${software_root} to worker nodes..."

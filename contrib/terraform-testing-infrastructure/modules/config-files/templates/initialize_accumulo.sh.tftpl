@@ -26,22 +26,25 @@ if [ $# -ne 2 ]; then
 fi
 
 #
+# Start Telegraf on all nodes
+#
+sudo cp ${software_root}/conf/telegraf.conf /etc/telegraf/telegraf.conf
+sudo systemctl enable telegraf
+sudo systemctl start telegraf
+
+pdcp -g worker ${software_root}/conf/telegraf.conf /tmp/.
+pdsh -S -g worker "sudo cp /tmp/telegraf.conf /etc/telegraf/telegraf.conf && rm -f /tmp/telegraf.conf"
+pdsh -S -g worker sudo systemctl enable telegraf
+pdsh -S -g worker sudo systemctl start telegraf
+
+#
 # Initialize Accumulo with the supplied instance name and root user password
 #
 accumulo init --instance-name "$1" --password "$2"
 
 #
-# Launch jaegertracing and telegraf containers
+# Launch jaegertracing and Timely-Grafana containers
 #
-%{ if os_distro == "centos" || os_distro == "rhel" ~}
-sudo yum install -y docker-ce docker-ce-cli containerd.io --enablerepo=docker
-%{ endif ~}
-%{ if os_distro == "ubuntu" ~}
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-%{ endif ~}
-sudo systemctl enable docker
-sudo systemctl start docker
-
 docker run -d --name jaeger \
     --restart always \
     -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \
@@ -51,22 +54,24 @@ docker run -d --name jaeger \
     -p 14250:14250 -p 9411:9411 \
     jaegertracing/all-in-one:1.29
 
-docker run --ulimit nofile=66000:66000 -d \
-    --restart always \
-    --name tig-stack \
-    -p 3003:3003 \
-    -p 3004:8888 \
-    -p 8086:8086 \
-    -p 22022:22 \
-    -p 8125:8125/udp \
-    -v /data/metrics/influxdb:/var/lib/influxdb \
-    -v /data/metrics/grafana:/var/lib/grafana \
-    -v ${software_root}/telegraf/conf:/etc/telegraf \
-    -v ${software_root}/grafana/dashboards:/etc/grafana/provisioning/dashboards \
-    artlov/docker-telegraf-influxdb-grafana:latest
-
 #
 # Start the Accumulo cluster
 # accumulo-cluster start doesn't return a proper error code, so make it true here so the script doesn't fail.
 #
 accumulo-cluster start || true
+
+#
+# Start Timely
+#
+docker run -d \
+    -p 3000:3000/tcp \
+    -p 4242:4242/tcp \
+    -p 4243:4243/tcp \
+    -p 4244:4244/tcp \
+    -p 4245:4245/udp \
+    -v ${software_root}/conf/grafana.ini:/etc/grafana/grafana.ini:ro \
+    -v ${software_root}/grafana/dashboards:/etc/grafana/provisioning/dashboards \
+    -v ${software_root}/conf/timely.yaml:/etc/grafana/provisioning/datasources/timely.yaml \
+    -v ${software_root}/conf/timely-server-env.sh:/opt/timely/bin/timely-server-env.sh:ro \
+    --name="timely-grafana-stack" timely-grafana
+
