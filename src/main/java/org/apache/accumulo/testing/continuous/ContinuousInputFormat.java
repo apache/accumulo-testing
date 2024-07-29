@@ -143,6 +143,7 @@ public class ContinuousInputFormat extends InputFormat<Key,Value> {
 
         byte[] fam = genCol(random.nextInt(maxFam));
         byte[] qual = genCol(random.nextInt(maxQual));
+        @SuppressWarnings("deprecation")
         byte[] cv = visibilities.get(random.nextInt(visibilities.size())).flatten();
 
         if (cksum != null) {
