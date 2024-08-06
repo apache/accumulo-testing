@@ -220,7 +220,8 @@ public class YieldingScanExecutorPT implements PerformanceTest {
     TestExecutor<Long> longScans = new TestExecutor<>(NUM_LONG_SCANS);
 
     for (int i = 0; i < NUM_LONG_SCANS; i++) {
-      longScans.submit(() -> scan(tableName, env.getClient(), stop, fpi.next()));
+      final var client = env.getClient();
+      longScans.submit(() -> scan(tableName, client, stop, fpi.next()));
     }
     return longScans;
   }
