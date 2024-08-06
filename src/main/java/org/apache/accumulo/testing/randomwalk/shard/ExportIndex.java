@@ -123,6 +123,8 @@ public class ExportIndex extends Test {
   private static HashMap<String,String> getPropsFromTable(String tableName, RandWalkEnv env)
       throws AccumuloException, TableNotFoundException {
     return new HashMap<>() {
+      private static final long serialVersionUID = 1L;
+
       {
         for (var entry : env.getAccumuloClient().tableOperations().getProperties(tableName))
           put(entry.getKey(), entry.getValue());
