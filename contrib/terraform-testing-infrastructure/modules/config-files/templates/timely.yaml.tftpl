@@ -1,0 +1,22 @@
+# config file version
+apiVersion: 1
+
+# list of datasources to insert/update depending
+# on what's available in the database
+datasources:
+  - name: Timely
+    type: nsa-timely-datasource
+    isDefault: true
+    orgId: 1
+    access: proxy
+    url:
+    user:
+    password:
+    database:
+    basicAuth: false
+    jsonData:
+      allowInsecureSsl: true
+      httpsPort: '4243'
+      timelyHost: ${manager_ip}
+    editable: true
+
