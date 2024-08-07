@@ -66,9 +66,6 @@ public class Config extends Test {
       Property.TSERV_COMPACTION_SERVICE_DEFAULT_EXECUTORS;
 
   @SuppressWarnings("deprecation")
-  final Property TSERV_WORKQ_THREADS_deprecated = Property.TSERV_WORKQ_THREADS;
-
-  @SuppressWarnings("deprecation")
   final Property TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN_deprecated =
       Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN;
 
@@ -96,7 +93,6 @@ public class Config extends Test {
 			s(Property.TSERV_WAL_SORT_BUFFER_SIZE, 1024 * 1024, 1024 * 1024 * 1024L),
 			s(TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN_deprecated, 5, 100),
 			s(Property.TSERV_WAL_BLOCKSIZE, 1024 * 1024,1024 * 1024 * 1024 * 10L),
-			s(TSERV_WORKQ_THREADS_deprecated, 1, 10),
 			s(Property.MANAGER_BULK_TIMEOUT, 10, 600),
 			s(Property.MANAGER_FATE_THREADPOOL_SIZE, 1, 100),
 			s(Property.MANAGER_RECOVERY_DELAY, 0, 100),
