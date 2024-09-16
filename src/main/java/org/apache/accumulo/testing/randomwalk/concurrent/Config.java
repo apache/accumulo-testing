@@ -69,6 +69,9 @@ public class Config extends Test {
   final Property TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN_deprecated =
       Property.TSERV_TABLET_SPLIT_FINDMIDPOINT_MAXOPEN;
 
+  @SuppressWarnings("deprecation")
+  final Property TABLE_MINC_COMPACT_IDLETIME_deprecated = Property.TABLE_MINC_COMPACT_IDLETIME;
+
   // @formatter:off
   final Setting[] settings = {
 			s(Property.TSERV_BLOOM_LOAD_MAXCONCURRENT, 1, 10),
@@ -103,7 +106,7 @@ public class Config extends Test {
     final Setting[] tableSettings = {
 			s(Property.TABLE_MAJC_RATIO, 1, 10),
 			s(Property.TABLE_SPLIT_THRESHOLD, 10 * 1024, 10L * 1024 * 1024 * 1024),
-			s(Property.TABLE_MINC_COMPACT_IDLETIME, 100, 100 * 60 * 60 * 1000L),
+			s(TABLE_MINC_COMPACT_IDLETIME_deprecated, 100, 100 * 60 * 60 * 1000L),
 			s(Property.TABLE_SCAN_MAXMEM, 10 * 1024, 10 * 1024 * 1024),
 			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE, 10 * 1024, 10 * 1024 * 1024L),
 			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE_INDEX, 10 * 1024, 10 * 1024 * 1024L),
