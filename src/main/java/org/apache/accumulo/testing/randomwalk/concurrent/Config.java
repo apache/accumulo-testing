@@ -87,7 +87,6 @@ public class Config extends Test {
     final Setting[] tableSettings = {
 			s(Property.TABLE_MAJC_RATIO, 1, 10),
 			s(Property.TABLE_SPLIT_THRESHOLD, 10 * 1024, 10L * 1024 * 1024 * 1024),
-			s(Property.TABLE_MINC_COMPACT_IDLETIME, 100, 100 * 60 * 60 * 1000L),
 			s(Property.TABLE_SCAN_MAXMEM, 10 * 1024, 10 * 1024 * 1024),
 			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE, 10 * 1024, 10 * 1024 * 1024L),
 			s(Property.TABLE_FILE_COMPRESSED_BLOCK_SIZE_INDEX, 10 * 1024, 10 * 1024 * 1024L),
