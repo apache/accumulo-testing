@@ -30,7 +30,7 @@ using the OpenTSDB output plugin.
 
 ## Deployment
 
-1. Run `build-image.sh`, after this runs the timely jar files will be copied out
+1. Run `build-image.sh`, after this runs, the timely jar files will be copied out
    of the Docker image and put into the `build_output` directory.
 2. Copy the timely jar files from the `build_output` directory to `$ACCUMULO_HOME/lib`
 3. Add the following to `accumulo.properties':
