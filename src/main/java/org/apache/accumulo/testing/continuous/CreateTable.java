@@ -108,6 +108,9 @@ public class CreateTable {
     String[] propArray = env.getTestProperty(propType).split(" ");
     Map<String,String> propMap = new HashMap<>();
     for (String prop : propArray) {
+      if (prop.isBlank()) {
+        continue;
+      }
       log.debug("prop: {}", prop);
       String[] kv = prop.split("=");
       propMap.put(kv[0], kv[1]);
