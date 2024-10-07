@@ -33,7 +33,7 @@ sudo systemctl enable telegraf
 sudo systemctl start telegraf
 
 pdcp -g worker ${software_root}/conf/telegraf.conf /tmp/.
-pdsh -S -g worker "sudo cp /tmp/telegraf.conf /etc/telegraf/telegraf.conf && rm -f /tmp/telegraf.conf"
+pdsh -S -g worker sudo mv /tmp/telegraf.conf /etc/telegraf/telegraf.conf
 pdsh -S -g worker sudo systemctl enable telegraf
 pdsh -S -g worker sudo systemctl start telegraf
 
