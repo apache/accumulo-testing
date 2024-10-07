@@ -150,7 +150,7 @@ else
   git clone ${accumulo_testing_repo} accumulo-testing-repo
   cd accumulo-testing-repo
   git checkout ${accumulo_testing_branch_name}
-  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean package -DskipTests -DskipITs
+  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean package -DskipTests -DskipITs -Daccumulo.version=${accumulo_version}
 fi
 
 #
