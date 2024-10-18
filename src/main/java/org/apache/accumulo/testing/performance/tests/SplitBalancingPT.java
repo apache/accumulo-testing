@@ -25,6 +25,7 @@ import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.AccumuloClient;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.admin.servers.ServerId;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -60,7 +61,8 @@ public class SplitBalancingPT implements PerformanceTest {
     client.tableOperations().addSplits(TABLE_NAME, getSplits());
     client.instanceOperations().waitForBalance();
 
-    int totalTabletServers = client.instanceOperations().getTabletServers().size();
+    int totalTabletServers =
+        client.instanceOperations().getServers(ServerId.Type.TABLET_SERVER).size();
     int expectedAllocation = NUM_SPLITS / totalTabletServers;
     int min = expectedAllocation - MARGIN;
     int max = expectedAllocation + MARGIN;
