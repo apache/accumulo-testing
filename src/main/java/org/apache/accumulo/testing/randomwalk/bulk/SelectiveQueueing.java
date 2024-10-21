@@ -21,7 +21,6 @@ package org.apache.accumulo.testing.randomwalk.bulk;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.accumulo.core.client.AccumuloClient;
-import org.apache.accumulo.core.client.admin.servers.ServerId;
 import org.apache.accumulo.testing.randomwalk.RandWalkEnv;
 import org.apache.accumulo.testing.randomwalk.State;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public class SelectiveQueueing {
     final ThreadPoolExecutor pool = (ThreadPoolExecutor) state.get("pool");
     long queuedThreads = pool.getTaskCount() - pool.getActiveCount() - pool.getCompletedTaskCount();
     final AccumuloClient client = env.getAccumuloClient();
-    int numTservers = client.instanceOperations().getServers(ServerId.Type.TABLET_SERVER).size();
+    int numTservers = client.instanceOperations().getTabletServers().size();
 
     if (!shouldQueue(queuedThreads, numTservers)) {
       log.info("Not queueing because of " + queuedThreads + " outstanding tasks");
