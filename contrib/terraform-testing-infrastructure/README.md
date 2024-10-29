@@ -406,7 +406,8 @@ following components will run on the `manager` node:
 - Apache Accumulo CompactionCoordinator
 - Docker
 - Jaeger Tracing Docker Container
-- Telegraf/InfluxDB/Grafana Docker Container
+- Timely / Grafana Docker Container
+- Telegraf
 
 The following components will run on the `worker` nodes:
 
@@ -415,6 +416,7 @@ The following components will run on the `worker` nodes:
 - Apache Accumulo TabletServer
 - Apache Accumulo Compactor(s)
 - Apache Accumulo Scan Server(s)
+- Telegraf
 
 ### Logs
 
