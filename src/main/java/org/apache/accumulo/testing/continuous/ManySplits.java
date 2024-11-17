@@ -45,6 +45,7 @@ import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.TableId;
 import org.apache.accumulo.testing.TestProps;
+import org.apache.accumulo.testing.continuous.ContinuousIngest.RandomGeneratorFactory;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +109,10 @@ public class ManySplits {
           Map.of());
 
       log.info("Ingesting {} entries into first table, {}.", initialData, firstTable);
-      ContinuousIngest.doIngest(client, rowMin, rowMax, firstTable, testProps, maxColF, maxColQ,
-          initialData, false, random);
+      var randomFactory = RandomGeneratorFactory.create(env, client, random);
+      var batchWriterFactory = ContinuousIngest.BatchWriterFactory.create(client, env);
+      ContinuousIngest.doIngest(client, randomFactory, batchWriterFactory, firstTable, testProps,
+          maxColF, maxColQ, initialData, false, random);
 
       client.tableOperations().flush(firstTable);
 

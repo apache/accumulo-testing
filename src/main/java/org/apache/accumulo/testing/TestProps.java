@@ -106,6 +106,14 @@ public class TestProps {
   // The probability (between 0.0 and 1.0) that a set of entries will be deleted during continuous
   // ingest
   public static final String CI_INGEST_DELETE_PROBABILITY = CI_INGEST + "delete.probability";
+  // The max number of tablets that will be written to between flushes of the batch writer. Randomly
+  // selects the tablets when starting a new flush iteration.
+  public static final String CI_INGEST_MAX_TABLETS = CI_INGEST + "max.tablets";
+  // If set to a path in hdfs will use bulk import instead of batch writer to ingest data
+  public static final String CI_INGEST_BULK_WORK_DIR = CI_INGEST + "bulk.workdir";
+  // When using bulk import to ingest data this determines how much memory can be used to buffer
+  // mutations before creating rfiles and importing them.
+  public static final String CI_INGEST_BULK_MEM_LIMIT = CI_INGEST + "bulk.memory.limit";
 
   /** Batch Walker **/
   // Sleep time between batch scans (in ms)
