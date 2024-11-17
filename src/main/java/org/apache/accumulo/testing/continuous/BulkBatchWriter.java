@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 
 public class BulkBatchWriter implements BatchWriter {
 
@@ -61,21 +59,13 @@ public class BulkBatchWriter implements BatchWriter {
   private boolean closed = false;
 
   public BulkBatchWriter(AccumuloClient client, String tableName, FileSystem fileSystem,
-      Path workPath, long memLimit) {
+      Path workPath, long memLimit, Supplier<SortedSet<Text>> splitSupplier) {
     this.client = client;
     this.tableName = tableName;
     this.fileSystem = fileSystem;
     this.workPath = workPath;
     this.memLimit = memLimit;
-    this.splitSupplier = Suppliers.memoizeWithExpiration(() -> {
-      try {
-        var splits = client.tableOperations().listSplits(tableName);
-        return new TreeSet<>(splits);
-      } catch (Exception e) {
-        throw new IllegalStateException(e);
-      }
-
-    }, 10, TimeUnit.MINUTES);
+    this.splitSupplier = splitSupplier;
   }
 
   @Override

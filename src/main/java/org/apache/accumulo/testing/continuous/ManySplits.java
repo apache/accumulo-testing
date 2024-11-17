@@ -109,8 +109,10 @@ public class ManySplits {
           Map.of());
 
       log.info("Ingesting {} entries into first table, {}.", initialData, firstTable);
-      var randomFactory = RandomGeneratorFactory.create(env, client, random);
-      var batchWriterFactory = ContinuousIngest.BatchWriterFactory.create(client, env);
+      var splitSupplier = ContinuousIngest.createSplitSupplier(client, firstTable);
+      var randomFactory = RandomGeneratorFactory.create(env, client, splitSupplier, random);
+      var batchWriterFactory =
+          ContinuousIngest.BatchWriterFactory.create(client, env, splitSupplier);
       ContinuousIngest.doIngest(client, randomFactory, batchWriterFactory, firstTable, testProps,
           maxColF, maxColQ, initialData, false, random);
 

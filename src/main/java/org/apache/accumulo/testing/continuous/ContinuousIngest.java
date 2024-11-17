@@ -75,7 +75,8 @@ public class ContinuousIngest {
   private static RandomDataGenerator rnd;
 
   public interface RandomGeneratorFactory extends Supplier<LongSupplier> {
-    static RandomGeneratorFactory create(ContinuousEnv env, AccumuloClient client, Random random) {
+    static RandomGeneratorFactory create(ContinuousEnv env, AccumuloClient client,
+        Supplier<SortedSet<Text>> splitSupplier, Random random) {
       final long rowMin = env.getRowMin();
       final long rowMax = env.getRowMax();
       Properties testProps = env.getTestProperties();
@@ -86,15 +87,6 @@ public class ContinuousIngest {
         return new MinMaxRandomGeneratorFactory(rowMin, rowMax, random);
       } else {
         var tableName = env.getAccumuloTableName();
-        Supplier<SortedSet<Text>> splitSupplier = Suppliers.memoizeWithExpiration(() -> {
-          try {
-            var splits = client.tableOperations().listSplits(tableName);
-            return new TreeSet<>(splits);
-          } catch (Exception e) {
-            throw new IllegalStateException(e);
-          }
-
-        }, 10, TimeUnit.MINUTES);
         return new MaxTabletsRandomGeneratorFactory(rowMin, rowMax, maxTablets, splitSupplier,
             random);
       }
@@ -142,7 +134,7 @@ public class ContinuousIngest {
     public LongSupplier get() {
       var splits = splitSupplier.get();
       if (splits.size() < maxTablets) {
-        // There are less tablets so generate within the tablet range
+        // There are less tablets so generate within the entire range
         return new MinMaxRandomGeneratorFactory(minRow, maxRow, random).get();
       } else {
         long prev = minRow;
@@ -186,7 +178,8 @@ public class ContinuousIngest {
   public interface BatchWriterFactory {
     BatchWriter create(String tableName) throws TableNotFoundException;
 
-    static BatchWriterFactory create(AccumuloClient client, ContinuousEnv env) {
+    static BatchWriterFactory create(AccumuloClient client, ContinuousEnv env,
+        Supplier<SortedSet<Text>> splitSupplier) {
       Properties testProps = env.getTestProperties();
       final String bulkWorkDir = testProps.getProperty(TestProps.CI_INGEST_BULK_WORK_DIR);
       if (bulkWorkDir == null || bulkWorkDir.isBlank()) {
@@ -197,7 +190,8 @@ public class ContinuousIngest {
           var workDir = new Path(bulkWorkDir);
           var filesystem = workDir.getFileSystem(conf);
           var memLimit = Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_BULK_MEM_LIMIT));
-          return tableName -> new BulkBatchWriter(client, tableName, filesystem, workDir, memLimit);
+          return tableName -> new BulkBatchWriter(client, tableName, filesystem, workDir, memLimit,
+              splitSupplier);
         } catch (IOException e) {
           throw new UncheckedIOException(e);
         }
@@ -247,6 +241,20 @@ public class ContinuousIngest {
     }
   }
 
+  static Supplier<SortedSet<Text>> createSplitSupplier(AccumuloClient client, String tableName) {
+
+    Supplier<SortedSet<Text>> splitSupplier = Suppliers.memoizeWithExpiration(() -> {
+      try {
+        var splits = client.tableOperations().listSplits(tableName);
+        return new TreeSet<>(splits);
+      } catch (Exception e) {
+        throw new IllegalStateException(e);
+      }
+
+    }, 10, TimeUnit.MINUTES);
+    return splitSupplier;
+  }
+
   public static void main(String[] args) throws Exception {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
@@ -263,8 +271,9 @@ public class ContinuousIngest {
       final boolean checksum =
           Boolean.parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
 
-      var randomFactory = RandomGeneratorFactory.create(env, client, random);
-      var batchWriterFactory = BatchWriterFactory.create(client, env);
+      var splitSupplier = createSplitSupplier(client, tableName);
+      var randomFactory = RandomGeneratorFactory.create(env, client, splitSupplier, random);
+      var batchWriterFactory = BatchWriterFactory.create(client, env, splitSupplier);
       doIngest(client, randomFactory, batchWriterFactory, tableName, testProps, maxColF, maxColQ,
           numEntries, checksum, random);
     }
