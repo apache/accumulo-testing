@@ -19,7 +19,6 @@
 package org.apache.accumulo.testing.continuous;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -42,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
+import com.google.common.primitives.UnsignedBytes;
 
 public class BulkBatchWriter implements BatchWriter {
 
@@ -94,9 +94,11 @@ public class BulkBatchWriter implements BatchWriter {
     try {
       var splits = splitSupplier.get();
 
+      var comparator = UnsignedBytes.lexicographicalComparator();
+
       Path tmpDir = new Path(workPath, UUID.randomUUID().toString());
       fileSystem.mkdirs(tmpDir);
-      mutations.sort((m1, m2) -> Arrays.compare(m1.getRow(), m2.getRow()));
+      mutations.sort((m1, m2) -> comparator.compare(m1.getRow(), m2.getRow()));
 
       RFileWriter writer = null;
       byte[] currEndRow = null;
@@ -106,7 +108,7 @@ public class BulkBatchWriter implements BatchWriter {
 
       for (var mutation : mutations) {
         if (writer == null
-            || (currEndRow != null && Arrays.compare(mutation.getRow(), currEndRow) > 0)) {
+            || (currEndRow != null && comparator.compare(mutation.getRow(), currEndRow) > 0)) {
           if (writer != null) {
             writer.close();
           }
