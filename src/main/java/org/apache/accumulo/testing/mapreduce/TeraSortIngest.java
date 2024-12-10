@@ -30,6 +30,7 @@ import java.util.Random;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
 import org.apache.accumulo.testing.TestEnv;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configuration;
@@ -374,7 +375,9 @@ public class TeraSortIngest extends Configured implements Tool {
       String tableName = testProps.getProperty(TestProps.TERASORT_TABLE);
       Objects.requireNonNull(tableName);
 
-      AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+      Properties clientProps = KerberosHelper.configDelegationToken(env);
+
+      AccumuloOutputFormat.configure().clientProperties(clientProps).createTables(true)
           .defaultTable(tableName).store(job);
 
       Configuration conf = job.getConfiguration();
