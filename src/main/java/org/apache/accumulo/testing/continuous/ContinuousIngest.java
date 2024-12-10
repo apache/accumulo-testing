@@ -78,7 +78,6 @@ public class ContinuousIngest {
       if (maxTablets == Integer.MAX_VALUE) {
         return new MinMaxRandomGeneratorFactory(rowMin, rowMax, random);
       } else {
-        var tableName = env.getAccumuloTableName();
         return new MaxTabletsRandomGeneratorFactory(rowMin, rowMax, maxTablets, splitSupplier,
             random);
       }
