@@ -28,6 +28,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -58,10 +60,13 @@ public class CopyTool extends Configured implements Tool {
       return 1;
     }
 
-    Properties props = Accumulo.newClientProperties().from(args[0]).build();
     job.setInputFormatClass(AccumuloInputFormat.class);
 
-    AccumuloInputFormat.configure().clientProperties(props).table(args[1])
+    Properties clientProps = Accumulo.newClientProperties().from(args[0]).build();
+    KerberosHelper.saslLogin(clientProps, new Configuration(false));
+    clientProps = KerberosHelper.configDelegationToken(clientProps);
+
+    AccumuloInputFormat.configure().clientProperties(clientProps).table(args[1])
         .auths(Authorizations.EMPTY).store(job);
 
     job.setMapperClass(SeqMapClass.class);
@@ -71,7 +76,7 @@ public class CopyTool extends Configured implements Tool {
     job.getConfiguration().set("mapreduce.job.classloader", "true");
 
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    AccumuloOutputFormat.configure().clientProperties(props).createTables(true)
+    AccumuloOutputFormat.configure().clientProperties(clientProps).createTables(true)
         .defaultTable(args[2]).store(job);
 
     job.waitForCompletion(true);
