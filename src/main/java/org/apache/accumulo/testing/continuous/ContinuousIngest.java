@@ -43,6 +43,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.accumulo.testing.util.FastFormat;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -66,6 +67,13 @@ public class ContinuousIngest {
   private static int pauseMin;
   private static int pauseMax;
 
+  private static boolean zipfianEnabled;
+  private static int minSize;
+  private static int maxSize;
+  private static double exponent;
+
+  private static RandomDataGenerator rnd;
+
   public interface RandomGeneratorFactory extends Supplier<LongSupplier> {
     static RandomGeneratorFactory create(ContinuousEnv env, AccumuloClient client,
         Supplier<SortedSet<Text>> splitSupplier, Random random) {
@@ -78,7 +86,6 @@ public class ContinuousIngest {
       if (maxTablets == Integer.MAX_VALUE) {
         return new MinMaxRandomGeneratorFactory(rowMin, rowMax, random);
       } else {
-        var tableName = env.getAccumuloTableName();
         return new MaxTabletsRandomGeneratorFactory(rowMin, rowMax, maxTablets, splitSupplier,
             random);
       }
@@ -322,6 +329,19 @@ public class ContinuousIngest {
         String.format("%.02f", deleteProbability));
 
     try (BatchWriter bw = batchWriterFactory.create(tableName)) {
+      zipfianEnabled =
+          Boolean.parseBoolean(testProps.getProperty("test.ci.ingest.zipfian.enabled"));
+
+      if (zipfianEnabled) {
+        minSize = Integer.parseInt(testProps.getProperty("test.ci.ingest.zipfian.min.size"));
+        maxSize = Integer.parseInt(testProps.getProperty("test.ci.ingest.zipfian.max.size"));
+        exponent = Double.parseDouble(testProps.getProperty("test.ci.ingest.zipfian.exponent"));
+        rnd = new RandomDataGenerator();
+
+        log.info("Zipfian distribution enabled with min size: {}, max size: {}, exponent: {}",
+            minSize, maxSize, exponent);
+      }
+
       out: while (true) {
         ColumnVisibility cv = getVisibility(random);
 
@@ -470,18 +490,37 @@ public class ContinuousIngest {
 
   public static byte[] createValue(byte[] ingestInstanceId, long entriesWritten, byte[] prevRow,
       Checksum cksum) {
-    int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
+    final int numOfSeparators = 4;
+    int dataLen =
+        ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + numOfSeparators;
     if (cksum != null)
       dataLen += 8;
+
+    int zipfLength = 0;
+    if (zipfianEnabled) {
+      // add the length of the zipfian data to the value
+      int range = maxSize - minSize;
+      zipfLength = rnd.nextZipf(range, exponent) + minSize;
+      dataLen += zipfLength;
+    }
+
     byte[] val = new byte[dataLen];
+
+    // add the ingest instance id to the value
     System.arraycopy(ingestInstanceId, 0, val, 0, ingestInstanceId.length);
     int index = ingestInstanceId.length;
+
     val[index++] = ':';
+
+    // add the count of entries written to the value
     int added = FastFormat.toZeroPaddedString(val, index, entriesWritten, 16, 16, EMPTY_BYTES);
     if (added != 16)
       throw new RuntimeException(" " + added);
     index += 16;
+
     val[index++] = ':';
+
+    // add the previous row to the value
     if (prevRow != null) {
       System.arraycopy(prevRow, 0, val, index, prevRow.length);
       index += prevRow.length;
@@ -489,6 +528,16 @@ public class ContinuousIngest {
 
     val[index++] = ':';
 
+    if (zipfianEnabled) {
+      // add random data to the value of length zipfLength
+      for (int i = 0; i < zipfLength; i++) {
+        val[index++] = (byte) rnd.nextInt(0, 256);
+      }
+
+      val[index++] = ':';
+    }
+
+    // add the checksum to the value
     if (cksum != null) {
       cksum.update(val, 0, index);
       cksum.getValue();
