@@ -20,6 +20,7 @@ package org.apache.accumulo.testing.continuous;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
@@ -45,11 +46,15 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
-import com.google.common.primitives.UnsignedBytes;
 
-public class BulkBatchWriter implements BatchWriter {
+/**
+ * BatchWriter that bulk imports in its implementation. The implementation contains a bug that was
+ * found to be useful for testing Accumulo. The bug was left and this class was renamed to add Flaky
+ * to indicate its danger for other uses.
+ */
+public class FlakyBulkBatchWriter implements BatchWriter {
 
-  private static final Logger log = LoggerFactory.getLogger(BulkBatchWriter.class);
+  private static final Logger log = LoggerFactory.getLogger(FlakyBulkBatchWriter.class);
 
   private final Deque<Mutation> mutations = new ArrayDeque<>();
   private final AccumuloClient client;
@@ -62,7 +67,7 @@ public class BulkBatchWriter implements BatchWriter {
   private long memUsed;
   private boolean closed = false;
 
-  public BulkBatchWriter(AccumuloClient client, String tableName, FileSystem fileSystem,
+  public FlakyBulkBatchWriter(AccumuloClient client, String tableName, FileSystem fileSystem,
       Path workPath, long memLimit, Supplier<SortedSet<Text>> splitSupplier) {
     this.client = client;
     this.tableName = tableName;
@@ -98,8 +103,6 @@ public class BulkBatchWriter implements BatchWriter {
     try {
       var splits = splitSupplier.get();
 
-      var comparator = UnsignedBytes.lexicographicalComparator();
-
       Path tmpDir = new Path(workPath, UUID.randomUUID().toString());
       fileSystem.mkdirs(tmpDir);
 
@@ -121,14 +124,24 @@ public class BulkBatchWriter implements BatchWriter {
         }
       }
 
-      Comparator<KeyValue> kvComparator = (kv1, kv2) -> kv1.getKey().compareTo(kv2.getKey());
-      keysValues.sort(kvComparator);
+      keysValues.sort(Map.Entry.comparingByKey());
 
       RFileWriter writer = null;
       byte[] currEndRow = null;
       int nextFileNameCounter = 0;
 
       var loadPlanBuilder = LoadPlan.builder();
+
+      // This code is broken because Arrays.compare will compare bytes as signed integers. Accumulo
+      // treats bytes as unsigned 8 bit integers for sorting purposes. This incorrect comparator
+      // causes this code to sometimes prematurely close rfiles, which can lead to lots of files
+      // being bulk imported into a single tablet. The files still go to the correct tablet, so this
+      // does not cause data loss. This bug was found to be useful in testing as it introduces
+      // stress on bulk import+compactions and it was decided to keep this bug. If copying this code
+      // elsewhere then this bug should probably be fixed.
+      Comparator<byte[]> comparator = Arrays::compare;
+      // To fix the code above it should be replaced with the following
+      // Comparator<byte[]> comparator = UnsignedBytes.lexicographicalComparator();
 
       for (var keyValue : keysValues) {
         var key = keyValue.getKey();
@@ -138,6 +151,11 @@ public class BulkBatchWriter implements BatchWriter {
             writer.close();
           }
 
+          // When the above code prematurely closes a rfile because of the incorrect comparator, the
+          // following code will find a new Tablet. Since the following code uses the Text
+          // comparator its comparisons are correct and it will just find the same tablet for the
+          // file that was just closed. This is what cause multiple files to added to the same
+          // tablet.
           var row = key.getRow();
           var headSet = splits.headSet(row);
           var tabletPrevRow = headSet.isEmpty() ? null : headSet.last();
