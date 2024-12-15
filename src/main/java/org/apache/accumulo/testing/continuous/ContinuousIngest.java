@@ -189,8 +189,8 @@ public class ContinuousIngest {
           var workDir = new Path(bulkWorkDir);
           var filesystem = workDir.getFileSystem(conf);
           var memLimit = Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_BULK_MEM_LIMIT));
-          return tableName -> new BulkBatchWriter(client, tableName, filesystem, workDir, memLimit,
-              splitSupplier);
+          return tableName -> new FlakyBulkBatchWriter(client, tableName, filesystem, workDir,
+              memLimit, splitSupplier);
         } catch (IOException e) {
           throw new UncheckedIOException(e);
         }
