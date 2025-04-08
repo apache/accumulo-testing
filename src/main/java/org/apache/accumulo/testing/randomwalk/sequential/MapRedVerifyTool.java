@@ -28,6 +28,8 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -91,10 +93,12 @@ public class MapRedVerifyTool extends Configured implements Tool {
       return 1;
     }
 
-    Properties props = Accumulo.newClientProperties().from(args[0]).build();
+    Properties clientProps = Accumulo.newClientProperties().from(args[0]).build();
+    KerberosHelper.saslLogin(clientProps, new Configuration(false));
+    clientProps = KerberosHelper.configDelegationToken(clientProps);
 
-    AccumuloInputFormat.configure().clientProperties(props).table(args[1]).store(job);
-    AccumuloOutputFormat.configure().clientProperties(props).defaultTable(args[2])
+    AccumuloInputFormat.configure().clientProperties(clientProps).table(args[1]).store(job);
+    AccumuloOutputFormat.configure().clientProperties(clientProps).defaultTable(args[2])
         .createTables(true).store(job);
 
     job.setInputFormatClass(AccumuloInputFormat.class);

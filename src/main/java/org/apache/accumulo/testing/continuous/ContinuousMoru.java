@@ -21,6 +21,7 @@ package org.apache.accumulo.testing.continuous;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -32,6 +33,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.testing.KerberosHelper;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -124,14 +126,16 @@ public class ContinuousMoru extends Configured implements Tool {
       Set<Range> ranges = env.getAccumuloClient().tableOperations()
           .splitRangeByTablets(env.getAccumuloTableName(), new Range(), maxMaps);
 
-      AccumuloInputFormat.configure().clientProperties(env.getClientProps())
+      Properties clientProps = KerberosHelper.configDelegationToken(env);
+
+      AccumuloInputFormat.configure().clientProperties(clientProps)
           .table(env.getAccumuloTableName()).ranges(ranges).autoAdjustRanges(false).store(job);
 
       job.setMapperClass(CMapper.class);
       job.setNumReduceTasks(0);
       job.setOutputFormatClass(AccumuloOutputFormat.class);
 
-      AccumuloOutputFormat.configure().clientProperties(env.getClientProps()).createTables(true)
+      AccumuloOutputFormat.configure().clientProperties(clientProps).createTables(true)
           .defaultTable(env.getAccumuloTableName()).store(job);
 
       Configuration conf = job.getConfiguration();

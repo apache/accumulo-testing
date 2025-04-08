@@ -20,13 +20,18 @@ package org.apache.accumulo.testing.continuous;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -38,10 +43,16 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.testing.TestProps;
 import org.apache.accumulo.testing.util.FastFormat;
+import org.apache.commons.math3.random.RandomDataGenerator;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 public class ContinuousIngest {
 
@@ -55,6 +66,137 @@ public class ContinuousIngest {
   private static boolean pauseEnabled;
   private static int pauseMin;
   private static int pauseMax;
+
+  private static boolean zipfianEnabled;
+  private static int minSize;
+  private static int maxSize;
+  private static double exponent;
+
+  private static RandomDataGenerator rnd;
+
+  public interface RandomGeneratorFactory extends Supplier<LongSupplier> {
+    static RandomGeneratorFactory create(ContinuousEnv env, AccumuloClient client,
+        Supplier<SortedSet<Text>> splitSupplier, Random random) {
+      final long rowMin = env.getRowMin();
+      final long rowMax = env.getRowMax();
+      Properties testProps = env.getTestProperties();
+      final int maxTablets =
+          Integer.parseInt(testProps.getProperty(TestProps.CI_INGEST_MAX_TABLETS));
+
+      if (maxTablets == Integer.MAX_VALUE) {
+        return new MinMaxRandomGeneratorFactory(rowMin, rowMax, random);
+      } else {
+        return new MaxTabletsRandomGeneratorFactory(rowMin, rowMax, maxTablets, splitSupplier,
+            random);
+      }
+    }
+  }
+
+  public static class MinMaxRandomGeneratorFactory implements RandomGeneratorFactory {
+    private final LongSupplier generator;
+
+    public MinMaxRandomGeneratorFactory(long rowMin, long rowMax, Random random) {
+      Preconditions.checkState(0 <= rowMin && rowMin <= rowMax,
+          "Bad rowMin/rowMax, must conform to: 0 <= rowMin <= rowMax");
+      generator = () -> ContinuousIngest.genLong(rowMin, rowMax, random);
+    }
+
+    @Override
+    public LongSupplier get() {
+      return generator;
+    }
+  }
+
+  /**
+   * Chooses X random tablets and only generates random rows that fall within those tablets.
+   */
+  public static class MaxTabletsRandomGeneratorFactory implements RandomGeneratorFactory {
+    private final int maxTablets;
+    private final Supplier<SortedSet<Text>> splitSupplier;
+    private final Random random;
+    private final long minRow;
+    private final long maxRow;
+
+    public MaxTabletsRandomGeneratorFactory(long minRow, long maxRow, int maxTablets,
+        Supplier<SortedSet<Text>> splitSupplier, Random random) {
+      // writing to a single tablet does not make much sense because this test it predicated on
+      // having rows in tablets point to rows in other tablet to detect errors
+      Preconditions.checkState(maxTablets > 1, "max tablets config must be > 1");
+      this.maxTablets = maxTablets;
+      this.splitSupplier = splitSupplier;
+      this.random = random;
+      this.minRow = minRow;
+      this.maxRow = maxRow;
+    }
+
+    @Override
+    public LongSupplier get() {
+      var splits = splitSupplier.get();
+      if (splits.size() < maxTablets) {
+        // There are less tablets so generate within the entire range
+        return new MinMaxRandomGeneratorFactory(minRow, maxRow, random).get();
+      } else {
+        long prev = minRow;
+        List<LongSupplier> allGenerators = new ArrayList<>(splits.size() + 1);
+        for (var split : splits) {
+          // splits are derived from inspecting rfile indexes and rfile indexes can shorten rows
+          // introducing non-hex chars so need to handle non-hex chars in the splits
+          // TODO this handling may not be correct, but it will not introduce errors but may cause
+          // writing a small amount of data to an extra tablet.
+          byte[] bytes = split.copyBytes();
+          int len = bytes.length;
+          int last = bytes.length - 1;
+          if (bytes[last] < '0') {
+            len = last;
+          } else if (bytes[last] > '9' && bytes[last] < 'a') {
+            bytes[last] = '9';
+          } else if (bytes[last] > 'f') {
+            bytes[last] = 'f';
+          }
+
+          var splitStr = new String(bytes, 0, len, UTF_8);
+          var splitNum = Long.parseLong(splitStr, 16) << (64 - splitStr.length() * 4);
+          allGenerators.add(new MinMaxRandomGeneratorFactory(prev, splitNum, random).get());
+          prev = splitNum;
+        }
+        allGenerators.add(new MinMaxRandomGeneratorFactory(prev, maxRow, random).get());
+
+        Collections.shuffle(allGenerators, random);
+        var generators = List.copyOf(allGenerators.subList(0, maxTablets));
+
+        return () -> {
+          // pick a generator for random tablet
+          var generator = generators.get(random.nextInt(generators.size()));
+          // pick a random long that falls within that tablet
+          return generator.getAsLong();
+        };
+      }
+    }
+  }
+
+  public interface BatchWriterFactory {
+    BatchWriter create(String tableName) throws TableNotFoundException;
+
+    static BatchWriterFactory create(AccumuloClient client, ContinuousEnv env,
+        Supplier<SortedSet<Text>> splitSupplier) {
+      Properties testProps = env.getTestProperties();
+      final String bulkWorkDir = testProps.getProperty(TestProps.CI_INGEST_BULK_WORK_DIR);
+      if (bulkWorkDir == null || bulkWorkDir.isBlank()) {
+        return client::createBatchWriter;
+      } else {
+        try {
+          var conf = new Configuration();
+          var workDir = new Path(bulkWorkDir);
+          var filesystem = workDir.getFileSystem(conf);
+          var memLimit = Long.parseLong(testProps.getProperty(TestProps.CI_INGEST_BULK_MEM_LIMIT));
+          return tableName -> new FlakyBulkBatchWriter(client, tableName, filesystem, workDir,
+              memLimit, splitSupplier);
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      }
+    }
+  }
 
   private static ColumnVisibility getVisibility(Random rand) {
     return visibilities.get(rand.nextInt(visibilities.size()));
@@ -98,14 +240,26 @@ public class ContinuousIngest {
     }
   }
 
+  static Supplier<SortedSet<Text>> createSplitSupplier(AccumuloClient client, String tableName) {
+
+    Supplier<SortedSet<Text>> splitSupplier = Suppliers.memoizeWithExpiration(() -> {
+      try {
+        var splits = client.tableOperations().listSplits(tableName);
+        return new TreeSet<>(splits);
+      } catch (Exception e) {
+        throw new IllegalStateException(e);
+      }
+
+    }, 10, TimeUnit.MINUTES);
+    return splitSupplier;
+  }
+
   public static void main(String[] args) throws Exception {
 
     try (ContinuousEnv env = new ContinuousEnv(args)) {
 
       AccumuloClient client = env.getAccumuloClient();
 
-      final long rowMin = env.getRowMin();
-      final long rowMax = env.getRowMax();
       String tableName = env.getAccumuloTableName();
       Properties testProps = env.getTestProperties();
       final int maxColF = env.getMaxColF();
@@ -116,17 +270,18 @@ public class ContinuousIngest {
       final boolean checksum =
           Boolean.parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
 
-      doIngest(client, rowMin, rowMax, tableName, testProps, maxColF, maxColQ, numEntries, checksum,
-          random);
+      var splitSupplier = createSplitSupplier(client, tableName);
+      var randomFactory = RandomGeneratorFactory.create(env, client, splitSupplier, random);
+      var batchWriterFactory = BatchWriterFactory.create(client, env, splitSupplier);
+      doIngest(client, randomFactory, batchWriterFactory, tableName, testProps, maxColF, maxColQ,
+          numEntries, checksum, random);
     }
   }
 
-  protected static void doIngest(AccumuloClient client, long rowMin, long rowMax, String tableName,
-      Properties testProps, int maxColF, int maxColQ, long numEntries, boolean checksum,
-      Random random)
+  protected static void doIngest(AccumuloClient client, RandomGeneratorFactory randomFactory,
+      BatchWriterFactory batchWriterFactory, String tableName, Properties testProps, int maxColF,
+      int maxColQ, long numEntries, boolean checksum, Random random)
       throws TableNotFoundException, MutationsRejectedException, InterruptedException {
-    Preconditions.checkState(0 <= rowMin && rowMin <= rowMax,
-        "Bad rowMin/rowMax, must conform to: 0 <= rowMin <= rowMax");
 
     if (!client.tableOperations().exists(tableName)) {
       throw new TableNotFoundException(null, tableName,
@@ -173,14 +328,29 @@ public class ContinuousIngest {
     log.info("DELETES will occur with a probability of {}",
         String.format("%.02f", deleteProbability));
 
-    try (BatchWriter bw = client.createBatchWriter(tableName)) {
+    try (BatchWriter bw = batchWriterFactory.create(tableName)) {
+      zipfianEnabled =
+          Boolean.parseBoolean(testProps.getProperty("test.ci.ingest.zipfian.enabled"));
+
+      if (zipfianEnabled) {
+        minSize = Integer.parseInt(testProps.getProperty("test.ci.ingest.zipfian.min.size"));
+        maxSize = Integer.parseInt(testProps.getProperty("test.ci.ingest.zipfian.max.size"));
+        exponent = Double.parseDouble(testProps.getProperty("test.ci.ingest.zipfian.exponent"));
+        rnd = new RandomDataGenerator();
+
+        log.info("Zipfian distribution enabled with min size: {}, max size: {}, exponent: {}",
+            minSize, maxSize, exponent);
+      }
+
       out: while (true) {
         ColumnVisibility cv = getVisibility(random);
 
         // generate sets nodes that link to previous set of nodes
         for (int depth = 0; depth < maxDepth; depth++) {
+          // use the same random generator for each flush interval
+          LongSupplier randomRowGenerator = randomFactory.get();
           for (int index = 0; index < flushInterval; index++) {
-            long rowLong = genLong(rowMin, rowMax, random);
+            long rowLong = randomRowGenerator.getAsLong();
 
             byte[] prevRow = depth == 0 ? null : genRow(nodeMap[depth - 1][index].row);
 
@@ -303,6 +473,9 @@ public class ContinuousIngest {
     return FastFormat.toZeroPaddedString(cfInt, 4, 16, EMPTY_BYTES);
   }
 
+  /**
+   * Generates a random long within the range [min,max)
+   */
   public static long genLong(long min, long max, Random r) {
     return ((r.nextLong() & 0x7fffffffffffffffL) % (max - min)) + min;
   }
@@ -317,18 +490,37 @@ public class ContinuousIngest {
 
   public static byte[] createValue(byte[] ingestInstanceId, long entriesWritten, byte[] prevRow,
       Checksum cksum) {
-    int dataLen = ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + 3;
+    final int numOfSeparators = 4;
+    int dataLen =
+        ingestInstanceId.length + 16 + (prevRow == null ? 0 : prevRow.length) + numOfSeparators;
     if (cksum != null)
       dataLen += 8;
+
+    int zipfLength = 0;
+    if (zipfianEnabled) {
+      // add the length of the zipfian data to the value
+      int range = maxSize - minSize;
+      zipfLength = rnd.nextZipf(range, exponent) + minSize;
+      dataLen += zipfLength;
+    }
+
     byte[] val = new byte[dataLen];
+
+    // add the ingest instance id to the value
     System.arraycopy(ingestInstanceId, 0, val, 0, ingestInstanceId.length);
     int index = ingestInstanceId.length;
+
     val[index++] = ':';
+
+    // add the count of entries written to the value
     int added = FastFormat.toZeroPaddedString(val, index, entriesWritten, 16, 16, EMPTY_BYTES);
     if (added != 16)
       throw new RuntimeException(" " + added);
     index += 16;
+
     val[index++] = ':';
+
+    // add the previous row to the value
     if (prevRow != null) {
       System.arraycopy(prevRow, 0, val, index, prevRow.length);
       index += prevRow.length;
@@ -336,6 +528,16 @@ public class ContinuousIngest {
 
     val[index++] = ':';
 
+    if (zipfianEnabled) {
+      // add random data to the value of length zipfLength
+      for (int i = 0; i < zipfLength; i++) {
+        val[index++] = (byte) rnd.nextInt(0, 256);
+      }
+
+      val[index++] = ':';
+    }
+
+    // add the checksum to the value
     if (cksum != null) {
       cksum.update(val, 0, index);
       cksum.getValue();
