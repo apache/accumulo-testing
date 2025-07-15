@@ -64,11 +64,11 @@ mkdir -p logs
 
 if [ "$test_type" == "NORMAL" ]; then
   # start unlimited ingest into the table
-  $ATD/bin/cingest ingest -o test.ci.ingest.bulk.workdir=/ci_bulk -o test.ci.ingest.max.tablets=3 -o test.ci.common.accumulo.table=$table -o test.ci.ingest.bulk.memory.limit=32000000 &> logs/bulk-$table.log &
+  $ATD/bin/cingest ingest -o test.ci.ingest.bulk.workdir=/ci_bulk -o test.ci.common.accumulo.table=$table &> logs/bulk-$table.log &
 else
   # limit the amount of data written since tablets can not compact
   # would not need to do this if the table.file.pause property existed in 2.1
-  $ATD/bin/cingest ingest -o test.ci.ingest.bulk.workdir=/ci_bulk -o test.ci.ingest.max.tablets=3 -o test.ci.common.accumulo.table=$table -o test.ci.ingest.bulk.memory.limit=32000000 -o test.ci.ingest.client.entries=10000000 &> logs/bulk-$table.log &
+  $ATD/bin/cingest ingest -o test.ci.ingest.bulk.workdir=/ci_bulk -o test.ci.common.accumulo.table=$table -o test.ci.ingest.client.entries=10000000 &> logs/bulk-$table.log &
 fi
 
 # TODO for the BAD_TABLET case start two ingesters.  One that writes to the

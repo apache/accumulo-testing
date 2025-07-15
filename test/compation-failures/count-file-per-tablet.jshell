@@ -1,0 +1,31 @@
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
+import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.RowIterator;
+import org.apache.accumulo.core.data.Range;
+
+// counts files per tablet for a table over time
+public class CFPT {
+
+    public static void printPerTabletFileStats(AccumuloClient client, String table, long startTime) throws Exception {
+        var tableId = client.tableOperations().tableIdMap().get(table);
+        try(var scanner = client.createScanner("accumulo.metadata")) {
+            scanner.setRange(new Range(tableId+":", tableId+"<"));
+            scanner.fetchColumnFamily("file");
+            RowIterator rowIterator = new RowIterator(scanner);
+            var stats = Streams.stream(rowIterator).mapToInt(Iterators::size).summaryStatistics();
+            long diff = (System.currentTimeMillis() -startTime)/1000;
+            System.out.printf("%3d secs min:%d avg:%.2f max:%d\n", diff, stats.getMin(),stats.getAverage(),stats.getMax() );
+        }
+    }
+
+    public static void printStats(AccumuloClient client, String table, long sleep) throws Exception {
+        long startTime = System.currentTimeMillis();
+        printPerTabletFileStats(client, table, startTime);
+
+        while(true) {
+            Thread.sleep(sleep);
+            printPerTabletFileStats(client, table, startTime);
+        }
+    }
+}

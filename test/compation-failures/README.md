@@ -13,3 +13,21 @@ Some scripts for testing different compaction failure scenarios.
 # starting ingest into table ci4, corrupting data in a single tablet such that that tablet can never compact
 ./start-ingest.sh ci4 BAD_TABLET
 ```
+
+While test are running can use the following to monitor files per tablet on a table.
+
+```
+$ accumulo jshell
+Preparing JShell for Apache Accumulo
+
+Use 'client' to interact with Accumulo
+
+|  Welcome to JShell -- Version 17.0.15
+|  For an introduction type: /help intro
+
+jshell> /open count-file-per-tablet.jshell
+
+jshell> CFPT.printStats(client, "ci1", 3000)
+  0 secs min:20 avg:30.37 max:35
+  3 secs min:20 avg:30.28 max:35
+```
