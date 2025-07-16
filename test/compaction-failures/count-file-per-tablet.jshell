@@ -1,0 +1,50 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Streams;
+import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.RowIterator;
+import org.apache.accumulo.core.data.Range;
+
+// counts files per tablet for a table over time
+public class CFPT {
+
+    public static void printPerTabletFileStats(AccumuloClient client, String table, long startTime) throws Exception {
+        var tableId = client.tableOperations().tableIdMap().get(table);
+        try(var scanner = client.createScanner("accumulo.metadata")) {
+            scanner.setRange(new Range(tableId+":", tableId+"<"));
+            scanner.fetchColumnFamily("file");
+            RowIterator rowIterator = new RowIterator(scanner);
+            var stats = Streams.stream(rowIterator).mapToInt(Iterators::size).summaryStatistics();
+            long diff = (System.currentTimeMillis() -startTime)/1000;
+            System.out.printf("%3d secs min:%d avg:%.2f max:%d\n", diff, stats.getMin(),stats.getAverage(),stats.getMax() );
+        }
+    }
+
+    public static void printStats(AccumuloClient client, String table, long sleep) throws Exception {
+        long startTime = System.currentTimeMillis();
+        printPerTabletFileStats(client, table, startTime);
+
+        while(true) {
+            Thread.sleep(sleep);
+            printPerTabletFileStats(client, table, startTime);
+        }
+    }
+}

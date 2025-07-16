@@ -39,6 +39,7 @@ Available applications:
     manysplits    Repeatedly lowers the split threshold on a table to create
                   many splits in order to test split performance
     bulk          Create RFiles in a Map Reduce job and calls importDirectory if successful
+    corrupt       Corrupts the first entry after the minimum row.  Use -o test.ci.ingest.row.min to change the minimum.
 EOF
 }
 
@@ -80,6 +81,9 @@ case "$1" in
       exit 1
     fi
     ci_main="${ci_package}.BulkIngest"
+    ;;
+  corrupt)
+     ci_main="${ci_package}.CorruptEntry"
     ;;
   *)
     echo "Unknown application: $1"

@@ -187,7 +187,7 @@ public class FlakyBulkBatchWriter implements BatchWriter {
       long t2 = System.nanoTime();
 
       log.debug("Bulk imported dir {} destinations:{} mutations:{} memUsed:{} time:{}ms", tmpDir,
-          loadPlan.getDestinations().size(), mutations.size(), memUsed,
+          loadPlan.getDestinations().size(), keysValues.size(), memUsed,
           TimeUnit.NANOSECONDS.toMillis(t2 - t1));
 
       fileSystem.delete(tmpDir, true);
