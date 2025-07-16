@@ -62,7 +62,7 @@ public class CorruptEntry {
           System.out.println("Corrupted checksum value on key " + key);
         }
       } else {
-        System.out.println("No entry found after " + new String(startRow, UTF_8));
+        throw new IllegalArgumentException("No entry found after " + new String(startRow, UTF_8));
       }
     }
   }

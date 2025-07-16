@@ -71,7 +71,3 @@ else
   $ATD/bin/cingest ingest -o test.ci.ingest.bulk.workdir=/ci_bulk -o test.ci.common.accumulo.table=$table -o test.ci.ingest.client.entries=10000000 &> logs/bulk-$table.log &
 fi
 
-# TODO for the BAD_TABLET case start two ingesters.  One that writes to the
-# entire tablet including the bad tablet.  Another that writes only the part of
-# the table that does not include the bad tablet. The one writing to only good
-# tablets should be able to ingest and compact w/o issue.
