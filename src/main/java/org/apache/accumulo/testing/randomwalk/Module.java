@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -342,8 +343,9 @@ public class Module extends Node {
             log.debug("  " + entry.getKey() + ": " + entry.getValue());
           }
           log.debug("State information");
-          for (String key : new TreeSet<>(state.getMap().keySet())) {
-            Object value = state.getMap().get(key);
+          var stateSnapshot = new TreeMap<>(state.getMap());
+          for (String key : stateSnapshot.keySet()) {
+            Object value = stateSnapshot.get(key);
             String logMsg = "  " + key + ": ";
             if (value == null)
               logMsg += "null";

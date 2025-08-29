@@ -19,8 +19,10 @@
 package org.apache.accumulo.testing.randomwalk;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -28,7 +30,7 @@ import java.util.Random;
  */
 public class State {
 
-  private final HashMap<String,Object> stateMap = new HashMap<>();
+  private final Map<String,Object> stateMap = Collections.synchronizedMap(new HashMap<>());
   private final List<String> tables = new ArrayList<>();
   private final List<String> namespaces = new ArrayList<>();
   private final List<String> users = new ArrayList<>();
@@ -80,10 +82,12 @@ public class State {
    * @throws RuntimeException if state object is not present
    */
   public Object get(String key) {
-    if (!stateMap.containsKey(key)) {
-      throw new RuntimeException("State does not contain " + key);
+    synchronized (stateMap) {
+      if (!stateMap.containsKey(key)) {
+        throw new RuntimeException("State does not contain " + key);
+      }
+      return stateMap.get(key);
     }
-    return stateMap.get(key);
   }
 
   public List<String> getTableNames() {
@@ -135,8 +139,10 @@ public class State {
    *
    * @return state map
    */
-  HashMap<String,Object> getMap() {
-    return stateMap;
+  Map<String,Object> getMap() {
+    synchronized (stateMap) {
+      return Map.copyOf(stateMap);
+    }
   }
 
   /**
