@@ -32,7 +32,7 @@
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
   <properties>
-    <accumulo.version>2.1.4-SNAPSHOT</accumulo.version>
+    <accumulo.version>2.1.4</accumulo.version>
     <!-- prevent introduction of new compiler warnings -->
     <maven.compiler.failOnWarning>true</maven.compiler.failOnWarning>
     <maven.compiler.release>11</maven.compiler.release>
