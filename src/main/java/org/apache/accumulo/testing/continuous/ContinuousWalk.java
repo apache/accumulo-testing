@@ -46,6 +46,9 @@ public class ContinuousWalk {
       super(msg);
     }
 
+    public BadChecksumException(String msg, Exception nfe) {
+      super(msg, nfe);
+    }
   }
 
   public static void main(String[] args) throws Exception {
@@ -154,7 +157,7 @@ public class ContinuousWalk {
     return null;
   }
 
-  private static int getChecksumOffset(byte[] val) {
+  static int getChecksumOffset(byte[] val) {
     if (val[val.length - 1] != ':') {
       if (val[val.length - 9] != ':')
         throw new IllegalArgumentException(new String(val, UTF_8));
@@ -169,7 +172,12 @@ public class ContinuousWalk {
     if (ckOff < 0)
       return;
 
-    long storedCksum = Long.parseLong(new String(value.get(), ckOff, 8, UTF_8), 16);
+    long storedCksum;
+    try {
+      storedCksum = Long.parseLong(new String(value.get(), ckOff, 8, UTF_8), 16);
+    } catch (NumberFormatException nfe) {
+      throw new BadChecksumException("Checksum invalid " + key + " " + value, nfe);
+    }
 
     CRC32 cksum = new CRC32();
 
