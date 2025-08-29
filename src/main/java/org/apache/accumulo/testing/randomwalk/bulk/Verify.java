@@ -59,15 +59,17 @@ public class Verify extends Test {
       lastSize = size;
       threadPool.awaitTermination(10, TimeUnit.SECONDS);
     }
-    if (!"true".equals(state.get("bulkImportSuccess"))) {
-      log.info("Not verifying bulk import test due to import failures");
-      return;
+
+    boolean errorFound = false;
+
+    if ((Boolean) state.get(BulkTest.BACKGROUND_FAILURE_KEY)) {
+      log.error("One or more background task failed");
+      errorFound = true;
     }
 
     String user = env.getAccumuloClient().whoami();
     Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
     RowIterator rowIter;
-    boolean errorFound = false;
     try (Scanner scanner = env.getAccumuloClient().createScanner(Setup.getTableName(), auths)) {
       scanner.fetchColumnFamily(BulkPlusOne.CHECK_COLUMN_FAMILY);
       for (Entry<Key,Value> entry : scanner) {
