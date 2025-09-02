@@ -54,7 +54,8 @@ public class Setup extends Test {
         IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
         SummingCombiner.setEncodingType(is, LongCombiner.Type.STRING);
         SummingCombiner.setCombineAllColumns(is, true);
-        var tableProps = Map.of(Property.TABLE_BULK_MAX_TABLET_FILES.getKey(), "1000");
+        var tableProps = Map.of(Property.TABLE_BULK_MAX_TABLET_FILES.getKey(), "1000",
+            Property.TABLE_BULK_MAX_TABLETS.getKey(), "1000");
 
         tableOps.create(getTableName(),
             new NewTableConfiguration().attachIterator(is).setProperties(tableProps));
