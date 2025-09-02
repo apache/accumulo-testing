@@ -233,7 +233,6 @@ public class BulkPlusOne extends BulkImportTest {
     log.debug("{} Finished bulk import", uuid);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
     var bulkRange = rangeExchange.nextIncrementRange(env);
