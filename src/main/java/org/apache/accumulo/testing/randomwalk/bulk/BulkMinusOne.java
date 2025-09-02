@@ -30,8 +30,7 @@ public class BulkMinusOne extends BulkImportTest {
 
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
-    log.info("Decrementing");
-    BulkPlusOne.bulkLoadLots(log, state, env, negOne);
+    var bulkRange = BulkPlusOne.rangeExchange.nextDecrementRange(env);
+    BulkPlusOne.bulkLoadLots(log, state, env, bulkRange, negOne);
   }
-
 }
