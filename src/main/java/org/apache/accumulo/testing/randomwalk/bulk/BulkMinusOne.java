@@ -28,10 +28,10 @@ public class BulkMinusOne extends BulkImportTest {
 
   private static final Value negOne = new Value("-1".getBytes(UTF_8));
 
+  @SuppressWarnings("unchecked")
   @Override
   protected void runLater(State state, RandWalkEnv env) throws Exception {
-    log.info("Decrementing");
-    BulkPlusOne.bulkLoadLots(log, state, env, negOne);
+    var bulkRange = BulkPlusOne.rangeExchange.nextDecrementRange(env);
+    BulkPlusOne.bulkLoadLots(log, state, env, bulkRange, negOne);
   }
-
 }
