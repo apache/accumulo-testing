@@ -44,7 +44,9 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.util.threads.ThreadPools;
+import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -354,7 +356,11 @@ public class Module extends Node {
               logMsg += value;
             else if (value instanceof byte[])
               logMsg += new String((byte[]) value, UTF_8);
-            else if (value instanceof PasswordToken)
+            else if (value instanceof Text) {
+              Text text = (Text) value;
+              logMsg +=
+                  Key.toPrintableString(text.getBytes(), 0, text.getLength(), text.getLength());
+            } else if (value instanceof PasswordToken)
               logMsg += new String(((PasswordToken) value).getPassword(), UTF_8);
             else
               logMsg += value.getClass() + " - " + value;
