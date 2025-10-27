@@ -47,6 +47,7 @@ public class WalkingSecurity {
   private static final String tableName = "SecurityTableName";
   private static final String namespaceName = "SecurityNamespaceName";
   private static final String userName = "UserName";
+  private static final String rootUserName = "RootUserName";
 
   private static final String userPass = "UserPass";
   private static final String userExists = "UserExists";
@@ -152,8 +153,7 @@ public class WalkingSecurity {
     log.debug((value ? "Gave" : "Took") + " the table permission " + tp.name()
         + (value ? " to" : " from") + " user " + userName);
     state.set("Tab-" + userName + '-' + tp.name(), Boolean.toString(value));
-    if (tp.equals(TablePermission.READ) || tp.equals(TablePermission.WRITE))
-      state.set("Tab-" + userName + '-' + tp.name() + '-' + "time", System.currentTimeMillis());
+    state.set("Tab-" + userName + '-' + tp.name() + '-' + "time", System.currentTimeMillis());
   }
 
   public void revokeTablePermission(String user, String table, TablePermission permission)
@@ -198,6 +198,21 @@ public class WalkingSecurity {
 
   public void setSysUserName(String name) {
     state.set("system" + userName, name);
+  }
+
+  public void setRootUserCredentials(String name, AuthenticationToken token) {
+    state.set(rootUserName, name);
+    state.set("rootUserPass", token);
+    state.set(name + userPass + "time", System.currentTimeMillis());
+  }
+
+  public String getRootUserName() {
+    return state.getString(rootUserName);
+  }
+
+  public AuthenticationToken getRootToken() {
+    Object token = state.getOkIfAbsent("rootUserPass");
+    return token instanceof AuthenticationToken ? (AuthenticationToken) token : null;
   }
 
   public String getTableName() {
@@ -271,13 +286,9 @@ public class WalkingSecurity {
   }
 
   public boolean inAmbiguousZone(String userName, TablePermission tp) {
-    if (tp.equals(TablePermission.READ) || tp.equals(TablePermission.WRITE)) {
-      Long setTime = state.getLong("Tab-" + userName + '-' + tp.name() + '-' + "time");
-      if (setTime == null)
-        throw new RuntimeException("Tab-" + userName + '-' + tp.name() + '-' + "time is null");
-      if (System.currentTimeMillis() < (setTime + 1000))
-        return true;
-    }
+    Long setTime = state.getLong("Tab-" + userName + '-' + tp.name() + '-' + "time");
+    if (setTime != null && System.currentTimeMillis() < (setTime + 1000))
+      return true;
     return false;
   }
 

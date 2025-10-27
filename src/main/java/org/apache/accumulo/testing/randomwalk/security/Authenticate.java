@@ -44,19 +44,30 @@ public class Authenticate extends Test {
     String targetProp = props.getProperty("target");
     boolean success = Boolean.parseBoolean(props.getProperty("valid"));
 
-    try (AccumuloClient client = env.createClient(principal, token)) {
+    String target;
 
-      String target;
+    if (targetProp.equals("table")) {
+      target = WalkingSecurity.get(state, env).getTabUserName();
+    } else {
+      target = WalkingSecurity.get(state, env).getSysUserName();
+    }
+    boolean exists = WalkingSecurity.get(state, env).userExists(target);
+    // Copy so if failed it doesn't mess with the password stored in state
+    byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target),
+        WalkingSecurity.get(state, env).getUserPassword(target).length);
 
-      if (targetProp.equals("table")) {
-        target = WalkingSecurity.get(state, env).getTabUserName();
-      } else {
-        target = WalkingSecurity.get(state, env).getSysUserName();
+    String actor = principal;
+    AuthenticationToken actorToken = token;
+    if (principal.equals(target) && !success) {
+      String rootUser = WalkingSecurity.get(state, env).getRootUserName();
+      AuthenticationToken rootToken = WalkingSecurity.get(state, env).getRootToken();
+      if (rootUser != null && rootToken != null) {
+        actor = rootUser;
+        actorToken = rootToken;
       }
-      boolean exists = WalkingSecurity.get(state, env).userExists(target);
-      // Copy so if failed it doesn't mess with the password stored in state
-      byte[] password = Arrays.copyOf(WalkingSecurity.get(state, env).getUserPassword(target),
-          WalkingSecurity.get(state, env).getUserPassword(target).length);
+    }
+
+    try (AccumuloClient client = env.createClient(actor, actorToken)) {
       boolean hasPermission =
           client.securityOperations().hasSystemPermission(principal, SystemPermission.SYSTEM)
               || principal.equals(target);
