@@ -21,6 +21,7 @@ package org.apache.accumulo.testing.randomwalk.security;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.SortedSet;
@@ -40,6 +41,7 @@ import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.rfile.RFile;
 import org.apache.accumulo.core.client.rfile.RFileWriter;
 import org.apache.accumulo.core.client.security.SecurityErrorCode;
+import org.apache.accumulo.core.client.summary.Summary;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -80,10 +82,11 @@ public class TableOp extends Test {
           try {
             canRead = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.READ);
           } catch (AccumuloSecurityException ase) {
-            if (tableExists)
-              throw new AccumuloException("Table didn't exist when it should have: " + tableName,
-                  ase);
-            return;
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
           }
           Authorizations auths = secOps.getUserAuthorizations(tablePrincipal);
           boolean ambiguousZone =
@@ -171,10 +174,11 @@ public class TableOp extends Test {
           try {
             canWrite = secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.WRITE);
           } catch (AccumuloSecurityException ase) {
-            if (tableExists)
-              throw new AccumuloException("Table didn't exist when it should have: " + tableName,
-                  ase);
-            return;
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
           }
 
           String key = WalkingSecurity.get(state, env).getLastKey() + "1";
@@ -223,6 +227,17 @@ public class TableOp extends Test {
           }
           break;
         case BULK_IMPORT:
+          boolean canBulkImportBefore;
+          try {
+            canBulkImportBefore =
+                secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT);
+          } catch (AccumuloSecurityException ase) {
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
+          }
           key = WalkingSecurity.get(state, env).getLastKey() + "1";
           SortedSet<Key> keys = new TreeSet<>();
           for (String s : WalkingSecurity.get(state, env).getAuthsArray()) {
@@ -247,24 +262,100 @@ public class TableOp extends Test {
             return;
           } catch (AccumuloSecurityException ae) {
             if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
-              if (secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
-                throw new AccumuloException(
-                    "Bulk Import failed when it should have worked: " + tableName);
+              try {
+                boolean canBulkImportAfter = secOps.hasTablePermission(tablePrincipal, tableName,
+                    TablePermission.BULK_IMPORT);
+                if (canBulkImportBefore && canBulkImportAfter) {
+                  if (WalkingSecurity.get(state, env).inAmbiguousZone(tablePrincipal,
+                      TablePermission.BULK_IMPORT)) {
+                    log.info("Bulk import denied while permission propagating; ignoring.");
+                    return;
+                  }
+                  throw new AccumuloException(
+                      "Bulk Import failed when it should have worked: " + tableName, ae);
+                }
+              } catch (AccumuloSecurityException ase) {
+                if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                    tablePrincipal)) {
+                  return;
+                }
+                throw ase;
+              }
               return;
             } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
               if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
                 return;
             }
             throw new AccumuloException("Unexpected exception!", ae);
+          } catch (AccumuloException ae) {
+            Throwable cause = ae.getCause();
+            if (cause instanceof AccumuloSecurityException) {
+              AccumuloSecurityException ase = (AccumuloSecurityException) cause;
+              if (ase.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
+                try {
+                  boolean canBulkImportAfter = secOps.hasTablePermission(tablePrincipal, tableName,
+                      TablePermission.BULK_IMPORT);
+                  if (canBulkImportBefore && canBulkImportAfter) {
+                    if (WalkingSecurity.get(state, env).inAmbiguousZone(tablePrincipal,
+                        TablePermission.BULK_IMPORT)) {
+                      log.info("Bulk import denied while permission propagating; ignoring.");
+                      return;
+                    }
+                    throw new AccumuloException(
+                        "Bulk Import failed when it should have worked: " + tableName, ase);
+                  }
+                } catch (AccumuloSecurityException inner) {
+                  if (handlePermissionCheckException(inner, tableExists, tableName, state, env,
+                      tablePrincipal)) {
+                    return;
+                  }
+                  throw inner;
+                }
+                return;
+              } else if (ase.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
+                if (WalkingSecurity.get(state, env).userPassTransient(client.whoami())) {
+                  return;
+                }
+              }
+            }
+            throw ae;
           }
           for (String s : WalkingSecurity.get(state, env).getAuthsArray())
             WalkingSecurity.get(state, env).increaseAuthMap(s, 1);
           fs.delete(dir, true);
           fs.delete(fail, true);
 
-          if (!secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT))
-            throw new AccumuloException(
-                "Bulk Import succeeded when it should have failed: " + dir + " table " + tableName);
+          try {
+            boolean canBulkImportAfter =
+                secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.BULK_IMPORT);
+            if (!canBulkImportAfter) {
+              if (!canBulkImportBefore) {
+                if (WalkingSecurity.get(state, env).inAmbiguousZone(tablePrincipal,
+                    TablePermission.BULK_IMPORT)) {
+                  log.info("Bulk import succeeded before permission fully propagated; ignoring.");
+                  return;
+                }
+                throw new AccumuloException("Bulk Import succeeded when it should have failed: "
+                    + dir + " table " + tableName);
+              }
+              return;
+            }
+            if (!canBulkImportBefore && canBulkImportAfter) {
+              if (WalkingSecurity.get(state, env).inAmbiguousZone(tablePrincipal,
+                  TablePermission.BULK_IMPORT)) {
+                log.info("Bulk import succeeded during permission propagation; ignoring.");
+                return;
+              }
+              throw new AccumuloException("Bulk Import succeeded when it should have failed: " + dir
+                  + " table " + tableName);
+            }
+          } catch (AccumuloSecurityException ase) {
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
+          }
           break;
         case ALTER_TABLE:
           boolean tablePerm;
@@ -272,10 +363,11 @@ public class TableOp extends Test {
             tablePerm =
                 secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.ALTER_TABLE);
           } catch (AccumuloSecurityException ase) {
-            if (tableExists)
-              throw new AccumuloException("Table didn't exist when it should have: " + tableName,
-                  ase);
-            return;
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
           }
           AlterTable.renameTable(client, state, env, tableName, tableName + "plus", tablePerm,
               tableExists);
@@ -294,9 +386,68 @@ public class TableOp extends Test {
           DropTable.dropTable(state, env, props);
           break;
 
-        case GET_SUMMARIES:
-          throw new UnsupportedOperationException("GET_SUMMARIES not implemented");
+        case GET_SUMMARIES: {
+          boolean canSummarize;
+          try {
+            canSummarize =
+                secOps.hasTablePermission(tablePrincipal, tableName, TablePermission.GET_SUMMARIES);
+          } catch (AccumuloSecurityException ase) {
+            if (handlePermissionCheckException(ase, tableExists, tableName, state, env,
+                tablePrincipal)) {
+              return;
+            }
+            throw ase;
+          }
+          try {
+            List<Summary> summaries = tableOps.summaries(tableName).retrieve();
+            if (!canSummarize) {
+              throw new AccumuloException(
+                  "Was able to retrieve summaries when permission should be denied: " + tableName);
+            }
+            if (summaries == null) {
+              throw new AccumuloException(
+                  "Summary list was unexpectedly null for table " + tableName);
+            }
+          } catch (TableNotFoundException tnfe) {
+            if (tableExists)
+              throw new AccumuloException("Table didn't exist when it should have: " + tableName,
+                  tnfe);
+            return;
+          } catch (AccumuloSecurityException ae) {
+            if (ae.getSecurityErrorCode().equals(SecurityErrorCode.PERMISSION_DENIED)) {
+              if (canSummarize)
+                throw new AccumuloException(
+                    "Get summaries failed when it should have succeeded: " + tableName, ae);
+              return;
+            } else if (ae.getSecurityErrorCode().equals(SecurityErrorCode.BAD_CREDENTIALS)) {
+              if (WalkingSecurity.get(state, env).userPassTransient(client.whoami()))
+                return;
+            }
+            throw new AccumuloException("Unexpected security exception retrieving summaries", ae);
+          }
+          break;
+        }
       }
     }
+  }
+
+  private boolean handlePermissionCheckException(AccumuloSecurityException ase, boolean tableExists,
+      String tableName, State state, RandWalkEnv env, String principal)
+      throws AccumuloException, AccumuloSecurityException {
+    SecurityErrorCode code = ase.getSecurityErrorCode();
+    switch (code) {
+      case TABLE_DOESNT_EXIST:
+      case NAMESPACE_DOESNT_EXIST:
+        if (tableExists)
+          throw new AccumuloException("Table didn't exist when it should have: " + tableName, ase);
+        return true;
+      case BAD_CREDENTIALS:
+        if (WalkingSecurity.get(state, env).userPassTransient(principal))
+          return true;
+        break;
+      default:
+        break;
+    }
+    throw ase;
   }
 }
