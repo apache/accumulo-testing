@@ -62,8 +62,11 @@ public class ContinuousScanner {
 
           long t1 = System.currentTimeMillis();
 
-          long count = scanner.stream()
-              .peek(entry -> ContinuousWalk.validate(entry.getKey(), entry.getValue())).count();
+          long count = 0;
+          for (var entry : scanner) {
+            ContinuousWalk.validate(entry.getKey(), entry.getValue());
+            count++;
+          }
 
           long t2 = System.currentTimeMillis();
 
