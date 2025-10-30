@@ -273,10 +273,10 @@ public class WalkingSecurity {
   public boolean inAmbiguousZone(String userName, TablePermission tp) {
     if (tp.equals(TablePermission.READ) || tp.equals(TablePermission.WRITE)) {
       Long setTime = state.getLong("Tab-" + userName + '-' + tp.name() + '-' + "time");
-      if (setTime == null)
+      if (setTime == null) {
         throw new RuntimeException("Tab-" + userName + '-' + tp.name() + '-' + "time is null");
-      if (System.currentTimeMillis() < (setTime + 1000))
-        return true;
+      }
+      return System.currentTimeMillis() < (setTime + 1000);
     }
     return false;
   }
@@ -291,19 +291,14 @@ public class WalkingSecurity {
   }
 
   public void increaseAuthMap(String s, int increment) {
-    Integer curVal = getAuthsMap().get(s);
-    if (curVal == null) {
-      curVal = Integer.valueOf(0);
-      getAuthsMap().put(s, curVal);
-    }
-    curVal += increment;
+    getAuthsMap().merge(s, increment, Integer::sum);
   }
 
   public FileSystem getFs() {
     FileSystem fs = null;
     try {
       fs = (FileSystem) state.get(filesystem);
-    } catch (RuntimeException re) {}
+    } catch (RuntimeException ignored) {}
 
     if (fs == null) {
       try {
