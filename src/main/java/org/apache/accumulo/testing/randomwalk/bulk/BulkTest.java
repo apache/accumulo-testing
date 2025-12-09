@@ -26,12 +26,22 @@ import org.apache.accumulo.testing.randomwalk.Test;
 
 public abstract class BulkTest extends Test {
 
+  public static final String BACKGROUND_FAILURE_KEY = "sawBackgroundFailure";
+
   @Override
   public void visit(final State state, final RandWalkEnv env, Properties props) throws Exception {
+
+    if ((Boolean) state.get(BACKGROUND_FAILURE_KEY)) {
+      // fail the test early because a previous background task failed
+      throw new IllegalArgumentException(
+          "One or more previous background task failed, aborting test");
+    }
+
     Setup.run(state, () -> {
       try {
         runLater(state, env);
       } catch (Throwable ex) {
+        state.set(BACKGROUND_FAILURE_KEY, Boolean.TRUE);
         log.error(ex.toString(), ex);
       }
     });
