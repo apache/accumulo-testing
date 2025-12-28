@@ -38,7 +38,7 @@ import org.apache.hadoop.fs.FileSystem;
 
 public class Setup extends Test {
 
-  private static final int MAX_POOL_SIZE = 8;
+  private static final int MAX_POOL_SIZE = 16;
   static String tableName = null;
 
   @Override
@@ -54,7 +54,8 @@ public class Setup extends Test {
         IteratorSetting is = new IteratorSetting(10, SummingCombiner.class);
         SummingCombiner.setEncodingType(is, LongCombiner.Type.STRING);
         SummingCombiner.setCombineAllColumns(is, true);
-        var tableProps = Map.of(Property.TABLE_BULK_MAX_TABLET_FILES.getKey(), "1000");
+        var tableProps = Map.of(Property.TABLE_BULK_MAX_TABLET_FILES.getKey(), "1000",
+            Property.TABLE_BULK_MAX_TABLETS.getKey(), "1000");
 
         tableOps.create(getTableName(),
             new NewTableConfiguration().attachIterator(is).setProperties(tableProps));
@@ -65,7 +66,10 @@ public class Setup extends Test {
     state.setRandom(env.getRandom());
     state.set("fs", FileSystem.get(env.getHadoopConfiguration()));
     state.set(BulkTest.BACKGROUND_FAILURE_KEY, Boolean.FALSE);
-    BulkPlusOne.counter.set(0L);
+    BulkPlusOne.rangeExchange.clear();
+    for (int i = 0; i < BulkPlusOne.perZoneCounters.length; i++) {
+      BulkPlusOne.perZoneCounters[i].set(0);
+    }
     ThreadPoolExecutor e = ThreadPools.getServerThreadPools().getPoolBuilder("bulkImportPool")
         .numCoreThreads(MAX_POOL_SIZE).build();
     state.set("pool", e);
