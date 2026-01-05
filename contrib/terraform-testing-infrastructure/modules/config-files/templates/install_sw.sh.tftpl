@@ -20,7 +20,7 @@
 
 set -eo pipefail
 
-export JAVA_HOME=${java_11_home}
+export JAVA_HOME=${java_17_home}
 
 SOURCES_DIR="${software_root}/sources"
 
@@ -99,8 +99,8 @@ else
   export JAVA_HOME=${java_17_home}
   export PATH=$JAVA_HOME/bin:$PATH
   ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean install -PskipQA
-  # Reset JAVA HOME to Java 11 for the remainder of the script
-  export JAVA_HOME=${java_11_home}
+  # Reset JAVA HOME to Java 17 for the remainder of the script
+  export JAVA_HOME=${java_17_home}
   export PATH=$OLDPATH
   mkdir -p ${software_root}/accumulo
   tar zxf assemble/target/accumulo-${accumulo_version}-bin.tar.gz -C ${software_root}/accumulo

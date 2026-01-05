@@ -28,40 +28,31 @@ gc:
 
 tserver:
   default:
+    servers_per_host: 1
 %{ for ip in worker_ips ~}
     - ${ip}
 %{ endfor ~}
 
 sserver:
   default:
+    servers_per_host: 1
 %{ for ip in worker_ips ~}
     - ${ip}
 %{ endfor ~}
 
 compactor:
   accumulo_meta:
+    servers_per_host: 1
 %{ for ip in worker_ips ~}
     - ${ip}
 %{ endfor ~}
   user_small:
+    servers_per_host: 1
 %{ for ip in worker_ips ~}
     - ${ip}
 %{ endfor ~}
   user_large:
+    servers_per_host: 1
 %{ for ip in worker_ips ~}
     - ${ip}
 %{ endfor ~}
-
-#
-# The following are used by the accumulo-cluster script to determine how many servers
-# to start on each host. If the following variables are not set, then they default to 1.
-# If the environment variable NUM_TSERVERS is set when running accumulo_cluster
-# then its value will override what is set in this file for tservers_per_host. Likewise if
-# NUM_SSERVERS is set then it will override sservers_per_host.
-#
-tservers_per_host: 1
-sservers_per_host:
- - default: 1
-compactors_per_host:
- - q1: 1
- - q2: 1

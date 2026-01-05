@@ -19,10 +19,10 @@
 
 FROM redhat/ubi8 as builder
 COPY settings.xml /tmp/settings.xml
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf install -y java-11-openjdk-devel git wget collectd collectd-java && \
+    dnf install -y java-17-openjdk-devel git wget collectd collectd-java && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
@@ -52,13 +52,13 @@ RUN cd /opt && \
     tar zxf grafana/target/timely-app-${TIMELY_VERSION}-dist.tar.gz -C /tmp/timely-grafana
 
 FROM redhat/ubi8
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk TIMELY_VERSION="3.0.0-SNAPSHOT"
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk TIMELY_VERSION="3.0.0-SNAPSHOT"
 
 COPY --from=builder /opt/timely/collectd-timely-plugin/target/collectd-timely-plugin-${TIMELY_VERSION}.jar /opt/timely/collectd-timely-plugin.jar
 COPY --from=builder /tmp/timely-server /opt/timely
 COPY --from=builder /tmp/timely-grafana /var/lib/grafana/plugins/timely-app
 
-RUN dnf install -y java-11-openjdk-devel && \
+RUN dnf install -y java-17-openjdk-devel && \
     dnf install -y https://dl.grafana.com/enterprise/release/grafana-enterprise-8.2.7-1.x86_64.rpm && \
     dnf clean all && \
     rm -rf /var/cache/dnf
