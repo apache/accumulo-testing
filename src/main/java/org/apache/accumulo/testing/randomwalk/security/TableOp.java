@@ -20,7 +20,6 @@ package org.apache.accumulo.testing.randomwalk.security;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.SortedSet;
@@ -91,13 +90,10 @@ public class TableOp extends Test {
           boolean ambiguousAuths =
               WalkingSecurity.get(state, env).ambiguousAuthorizations(client.whoami());
 
-          Scanner scan = null;
-          try {
-            scan = client.createScanner(tableName, secOps.getUserAuthorizations(client.whoami()));
+          try (Scanner scan =
+              client.createScanner(tableName, secOps.getUserAuthorizations(client.whoami()))) {
             int seen = 0;
-            Iterator<Entry<Key,Value>> iter = scan.iterator();
-            while (iter.hasNext()) {
-              Entry<Key,Value> entry = iter.next();
+            for (Entry<Key,Value> entry : scan) {
               Key k = entry.getKey();
               seen++;
               if (!auths.contains(k.getColumnVisibilityData()) && !ambiguousAuths)
@@ -156,12 +152,6 @@ public class TableOp extends Test {
             }
 
             throw new AccumuloException("Unexpected exception!", re);
-          } finally {
-            if (scan != null) {
-              scan.close();
-              scan = null;
-            }
-
           }
 
           break;
@@ -183,20 +173,10 @@ public class TableOp extends Test {
             m.put(new Text(), new Text(), new ColumnVisibility(s),
                 new Value("value".getBytes(UTF_8)));
           }
-          BatchWriter writer = null;
-          try {
-            try {
-              writer = client.createBatchWriter(tableName,
-                  new BatchWriterConfig().setMaxMemory(9000l).setMaxWriteThreads(1));
-            } catch (TableNotFoundException tnfe) {
-              if (tableExists)
-                throw new AccumuloException("Table didn't exist when it should have: " + tableName);
-              return;
-            }
-            boolean works = true;
+          try (BatchWriter writer = client.createBatchWriter(tableName,
+              new BatchWriterConfig().setMaxMemory(9000L).setMaxWriteThreads(1))) {
             try {
               writer.addMutation(m);
-              writer.close();
             } catch (MutationsRejectedException mre) {
               if (mre.getSecurityErrorCodes().size() == 1) {
                 // TabletServerBatchWriter will log the error automatically so make sure its the
@@ -212,14 +192,12 @@ public class TableOp extends Test {
               throw new AccumuloException("Unexpected MutationsRejectedException in TableOp.WRITE",
                   mre);
             }
-            if (works)
-              for (String s : WalkingSecurity.get(state, env).getAuthsArray())
-                WalkingSecurity.get(state, env).increaseAuthMap(s, 1);
-          } finally {
-            if (writer != null) {
-              writer.close();
-              writer = null;
-            }
+            for (String s : WalkingSecurity.get(state, env).getAuthsArray())
+              WalkingSecurity.get(state, env).increaseAuthMap(s, 1);
+          } catch (TableNotFoundException tnfe) {
+            if (tableExists)
+              throw new AccumuloException("Table didn't exist when it should have: " + tableName);
+            return;
           }
           break;
         case BULK_IMPORT:
@@ -229,16 +207,16 @@ public class TableOp extends Test {
             Key k = new Key(key, "", "", s);
             keys.add(k);
           }
-          Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID().toString());
-          Path fail = new Path(dir.toString() + "_fail");
           FileSystem fs = WalkingSecurity.get(state, env).getFs();
-          RFileWriter rFileWriter =
-              RFile.newWriter().to(dir + "/securityBulk.rf").withFileSystem(fs).build();
-          rFileWriter.startDefaultLocalityGroup();
+          Path dir = new Path("/tmp", "bulk_" + UUID.randomUUID());
+          Path fail = new Path(dir + "_fail");
           fs.mkdirs(fail);
-          for (Key k : keys)
-            rFileWriter.append(k, new Value("Value".getBytes(UTF_8)));
-          rFileWriter.close();
+          try (RFileWriter rFileWriter =
+              RFile.newWriter().to(dir + "/securityBulk.rf").withFileSystem(fs).build()) {
+            rFileWriter.startDefaultLocalityGroup();
+            for (Key k : keys)
+              rFileWriter.append(k, new Value("Value".getBytes(UTF_8)));
+          }
           try {
             tableOps.importDirectory(dir.toString()).to(tableName).tableTime(true).load();
           } catch (TableNotFoundException tnfe) {
