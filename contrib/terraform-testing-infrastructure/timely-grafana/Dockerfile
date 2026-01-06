@@ -16,6 +16,8 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+ARG VERSION
+ARG URL
 
 FROM redhat/ubi8 as builder
 COPY settings.xml /tmp/settings.xml
@@ -27,27 +29,28 @@ RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
     rm -rf /var/cache/dnf
 
 RUN cd /opt && \
-    wget https://dlcdn.apache.org/maven/maven-3/3.9.7/binaries/apache-maven-3.9.7-bin.tar.gz && \
-    tar zxf apache-maven-3.9.7-bin.tar.gz
+    wget ${URL} && \
+    tar zxf apache-maven-${VERSION}-bin.tar.gz && \
+    mv /opt/apache-maven-${VERSION} /opt/apache-maven
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave-utils.git datawave-utils && \
     cd datawave-utils/code-style && \
     mv pom.xml pom.xml.bak && \
     sed "s/1-SNAPSHOT/0/" pom.xml.bak > pom.xml && \
-    /opt/apache-maven-3.9.7/bin/mvn -s /tmp/settings.xml clean install
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git datawave-in-memory-accumulo && \
     cd datawave-in-memory-accumulo && \
     git checkout accumulo4 && \
-    /opt/apache-maven-3.9.7/bin/mvn -s /tmp/settings.xml clean install
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven-3.9.7/bin/mvn -s /tmp/settings.xml clean package -Pcollectd -DskipTests && \
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean package -Pcollectd -DskipTests && \
     tar zxf server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \
     tar zxf grafana/target/timely-app-${TIMELY_VERSION}-dist.tar.gz -C /tmp/timely-grafana
 

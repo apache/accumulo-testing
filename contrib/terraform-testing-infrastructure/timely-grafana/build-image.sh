@@ -18,12 +18,24 @@
 # under the License.
 #
 
+MVN_VERSION=$1
+MVN_DOWNLOAD_URL=$2
 
-docker build --build-arg uid=$(id -u ${USER}) --build-arg gid=$(id -g ${USER}) -t timely-grafana .
+if [ -z "${MVN_VERSION}" ]; then
+  echo "Maven version parameter not supplied"
+  exit 1
+fi
+
+if [ -z "${MVN_DOWNLOAD_URL}" ]; then
+  echo "Maven download url parameter not supplied"
+  exit 1
+fi
+
+docker build --build-arg VERSION="$MVN_VERSION" --build-arg URL="$MVN_DOWNLOAD_URL" -t timely-grafana .
 
 rm -rf build_output
 mkdir build_output
 id=$(docker create timely-grafana)
-docker cp $id:/opt/timely/collectd-timely-plugin.jar build_output/.
-docker cp $id:/opt/timely/lib-accumulo build_output/.
-docker rm -v $id
+docker cp "$id":/opt/timely/collectd-timely-plugin.jar build_output/.
+docker cp "$id":/opt/timely/lib-accumulo build_output/.
+docker rm -v "$id"
