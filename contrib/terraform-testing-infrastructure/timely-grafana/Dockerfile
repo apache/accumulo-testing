@@ -16,12 +16,11 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-ARG VERSION
-ARG URL
-
 FROM redhat/ubi8 as builder
 COPY settings.xml /tmp/settings.xml
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ARG VERSION="3.9.7"
+ARG URL="https://dlcdn.apache.org/maven/maven-3/3.9.7/binaries/apache-maven-3.9.7-bin.tar.gz"
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf install -y java-17-openjdk-devel git wget collectd collectd-java && \
@@ -29,7 +28,8 @@ RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.n
     rm -rf /var/cache/dnf
 
 RUN cd /opt && \
-    wget ${URL} && \
+    echo "Downloading Maven from $URL" && \
+    wget $URL && \
     tar zxf apache-maven-${VERSION}-bin.tar.gz && \
     mv /opt/apache-maven-${VERSION} /opt/apache-maven
 

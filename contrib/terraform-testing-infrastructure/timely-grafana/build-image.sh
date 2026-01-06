@@ -31,7 +31,7 @@ if [ -z "${MVN_DOWNLOAD_URL}" ]; then
   exit 1
 fi
 
-docker build --build-arg VERSION="$MVN_VERSION" --build-arg URL="$MVN_DOWNLOAD_URL" -t timely-grafana .
+docker build --build-arg VERSION="${MVN_VERSION}" --build-arg URL="${MVN_DOWNLOAD_URL}" -t timely-grafana .
 
 rm -rf build_output
 mkdir build_output

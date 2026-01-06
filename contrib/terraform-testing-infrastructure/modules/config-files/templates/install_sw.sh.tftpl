@@ -192,7 +192,7 @@ sudo systemctl enable docker
 sudo systemctl start docker
 
 cd $SOURCES_DIR/accumulo-testing-repo/contrib/terraform-testing-infrastructure/timely-grafana
-./build-image.sh "${maven_version}" "${MVN_URL}"
+./build-image.sh "${maven_version}" "$MVN_URL"
 cp build_output/lib-accumulo/timely*.jar ${software_root}/accumulo/accumulo-${accumulo_version}/lib/.
 
 #
