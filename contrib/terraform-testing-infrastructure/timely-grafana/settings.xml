@@ -19,6 +19,7 @@
 
 -->
 <settings>
+ <localRepository>/opt/apache-maven/repository</localRepository>
  <profiles>
    <profile>
      <id>apache_snapshots</id>

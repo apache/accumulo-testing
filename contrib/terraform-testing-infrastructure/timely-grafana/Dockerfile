@@ -17,21 +17,17 @@
 # under the License.
 #
 FROM redhat/ubi8 as builder
+COPY build_output/maven /opt/apache-maven
+COPY build_output/repo /opt/apache-maven/repository
 COPY settings.xml /tmp/settings.xml
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk TIMELY_VERSION="3.0.0-SNAPSHOT"
-ARG VERSION="3.9.7"
-ARG URL="https://dlcdn.apache.org/maven/maven-3/3.9.7/binaries/apache-maven-3.9.7-bin.tar.gz"
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ENV TIMELY_VERSION="3.0.0-SNAPSHOT"
+ARG HADOOP_VERSION="3.3.6"
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf install -y java-17-openjdk-devel git wget collectd collectd-java && \
     dnf clean all && \
     rm -rf /var/cache/dnf
-
-RUN cd /opt && \
-    echo "Downloading Maven from $URL" && \
-    wget $URL && \
-    tar zxf apache-maven-${VERSION}-bin.tar.gz && \
-    mv /opt/apache-maven-${VERSION} /opt/apache-maven
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave-utils.git datawave-utils && \
@@ -44,13 +40,13 @@ RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git datawave-in-memory-accumulo && \
     cd datawave-in-memory-accumulo && \
     git checkout accumulo4 && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean install
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean package -Pcollectd -DskipTests
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean package -Pcollectd -DskipTests
 
 RUN mkdir /tmp/timely-server && \
     tar zxf /opt/timely/server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \

@@ -18,23 +18,27 @@
 # under the License.
 #
 
-MVN_VERSION=$1
-MVN_DOWNLOAD_URL=$2
-
-if [ -z "${MVN_VERSION}" ]; then
-  echo "Maven version parameter not supplied"
-  exit 1
-fi
-
-if [ -z "${MVN_DOWNLOAD_URL}" ]; then
-  echo "Maven download url parameter not supplied"
-  exit 1
-fi
-
-docker build --build-arg VERSION="${MVN_VERSION}" --build-arg URL="${MVN_DOWNLOAD_URL}" -t timely-grafana .
+HADOOP_VERSION=${1:-"3.3.6"}
+MVN_REPO=$2
+MVN_DIR=$3
 
 rm -rf build_output
 mkdir build_output
+
+if [ ! -d "${MVN_REPO}" ]; then
+  echo "Maven repository directory was not supplied"
+  exit 1
+fi
+rsync -a ${MVN_REPO} build_output/repo
+
+if [ -z "${MVN_DIR}" ]; then
+  echo "Maven directory not supplied"
+  exit 1
+fi
+rsync -a ${MVN_DIR} build_output/maven
+
+docker build --build-arg HADOOP_VERSION=$HADOOP_VERSION -t timely-grafana .
+
 id=$(docker create timely-grafana)
 docker cp "$id":/opt/timely/collectd-timely-plugin.jar build_output/.
 docker cp "$id":/opt/timely/lib-accumulo build_output/.
