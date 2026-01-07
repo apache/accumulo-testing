@@ -18,7 +18,7 @@
 #
 FROM redhat/ubi8 as builder
 COPY settings.xml /tmp/settings.xml
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk TIMELY_VERSION="3.0.0-SNAPSHOT"
 ARG VERSION="3.9.7"
 ARG URL="https://dlcdn.apache.org/maven/maven-3/3.9.7/binaries/apache-maven-3.9.7-bin.tar.gz"
 
@@ -50,9 +50,12 @@ RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean package -Pcollectd -DskipTests && \
-    tar zxf server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \
-    tar zxf grafana/target/timely-app-${TIMELY_VERSION}-dist.tar.gz -C /tmp/timely-grafana
+    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean package -Pcollectd -DskipTests
+
+RUN mkdir /tmp/timely-server && \
+    tar zxf /opt/timely/server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \
+    mkdir /tmp/timely-grafana && \
+    tar zxf /opt/timely/grafana/target/timely-app-${TIMELY_VERSION}-dist.tar.gz -C /tmp/timely-grafana
 
 FROM redhat/ubi8
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk TIMELY_VERSION="3.0.0-SNAPSHOT"
