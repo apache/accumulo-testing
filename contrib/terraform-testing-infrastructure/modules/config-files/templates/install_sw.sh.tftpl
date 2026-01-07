@@ -88,9 +88,17 @@ if [ -f $ACCUMULO_SRC ]; then
 else
 #
 # Download, build, and install Accumulo
-  echo "Binary tarball not found, cloning Accumulo repo from ${accumulo_repo}"
-  rm -rf $SOURCES_DIR/accumulo-repo
+  echo "Cloning Accumulo-Access repo from https://github.com/apache/accumulo-access.git"
   cd $SOURCES_DIR
+  rm -rf accumulo-access-repo
+  git clone https://github.com/apache/accumulo-access.git accumulo-access-repo
+  cd accumulo-access-repo
+  git checkout main
+  ${software_root}/apache-maven/apache-maven-${maven_version}/bin/mvn -ntp clean install -PskipQA
+
+  echo "Binary tarball not found, cloning Accumulo repo from ${accumulo_repo}"
+  cd $SOURCES_DIR
+  rm -rf accumulo-repo
   git clone ${accumulo_repo} accumulo-repo
   cd accumulo-repo
   git checkout ${accumulo_branch_name}
