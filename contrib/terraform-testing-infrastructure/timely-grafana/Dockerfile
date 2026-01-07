@@ -18,7 +18,7 @@
 #
 FROM redhat/ubi8 as builder
 COPY build_output/maven /opt/apache-maven
-COPY build_output/repo /opt/apache-maven/repository
+COPY build_output/repo /opt/apache-maven
 COPY settings.xml /tmp/settings.xml
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 ENV TIMELY_VERSION="3.0.0-SNAPSHOT"
@@ -34,19 +34,19 @@ RUN cd /opt && \
     cd datawave-utils/code-style && \
     mv pom.xml pom.xml.bak && \
     sed "s/1-SNAPSHOT/0/" pom.xml.bak > pom.xml && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml clean install
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git datawave-in-memory-accumulo && \
     cd datawave-in-memory-accumulo && \
     git checkout accumulo4 && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean package -Pcollectd -DskipTests
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean package -Pcollectd -DskipTests
 
 RUN mkdir /tmp/timely-server && \
     tar zxf /opt/timely/server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \

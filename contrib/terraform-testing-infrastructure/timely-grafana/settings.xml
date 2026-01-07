@@ -20,20 +20,4 @@
 -->
 <settings>
  <localRepository>/opt/apache-maven/repository</localRepository>
- <profiles>
-   <profile>
-     <id>apache_snapshots</id>
-     <repositories>
-       <repository>
-         <id>apache_snapshot_repo</id>
-         <name>Apache Snapshot Repository</name>
-         <url>https://repository.apache.org/snapshots/</url>
-       </repository>
-     </repositories>
-   </profile>
- </profiles>
- 
- <activeProfiles>
-   <activeProfile>apache_snapshots</activeProfile>
- </activeProfiles>
 </settings>

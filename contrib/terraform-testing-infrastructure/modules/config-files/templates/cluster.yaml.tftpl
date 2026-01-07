@@ -29,30 +29,35 @@ gc:
 tserver:
   default:
     servers_per_host: 1
+    hosts:
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
 
 sserver:
   default:
     servers_per_host: 1
+    hosts:
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
 
 compactor:
   accumulo_meta:
     servers_per_host: 1
+    hosts:
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
   user_small:
     servers_per_host: 1
+    hosts:
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
   user_large:
     servers_per_host: 1
+    hosts:
 %{ for ip in worker_ips ~}
-    - ${ip}
+      - ${ip}
 %{ endfor ~}
