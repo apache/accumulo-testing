@@ -43,6 +43,12 @@ sserver:
 %{ endfor ~}
 
 compactor:
+  default:
+    servers_per_host: 1
+    hosts:
+%{ for ip in worker_ips ~}
+      - ${ip}
+%{ endfor ~}
   accumulo_meta:
     servers_per_host: 1
     hosts:

@@ -140,6 +140,11 @@ resource "local_file" "accumulo-properties-config" {
   content         = templatefile("${local.templates_dir}/accumulo-properties.tftpl", local.template_vars)
 }
 
+resource "local_file" "accumulo-env" {
+  filename        = "${local.conf_dir}/accumulo-env.sh"
+  file_permission = "644"
+  content         = file("${local.templates_dir}/accumulo-env.sh.tftpl")
+}
 resource "local_file" "accumulo-client-properties-config" {
   filename        = "${local.conf_dir}/accumulo-client.properties"
   file_permission = "644"
@@ -250,6 +255,7 @@ resource "null_resource" "upload_config_files" {
     local_file.hadoop-core-config,
     local_file.hadoop-hdfs-config,
     local_file.hadoop-yarn-config,
+    local_file.accumulo-env,
     local_file.accumulo-cluster-config,
     local_file.accumulo-properties-config,
     local_file.accumulo-client-properties-config,
