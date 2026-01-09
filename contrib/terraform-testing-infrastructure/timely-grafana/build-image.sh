@@ -1,3 +1,4 @@
+#! /bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -17,53 +18,28 @@
 # under the License.
 #
 
-manager:
-  - ${manager_ip}
+HADOOP_VERSION=${1:-"3.3.6"}
+MVN_REPO=$2
+MVN_DIR=$3
 
-monitor:
-  - ${manager_ip}
+rm -rf build_output
+mkdir build_output
 
-gc:
-  - ${manager_ip}
+if [ ! -d "${MVN_REPO}" ]; then
+  echo "Maven repository directory was not supplied"
+  exit 1
+fi
+rsync -a ${MVN_REPO} build_output/repo
 
-tserver:
-  default:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
+if [ -z "${MVN_DIR}" ]; then
+  echo "Maven directory not supplied"
+  exit 1
+fi
+rsync -a ${MVN_DIR} build_output/maven
 
-sserver:
-  default:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
+docker build --build-arg HADOOP_VERSION=$HADOOP_VERSION -t timely-grafana .
 
-compactor:
-  default:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
-  accumulo_meta:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
-  user_small:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
-  user_large:
-    servers_per_host: 1
-    hosts:
-%{ for ip in worker_ips ~}
-      - ${ip}
-%{ endfor ~}
+id=$(docker create timely-grafana)
+docker cp "$id":/opt/timely/collectd-timely-plugin.jar build_output/.
+docker cp "$id":/opt/timely/lib-accumulo build_output/.
+docker rm -v "$id"

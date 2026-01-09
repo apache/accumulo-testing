@@ -5,3 +5,4 @@ conf/
 **/terraform.tfstate.backup
 **/*.auto.tfvars.json
 **/*.auto.tfvars
+timely_grafana/build_output/
