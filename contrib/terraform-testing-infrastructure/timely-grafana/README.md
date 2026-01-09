@@ -31,7 +31,11 @@ using the OpenTSDB output plugin.
 ## Deployment
 
 1. Run `build-image.sh`, after this runs, the timely jar files will be copied out
-   of the Docker image and put into the `build_output` directory.
+   of the Docker image and put into the `build_output` directory. The `build-image.sh`
+   script takes several arguments: the version of Hadoop, the location of the local
+   Maven repository, and the directory of the local Maven executable. The Maven repository
+   and Maven home directory are copied into the Docker image at build time so that
+   these items are not downloaded again.
 2. Copy the timely jar files from the `build_output` directory to `$ACCUMULO_HOME/lib`
 3. Add the following to `accumulo.properties':
 ```
@@ -45,5 +49,18 @@ general.micrometer.factory=org.apache.accumulo.test.metrics.TestStatsDRegistryFa
   "-Dtest.meter.registry.port=8125"
 ```
 5. Start ZooKeeper, Hadoop, and Accumulo
-6. Execute `run-container.sh` to start Timely and Grafana
+6. Execute the following to start the container:
+
+docker run -d \
+    --restart always \
+    -p 3000:3000/tcp \
+    -p 4242:4242/tcp \
+    -p 4243:4243/tcp \
+    -p 4244:4244/tcp \
+    -p 4245:4245/udp \
+    -v /path/to/conf/grafana.ini:/etc/grafana/grafana.ini:ro \
+    -v /path/to/grafana/dashboards:/etc/grafana/provisioning/dashboards \
+    -v /path/to/conf/timely.yaml:/etc/grafana/provisioning/datasources/timely.yaml \
+    -v /path/to/conf/timely-server-env.sh:/opt/timely/bin/timely-server-env.sh:ro \
+    --name="timely-grafana-stack" timely-grafana
 

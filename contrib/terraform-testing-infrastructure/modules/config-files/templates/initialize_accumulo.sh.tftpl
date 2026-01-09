@@ -44,7 +44,7 @@ accumulo init --instance-name "$1" --password "$2"
 accumulo init --add-resource-groups accumulo_meta,user_small,user_large
 
 #
-# Launch jaegertracing and Timely-Grafana containers
+# Start jaegertracing container
 #
 docker run -d --name jaeger \
     --restart always \
@@ -61,7 +61,7 @@ docker run -d --name jaeger \
 accumulo-cluster start || true
 
 #
-# Start Timely
+# Start Timely container after Accumulo is started
 #
 docker run -d \
     --restart always \
