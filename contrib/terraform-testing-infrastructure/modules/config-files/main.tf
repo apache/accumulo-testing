@@ -223,10 +223,10 @@ resource "local_file" "telegraf" {
   content         = templatefile("${local.templates_dir}/telegraf.conf.tftpl", local.template_vars)
 }
 
-resource "local_file" "telegraf-repo" {
-  filename        = "${local.conf_dir}/telegraf.repo"
+resource "local_file" "influxdata-repo" {
+  filename        = "${local.conf_dir}/influxdata.repo"
   file_permission = "644"
-  content         = templatefile("${local.templates_dir}/telegraf.repo.tftpl", local.template_vars)
+  content         = templatefile("${local.templates_dir}/influxdata.repo.tftpl", local.template_vars)
 }
 
 resource "local_file" "timely-env" {
@@ -271,7 +271,7 @@ resource "null_resource" "upload_config_files" {
     local_file.initialize-hadoop,
     local_file.initialize-accumulo,
     local_file.telegraf,
-    local_file.telegraf-repo,
+    local_file.influxdata-repo,
     local_file.timely-env,
     local_file.grafana-ini,
     local_file.timely-yaml
