@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1719923641867,
+  "iteration": 1768239572450,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -57,7 +57,11 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 0
+              },
+              {
+                "color": "semi-dark-green",
+                "value": 1
               }
             ]
           }
@@ -101,13 +105,18 @@
           "refId": "A",
           "shouldComputeRate": false,
           "tags": {
-            "host": "${host_name_var}",
             "process.name": ".*",
             "resource.group": "${resource_group_var}"
           }
         }
       ],
       "title": "Process Counts",
+      "transformations": [
+        {
+          "id": "groupBy",
+          "options": {}
+        }
+      ],
       "type": "stat"
     },
     {
@@ -227,7 +236,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 12,
+        "w": 13,
         "x": 4,
         "y": 6
       },
@@ -392,7 +401,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 1
               }
             ]
           },
@@ -432,7 +441,7 @@
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "isCounter": false,
-          "metric": "accumulo_manager_tabletmgmt_root_errors_value",
+          "metric": "accumulo_tabletmgmt_root_errors_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": true,
@@ -447,7 +456,7 @@
           "downsampleInterval": "$interval",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_manager_tabletmgmt_meta_errors_value",
+          "metric": "accumulo_tabletmgmt_meta_errors_value",
           "queryType": "metricQuery",
           "refId": "B",
           "shouldComputeRate": true,
@@ -462,7 +471,7 @@
           "downsampleInterval": "$interval",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_manager_tabletmgmt_user_errors_value",
+          "metric": "accumulo_tabletmgmt_user_errors_value",
           "queryType": "metricQuery",
           "refId": "C",
           "shouldComputeRate": true,
@@ -490,7 +499,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 1
               }
             ]
           },
@@ -573,7 +582,7 @@
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 1
               }
             ]
           },
@@ -643,8 +652,8 @@
                 "value": null
               },
               {
-                "color": "red",
-                "value": 80
+                "color": "semi-dark-yellow",
+                "value": 1
               }
             ]
           },
@@ -727,10 +736,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -763,75 +768,63 @@
       "pluginVersion": "8.2.7",
       "targets": [
         {
-          "aggregator": "none",
+          "aggregator": "sum",
           "alias": "Assignment Warnings",
-          "disableDownsampling": true,
-          "downsampleAggregator": "avg",
+          "disableDownsampling": false,
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "isCounter": false,
-          "metric": "accumulo_tserver_tablets_assignments_warning_value",
+          "metric": "accumulo_tablets_assignments_warning_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": false,
-          "tags": {
-            "host": "${host_name_var}",
-            "resource.group": "${resource_group_var}"
-          }
+          "tags": {}
         },
         {
-          "aggregator": "none",
+          "aggregator": "sum",
           "alias": "Online",
-          "disableDownsampling": true,
-          "downsampleAggregator": "avg",
+          "disableDownsampling": false,
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_tserver_tablets_online_value",
+          "metric": "accumulo_tablets_online_value",
           "queryType": "metricQuery",
           "refId": "C",
           "shouldComputeRate": false,
-          "tags": {
-            "host": "${host_name_var}",
-            "resource.group": "${resource_group_var}"
-          }
+          "tags": {}
         },
         {
-          "aggregator": "none",
+          "aggregator": "sum",
           "alias": "OnDemand Online",
-          "disableDownsampling": true,
-          "downsampleAggregator": "avg",
+          "disableDownsampling": false,
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_tserver_tablets_ondemand_online_value",
+          "metric": "accumulo_tablets_ondemand_online_value",
           "queryType": "metricQuery",
           "refId": "B",
           "shouldComputeRate": false,
-          "tags": {
-            "host": "${host_name_var}",
-            "resource.group": "${resource_group_var}"
-          }
+          "tags": {}
         },
         {
-          "aggregator": "none",
+          "aggregator": "sum",
           "alias": "OnDemand Unloaded For LowMem",
-          "disableDownsampling": true,
-          "downsampleAggregator": "avg",
+          "disableDownsampling": false,
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_tserver_tablets_ondemand_unloaded_lowmem_value",
+          "metric": "accumulo_tablets_ondemand_unloaded_lowmem_value",
           "queryType": "metricQuery",
           "refId": "D",
           "shouldComputeRate": false,
-          "tags": {
-            "host": "${host_name_var}",
-            "resource.group": "${resource_group_var}"
-          }
+          "tags": {}
         }
       ],
       "title": "Tablets",
@@ -910,21 +903,18 @@
       },
       "targets": [
         {
-          "aggregator": "none",
+          "aggregator": "sum",
           "alias": "files",
-          "disableDownsampling": true,
-          "downsampleAggregator": "avg",
+          "disableDownsampling": false,
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "$interval",
           "isCounter": false,
-          "metric": "accumulo_tserver_tablets_files_value",
+          "metric": "accumulo_tablets_files_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": false,
-          "tags": {
-            "host": "${host_name_var}",
-            "resource.group": "${resource_group_var}"
-          }
+          "tags": {}
         }
       ],
       "title": "Tablet Files",
@@ -997,11 +987,11 @@
           "aggregator": "none",
           "alias": "queued - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "isCounter": false,
-          "metric": "accumulo_compactions_majc_queued_value",
+          "metric": "accumulo_compaction_queue_jobs_size_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": true,
@@ -1014,12 +1004,12 @@
           "aggregator": "none",
           "alias": "running - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_compactions_majc_running_value",
+          "metric": "accumulo_compaction_majc_in_progress_value",
           "queryType": "metricQuery",
           "refId": "C",
           "shouldComputeRate": true,
@@ -1032,12 +1022,12 @@
           "aggregator": "none",
           "alias": "paused - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_compactions_majc_paused_value",
+          "metric": "accumulo_compaction_majc_paused_value",
           "queryType": "metricQuery",
           "refId": "B",
           "shouldComputeRate": true,
@@ -1104,16 +1094,15 @@
           "aggregator": "none",
           "alias": "queued - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "isCounter": false,
-          "metric": "accumulo_tserver_compactions_minc_queued_count",
+          "metric": "accumulo_compaction_minc_queued_count",
           "queryType": "metricQuery",
           "refId": "A",
-          "shouldComputeRate": true,
+          "shouldComputeRate": false,
           "tags": {
-            "host": "${host_name_var}",
             "resource.group": "${resource_group_var}"
           }
         },
@@ -1121,17 +1110,16 @@
           "aggregator": "none",
           "alias": "running - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_tserver_compactions_minc_running_count",
+          "metric": "accumulo_compaction_minc_running_count",
           "queryType": "metricQuery",
           "refId": "C",
-          "shouldComputeRate": true,
+          "shouldComputeRate": false,
           "tags": {
-            "host": "${host_name_var}",
             "resource.group": "${resource_group_var}"
           }
         },
@@ -1139,17 +1127,16 @@
           "aggregator": "none",
           "alias": "paused - [[tag_resource.group]]",
           "disableDownsampling": false,
-          "downsampleAggregator": "avg",
+          "downsampleAggregator": "sum",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "hide": false,
           "isCounter": false,
-          "metric": "accumulo_tserver_compactions_minc_paused_value",
+          "metric": "accumulo_compaction_minc_paused_value",
           "queryType": "metricQuery",
           "refId": "B",
-          "shouldComputeRate": true,
+          "shouldComputeRate": false,
           "tags": {
-            "host": "${host_name_var}",
             "resource.group": "${resource_group_var}"
           }
         }
@@ -1243,13 +1230,13 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "mutations",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "isCounter": false,
-          "metric": "accumulo_tserver_ingest_mutations_value",
+          "metric": "accumulo_ingest_entries_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": true,
@@ -1335,13 +1322,13 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "bytes",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "isCounter": false,
-          "metric": "accumulo_tserver_ingest_bytes_value",
+          "metric": "accumulo_ingest_bytes_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": true,
@@ -1427,13 +1414,13 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "holds",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
           "downsampleInterval": "1s",
           "isCounter": false,
-          "metric": "accumulo_tserver_hold_value",
+          "metric": "accumulo_ingest_hold_value",
           "queryType": "metricQuery",
           "refId": "A",
           "shouldComputeRate": true,
@@ -1534,7 +1521,7 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "queries",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
@@ -1626,7 +1613,7 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "K/V pairs scanned",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
@@ -1719,7 +1706,7 @@
       "targets": [
         {
           "aggregator": "none",
-          "alias": "bytes",
+          "alias": "${tag_host}",
           "disableDownsampling": false,
           "downsampleAggregator": "avg",
           "downsampleFillPolicy": "none",
