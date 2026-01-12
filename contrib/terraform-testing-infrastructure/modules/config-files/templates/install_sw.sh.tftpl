@@ -166,11 +166,11 @@ fi
 # (doing this in cloud-init puts it over the size limit)
 #
 %{ if os_distro == "centos" || os_distro == "rhel" ~}
-sudo cp ${software_root}/conf/telegraf.repo /etc/yum.repos.d/.
+sudo cp ${software_root}/conf/influxdata.repo /etc/yum.repos.d/.
 sudo yum clean all
 sudo yum install -y telegraf
-pdcp -g worker ${software_root}/conf/telegraf.repo /tmp/.
-pdsh -S -g worker sudo mv /tmp/telegraf.repo /etc/yum.repos.d/.
+pdcp -g worker ${software_root}/conf/influxdata.repo /tmp/.
+pdsh -S -g worker sudo mv /tmp/influxdata.repo /etc/yum.repos.d/.
 pdsh -S -g worker sudo yum clean all
 pdsh -S -g worker sudo yum install -y telegraf
 %{ endif ~}
