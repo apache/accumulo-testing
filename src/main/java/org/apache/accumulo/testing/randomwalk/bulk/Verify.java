@@ -67,6 +67,11 @@ public class Verify extends Test {
       errorFound = true;
     }
 
+    if (!BulkPlusOne.rangeExchange.isEmpty()) {
+      log.error("BulkPlusOne.rangeExchange is not empty");
+      errorFound = true;
+    }
+
     String user = env.getAccumuloClient().whoami();
     Authorizations auths = env.getAccumuloClient().securityOperations().getUserAuthorizations(user);
     RowIterator rowIter;
@@ -112,9 +117,13 @@ public class Verify extends Test {
           prev = curr;
         }
 
-        if (BulkPlusOne.counter.get() != prev) {
-          log.error("Row {} does not have all markers. Current marker: {}, Previous marker:{}",
-              rowText, BulkPlusOne.counter.get(), prev);
+        long parsedRow = Long.parseLong(rowText.toString().substring(1), 16);
+        int zone = (int) (parsedRow / BulkPlusOne.ZONE_SIZE);
+
+        if (BulkPlusOne.perZoneCounters[zone].get() != prev) {
+          log.error(
+              "Row {} does not have all markers. Current marker: {}, Previous marker:{} zone:{}",
+              rowText, BulkPlusOne.perZoneCounters[zone].get(), prev, zone);
           errorFound = true;
         }
       }
