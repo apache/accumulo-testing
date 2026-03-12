@@ -16,6 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
+
 FROM redhat/ubi8 as builder
 COPY build_output/maven /opt/apache-maven
 COPY build_output/repo /opt/apache-maven
