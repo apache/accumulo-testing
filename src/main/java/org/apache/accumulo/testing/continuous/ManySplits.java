@@ -168,7 +168,7 @@ public class ManySplits {
 
         // wait for all tablets to reach the expected sum file size
         tableNames.stream().parallel().forEach(tableName -> {
-          int elapsedMillis = 0;
+          long elapsedMillis = 0;
           long sleepMillis = SECONDS.toMillis(1);
           try {
             // wait for each tablet to reach the expected sum file size
