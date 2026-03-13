@@ -64,7 +64,7 @@ public class SecurityFixture extends Fixture {
 
     WalkingSecurity.get(state, env).setTableName(secTableName);
     WalkingSecurity.get(state, env).setNamespaceName(secNamespaceName);
-    state.set("rootUserPass", env.getToken());
+    WalkingSecurity.get(state, env).setRootUserCredentials(client.whoami(), env.getToken());
 
     WalkingSecurity.get(state, env).setSysUserName(systemUserName);
     WalkingSecurity.get(state, env).createUser(systemUserName, sysUserPass);
