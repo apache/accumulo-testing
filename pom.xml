@@ -127,12 +127,12 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.16.1</version>
+          <version>2.21.0</version>
         </plugin>
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>4.3</version>
+          <version>5.0.0</version>
           <configuration>
             <licenseSets>
               <licenseSet>
@@ -195,7 +195,7 @@
         <plugin>
           <groupId>com.github.ekryd.sortpom</groupId>
           <artifactId>sortpom-maven-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>4.0.0</version>
           <configuration>
             <createBackupFile>false</createBackupFile>
             <expandEmptyElements>false</expandEmptyElements>
@@ -212,7 +212,7 @@
         <plugin>
           <groupId>net.revelc.code.formatter</groupId>
           <artifactId>formatter-maven-plugin</artifactId>
-          <version>2.23.0</version>
+          <version>2.29.0</version>
           <configuration>
             <configFile>src/build/eclipse-codestyle.xml</configFile>
             <lineEnding>LF</lineEnding>
@@ -226,7 +226,7 @@
         <plugin>
           <groupId>net.revelc.code</groupId>
           <artifactId>impsort-maven-plugin</artifactId>
-          <version>1.9.0</version>
+          <version>1.13.0</version>
           <configuration>
             <removeUnused>true</removeUnused>
             <groups>java.,javax.,jakarta.,org.,com.</groups>
