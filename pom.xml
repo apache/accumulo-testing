@@ -24,7 +24,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>31</version>
+    <version>37</version>
   </parent>
   <groupId>org.apache.accumulo</groupId>
   <artifactId>accumulo-testing</artifactId>
@@ -43,8 +43,7 @@
     <maven.site.skip>true</maven.site.skip>
     <!-- versions-maven-plugin ignore patterns for snapshots, alpha, beta, milestones, and release candidates -->
     <maven.version.ignore>.+-SNAPSHOT,(?i).*(alpha|beta)[0-9.-]*,(?i).*[.-](m|rc)[0-9]+</maven.version.ignore>
-    <minimalJavaBuildVersion>17</minimalJavaBuildVersion>
-    <minimalMavenBuildVersion>3.9</minimalMavenBuildVersion>
+    <minimalJavaBuildVersion>21</minimalJavaBuildVersion>
     <!-- timestamp for reproducible outputs, updated on release by the release plugin -->
     <project.build.outputTimestamp>2021-12-15T00:00:00Z</project.build.outputTimestamp>
   </properties>
