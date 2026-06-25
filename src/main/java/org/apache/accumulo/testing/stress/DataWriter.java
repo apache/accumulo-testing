@@ -30,15 +30,21 @@ import org.slf4j.LoggerFactory;
 public class DataWriter extends Stream<Void> implements AutoCloseable {
   private final BatchWriter writer;
   private final RandomMutations mutations;
-  private final Cleanable cleanable;
+  private Cleanable cleanable;
   private final AtomicBoolean closed = new AtomicBoolean(false);
 
   private static final Logger log = LoggerFactory.getLogger(DataWriter.class);
 
-  public DataWriter(BatchWriter writer, RandomMutations mutations) {
+  private DataWriter(BatchWriter writer, RandomMutations mutations) {
     this.writer = writer;
     this.mutations = mutations;
-    this.cleanable = CleanerUtil.unclosed(this, DataWriter.class, closed, log, writer);
+  }
+
+  public static DataWriter create(BatchWriter writer, RandomMutations mutations) {
+    DataWriter dataWriter = new DataWriter(writer, mutations);
+    dataWriter.cleanable =
+        CleanerUtil.unclosed(dataWriter, DataWriter.class, dataWriter.closed, log, writer);
+    return dataWriter;
   }
 
   @Override
@@ -57,12 +63,6 @@ public class DataWriter extends Stream<Void> implements AutoCloseable {
       // deregister cleanable, but it won't run because it checks
       // the value of closed first, which is now true
       cleanable.clean();
-      try {
-        writer.close();
-      } catch (MutationsRejectedException e) {
-        System.err.println("Error closing batch writer.");
-        e.printStackTrace();
-      }
     }
   }
 }

@@ -53,7 +53,7 @@ public class BatchVerify extends Test {
 
     try (BatchScanner scanner =
         client.createBatchScanner(state.getString("seqTableName"), new Authorizations(), 2)) {
-      int count = 0;
+      long count = 0;
       List<Range> ranges = new ArrayList<>();
       while (count < numVerify) {
         long rangeStart = env.getRandom().nextInt((int) numWrites);
