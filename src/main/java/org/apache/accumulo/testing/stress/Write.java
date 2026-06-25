@@ -20,6 +20,7 @@ package org.apache.accumulo.testing.stress;
 
 import org.apache.accumulo.core.client.Accumulo;
 import org.apache.accumulo.core.client.AccumuloClient;
+import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 
@@ -54,7 +55,7 @@ public class Write {
         writeDelay = 0;
       }
 
-      try (DataWriter dw = new DataWriter(c.createBatchWriter(opts.tableName), new RandomMutations(
+      RandomMutations mutations = new RandomMutations(
           // rows
           new RandomByteArrays(new RandomWithinRange(opts.row_seed, opts.rowMin(), opts.rowMax())),
           // cfs
@@ -67,7 +68,10 @@ public class Write {
           // number of cells per row
           new RandomWithinRange(opts.row_width_seed, opts.rowWidthMin(), opts.rowWidthMax()),
           // max cells per mutation
-          opts.max_cells_per_mutation))) {
+          opts.max_cells_per_mutation);
+
+      try (BatchWriter batchWriter = c.createBatchWriter(opts.tableName);
+          DataWriter dw = DataWriter.create(batchWriter, mutations)) {
         while (true) {
           dw.next();
           if (writeDelay > 0) {
