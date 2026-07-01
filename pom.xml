@@ -32,6 +32,7 @@
   <name>Apache Accumulo Testing</name>
   <description>Testing tools for Apache Accumulo</description>
   <properties>
+    <!-- build locally with mvn install (recommended) or use the latest published with -Dapache.snapshots -->
     <accumulo.version>4.0.0-SNAPSHOT</accumulo.version>
     <!-- prevent introduction of new compiler warnings -->
     <maven.compiler.failOnWarning>true</maven.compiler.failOnWarning>
@@ -120,19 +121,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>apache.snapshots</id>
-      <name>Apache Snapshot Repository</name>
-      <url>https://repository.apache.org/content/repositories/snapshots</url>
-    </repository>
-  </repositories>
   <build>
     <pluginManagement>
       <plugins>
