@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         profile:
-          - {name: 'verify', args: 'verify'}
+          - {name: 'verify', args: 'verify -Dapache.snapshots'}
       fail-fast: false
     timeout-minutes: 60
     runs-on: ubuntu-latest
