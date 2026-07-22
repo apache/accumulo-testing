@@ -39,7 +39,8 @@ public class Merge extends Test {
     log.debug("merging " + indexTableName);
     env.getAccumuloClient().tableOperations().merge(indexTableName, null, null);
     org.apache.accumulo.core.util.Merge merge = new org.apache.accumulo.core.util.Merge();
-    merge.mergomatic(env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true);
+    merge.mergomatic(env.getAccumuloClient(), indexTableName, null, null, 256 * 1024 * 1024, true,
+        false);
     splits = env.getAccumuloClient().tableOperations().listSplits(indexTableName);
     if (splits.size() > splitSet.size()) {
       // throw an exception so that test will die and no further changes to table will occur...
