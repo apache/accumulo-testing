@@ -18,19 +18,33 @@
  */
 package org.apache.accumulo.testing.stress;
 
+import java.lang.ref.Cleaner.Cleanable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.util.cleaner.CleanerUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DataWriter extends Stream<Void> implements AutoCloseable {
   private final BatchWriter writer;
   private final RandomMutations mutations;
+  private Cleanable cleanable;
   private final AtomicBoolean closed = new AtomicBoolean(false);
 
-  public DataWriter(BatchWriter writer, RandomMutations mutations) {
+  private static final Logger log = LoggerFactory.getLogger(DataWriter.class);
+
+  private DataWriter(BatchWriter writer, RandomMutations mutations) {
     this.writer = writer;
     this.mutations = mutations;
+  }
+
+  public static DataWriter create(BatchWriter writer, RandomMutations mutations) {
+    DataWriter dataWriter = new DataWriter(writer, mutations);
+    dataWriter.cleanable =
+        CleanerUtil.unclosed(dataWriter, DataWriter.class, dataWriter.closed, log, writer);
+    return dataWriter;
   }
 
   @Override
@@ -46,12 +60,9 @@ public class DataWriter extends Stream<Void> implements AutoCloseable {
   @Override
   public void close() {
     if (closed.compareAndSet(false, true)) {
-      try {
-        writer.close();
-      } catch (MutationsRejectedException e) {
-        System.err.println("Error closing batch writer.");
-        e.printStackTrace();
-      }
+      // deregister cleanable, but it won't run because it checks
+      // the value of closed first, which is now true
+      cleanable.clean();
     }
   }
 }
