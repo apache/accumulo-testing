@@ -56,6 +56,7 @@ locals {
 
   java_11_home        = var.os_distro == "ubuntu" ? "/usr/lib/jvm/java-11-openjdk-amd64" : "/usr/lib/jvm/java-11-openjdk"
   java_17_home        = var.os_distro == "ubuntu" ? "/usr/lib/jvm/java-17-openjdk-amd64" : "/usr/lib/jvm/java-17-openjdk"
+  java_21_home        = var.os_distro == "ubuntu" ? "/usr/lib/jvm/java-21-openjdk-amd64" : "/usr/lib/jvm/java-21-openjdk"
   accumulo_root_pw = coalesce(var.accumulo_root_password, random_string.accumulo_root_password.result)
 
   template_vars = {
@@ -64,6 +65,7 @@ locals {
     worker_ips                   = var.worker_ips
     java_11_home                 = local.java_11_home
     java_17_home                 = local.java_17_home
+    java_21_home                 = local.java_21_home
     accumulo_branch_name         = var.accumulo_branch_name
     accumulo_dir                 = var.accumulo_dir
     accumulo_repo                = var.accumulo_repo
