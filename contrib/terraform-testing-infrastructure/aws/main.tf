@@ -69,6 +69,7 @@ terraform {
     key            = "accumulo-testing/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "accumulo-testing-tf-locks"
+    use_lockfile   = true
     encrypt        = true
   }
 }
