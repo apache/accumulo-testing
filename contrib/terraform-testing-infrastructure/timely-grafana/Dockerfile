@@ -40,10 +40,11 @@ RUN cd /opt && \
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/datawave.git datawave && \
     cd datawave && \
-    git checkout accumulo4-2026 && \
+    git checkout c1fd5d0a787bfa73301a586d0e68598426a32ed7 && \
     cd contrib/datawave-utils/read-properties && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install && \
     cd ../../../core/in-memory-accumulo && \
+    git checkout accumulo4-2026 && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
 
 RUN cd /opt && \
