@@ -47,7 +47,9 @@ RUN cd /opt && \
     cd ../code-style && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install && \
     git checkout accumulo4-2026 && \
-    cd ../../../core/in-memory-accumulo && \
+    cd ../../.. && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install -N && \
+    cd core/in-memory-accumulo && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
 
 RUN cd /opt && \
