@@ -279,6 +279,8 @@ public class ContinuousIngest {
           Boolean.parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
 
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        if (stopped.getCount() == 0)
+          return;
         stopping = true;
         log.info("Stopping ingest at next flush point, waiting up to {}s (kill -9 {} to stop now)",
             STOP_WAIT_SEC, ProcessHandle.current().pid());
@@ -296,6 +298,8 @@ public class ContinuousIngest {
       var batchWriterFactory = BatchWriterFactory.create(client, env, splitSupplier);
       doIngest(client, randomFactory, batchWriterFactory, tableName, testProps, maxColF, maxColQ,
           numEntries, checksum, random);
+    } finally {
+      stopped.countDown();
     }
   }
 
@@ -426,8 +430,6 @@ public class ContinuousIngest {
           break out;
         pauseCheck(random);
       }
-    } finally {
-      stopped.countDown();
     }
   }
 
