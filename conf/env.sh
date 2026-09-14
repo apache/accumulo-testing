@@ -23,6 +23,7 @@
 
 ## Hadoop installation
 export HADOOP_HOME="${HADOOP_HOME:-/path/to/hadoop}"
+export HADOOP_CONF_DIR="${HADOOP_CONF_DIR:-$HADOOP_HOME/etc/hadoop}"
 ## Accumulo installation
 export ACCUMULO_HOME="${ACCUMULO_HOME:-/path/to/accumulo}"
 ## Path to Accumulo client properties
