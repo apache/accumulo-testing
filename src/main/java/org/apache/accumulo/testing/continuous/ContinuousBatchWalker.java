@@ -65,6 +65,7 @@ public class ContinuousBatchWalker {
             Duration.ofMillis(Integer.parseInt(env.getTestProperty(TestProps.CI_BW_SLEEP_MS)));
         while (true) {
           try (BatchScanner bs = client.createBatchScanner(env.getAccumuloTableName(), auths)) {
+            bs.setConsistencyLevel(cl);
             Set<Text> batch =
                 getBatch(scanner, env.getRowMin(), env.getRowMax(), scanBatchSize, env.getRandom());
             List<Range> ranges = batch.stream().map(Range::new).collect(Collectors.toList());
