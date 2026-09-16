@@ -107,6 +107,8 @@ export AGTR_DATANODE_RESTART_SLEEP_TIME=10
 # Min and max number of datanodes the agitator will kill at once
 export AGTR_DATANODE_MIN_KILL=1
 export AGTR_DATANODE_MAX_KILL=1
+# Datanode hosts if different from tservers
+#export AGTR_DATANODE_HOSTS="host1 host2"
 # HDFS agitation
 AGTR_HDFS_USER=$(whoami)
 export AGTR_HDFS_USER

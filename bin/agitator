@@ -203,7 +203,8 @@ function read_cluster_conf() {
 function get_app_hosts() {
   case "$1" in
     manager) echo -n "$MANAGER_HOSTS" ;;
-    tserver | datanode) echo -n "$TSERVER_HOSTS" ;;
+    tserver) echo -n "$TSERVER_HOSTS" ;;
+    datanode) echo -n "${AGTR_DATANODE_HOSTS:-$TSERVER_HOSTS}" ;;
     *) return 1 ;;
   esac
 }
