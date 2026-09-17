@@ -48,15 +48,15 @@ RUN cd /opt && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install && \
     git checkout accumulo4-2026 && \
     cd ../../.. && \
-    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install -N && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean install -N && \
     cd core/in-memory-accumulo && \
-    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean package -Pcollectd -DskipTests -Denforcer.skip=true -Dspotbugs.skip=true
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean package -Pcollectd -DskipTests -Denforcer.skip=true -Dspotbugs.skip=true
 
 RUN mkdir /tmp/timely-server && \
     tar zxf /opt/timely/server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \
