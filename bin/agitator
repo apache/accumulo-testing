@@ -135,9 +135,9 @@ function start_agitator() {
   datanode_log="${log_base}_datanode-agitator.log"
   datanode_kill_cmd="pkill -9 -f '[p]roc_datanode'"
   datanode_start_cmd="$HADOOP_HOME/bin/hdfs --daemon start datanode"
-  manager_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main manager'"
+  manager_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main proc manager'"
   manager_start_cmd="$ACCUMULO_HOME/bin/accumulo-service manager start"
-  tserver_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main tserver'"
+  tserver_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main proc tserver'"
   tserver_start_cmd="$ACCUMULO_HOME/bin/accumulo-service tserver start"
 
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
