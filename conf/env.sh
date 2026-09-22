@@ -92,29 +92,29 @@ fi
 AGTR_ACCUMULO_USER=$(whoami)
 export AGTR_ACCUMULO_USER
 # Time (in minutes) between killing Accumulo managers
-export AGTR_MANAGER_KILL_SLEEP_TIME=60
-export AGTR_MANAGER_RESTART_SLEEP_TIME=2
+export AGTR_MANAGER_KILL_SLEEP_TIME="${AGTR_MANAGER_KILL_SLEEP_TIME:-60}"
+export AGTR_MANAGER_RESTART_SLEEP_TIME="${AGTR_MANAGER_RESTART_SLEEP_TIME:-2}"
 # Time (in minutes) between killing Accumulo tservers
-export AGTR_TSERVER_KILL_SLEEP_TIME=20
-export AGTR_TSERVER_RESTART_SLEEP_TIME=10
+export AGTR_TSERVER_KILL_SLEEP_TIME="${AGTR_TSERVER_KILL_SLEEP_TIME:-20}"
+export AGTR_TSERVER_RESTART_SLEEP_TIME="${AGTR_TSERVER_RESTART_SLEEP_TIME:-10}"
 # Min and max number of Accumulo tservers that the agitator will kill at once
-export AGTR_TSERVER_MIN_KILL=1
-export AGTR_TSERVER_MAX_KILL=1
+export AGTR_TSERVER_MIN_KILL="${AGTR_TSERVER_MIN_KILL:-1}"
+export AGTR_TSERVER_MAX_KILL="${AGTR_TSERVER_MAX_KILL:-1}"
 # Amount of time (in minutes) the agitator should sleep before killing datanodes
-export AGTR_DATANODE_KILL_SLEEP_TIME=20
+export AGTR_DATANODE_KILL_SLEEP_TIME="${AGTR_DATANODE_KILL_SLEEP_TIME:-20}"
 # Amount of time (in minutes) the agitator should wait before restarting datanodes
-export AGTR_DATANODE_RESTART_SLEEP_TIME=10
+export AGTR_DATANODE_RESTART_SLEEP_TIME="${AGTR_DATANODE_RESTART_SLEEP_TIME:-10}"
 # Min and max number of datanodes the agitator will kill at once
-export AGTR_DATANODE_MIN_KILL=1
-export AGTR_DATANODE_MAX_KILL=1
+export AGTR_DATANODE_MIN_KILL="${AGTR_DATANODE_MIN_KILL:-1}"
+export AGTR_DATANODE_MAX_KILL="${AGTR_DATANODE_MAX_KILL:-1}"
 # Datanode hosts if different from tservers
 #export AGTR_DATANODE_HOSTS="host1 host2"
 # HDFS agitation
 AGTR_HDFS_USER=$(whoami)
 export AGTR_HDFS_USER
-export AGTR_HDFS=false
-export AGTR_HDFS_SLEEP_TIME=10
-export AGTR_HDFS_SUPERUSER=hdfs
+export AGTR_HDFS="${AGTR_HDFS:-false}"
+export AGTR_HDFS_SLEEP_TIME="${AGTR_HDFS_SLEEP_TIME:-10}"
+export AGTR_HDFS_SUPERUSER="${AGTR_HDFS_SUPERUSER:-hdfs}"
 export AGTR_HDFS_COMMAND="${HADOOP_HOME}/bin/hdfs"
 AGTR_HDFS_SUDO=$(command -v sudo)
 export AGTR_HDFS_SUDO
