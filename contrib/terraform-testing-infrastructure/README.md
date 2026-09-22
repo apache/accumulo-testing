@@ -161,7 +161,7 @@ The table below lists the variables and their default values that are used in th
 | accumulo\_root\_password | The password for the accumulo root user. A randomly generated password will be used if none is specified here. | `string` | `null` | no |
 | accumulo\_testing\_branch\_name | The name of the branch to build and install | `string` | `"main"` | no |
 | accumulo\_testing\_repo | URL of the Accumulo Testing git repo | `string` | `"https://github.com/apache/accumulo-testing.git"` | no |
-| accumulo\_version | The branch of Accumulo to download and install | `string` | `"2.1.0-SNAPSHOT"` | no |
+| accumulo\_version | The branch of Accumulo to download and install | `string` | `"4.0.0-SNAPSHOT"` | no |
 | ami\_name\_pattern | The pattern of the name of the AMI to use | `any` | n/a | yes |
 | ami\_owner | The id of the AMI owner | `any` | n/a | yes |
 | authorized\_ssh\_key\_files | List of SSH public key files for the developers that will log into the cluster | `list(string)` | `[]` | no |
@@ -169,11 +169,11 @@ The table below lists the variables and their default values that are used in th
 | cloudinit\_merge\_type | Describes the merge behavior for overlapping config blocks in cloud-init. | `string` | `null` | no |
 | create\_route53\_records | Indicates whether or not route53 records will be created | `bool` | `false` | no |
 | hadoop\_dir | The Hadoop directory on each EC2 node | `string` | `"/data/hadoop"` | no |
-| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.3.4"` | no |
+| hadoop\_version | The version of Hadoop to download and install | `string` | `"3.5.0"` | no |
 | instance\_count | The number of EC2 instances to create | `string` | `"2"` | no |
 | instance\_type | The type of EC2 instances to create | `string` | `"m5.2xlarge"` | no |
 | local\_sources\_dir | Directory on local machine that contains Maven, ZooKeeper or Hadoop binary distributions or Accumulo source tarball | `string` | `""` | no |
-| maven\_version | The version of Maven to download and install | `string` | `"3.8.8"` | no |
+| maven\_version | The version of Maven to download and install | `string` | `"3.9.16"` | no |
 | optional\_cloudinit\_config | An optional config block for the cloud-init script. If you set this, you should consider setting cloudinit\_merge\_type to handle merging with the default script as you need. | `string` | `null` | no |
 | private\_network | Indicates whether or not the user is on a private network and access to hosts should be through the private IP addresses rather than public ones. | `bool` | `false` | no |
 | root\_volume\_gb | The size, in GB, of the EC2 instance root volume | `string` | `"300"` | no |
@@ -183,7 +183,7 @@ The table below lists the variables and their default values that are used in th
 | us\_east\_1b\_subnet | The AWS subnet id for the us-east-1b subnet | `any` | n/a | yes |
 | us\_east\_1e\_subnet | The AWS subnet id for the us-east-1e subnet | `any` | n/a | yes |
 | zookeeper\_dir | The ZooKeeper directory on each EC2 node | `string` | `"/data/zookeeper"` | no |
-| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.8.0"` | no |
+| zookeeper\_version | The version of ZooKeeper to download and install | `string` | `"3.9.5"` | no |
 
 The following outputs are returned by the `aws` Terraform configuration.
 
@@ -330,11 +330,11 @@ This Terraform configuration:
      and builds the software using Maven, then untars the binary tarball to
      `${software_root}/accumulo/accumulo-${accumulo_version}`
   5. Downloads the [OpenTelemetry](https://opentelemetry.io/) Java Agent jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-2.26.1.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/opentelemetry-javaagent-2.31.1.jar`
   6. Copies the Accumulo `test` jar to `${software_root}/accumulo/accumulo-${accumulo_version}/lib`
      so that `org.apache.accumulo.test.metrics.TestStatsDRegistryFactory` is on the classpath
   7. Downloads the [Micrometer](https://micrometer.io/) StatsD Registry jar file and copies it to
-     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.12.1.jar`
+     `${software_root}/accumulo/accumulo-${accumulo_version}/lib/micrometer-registry-statsd-1.16.7.jar`
   8. Clones, if necessary, the Apache Accumulo Testing Git repo from `${accumulo_testing_repo}`
      into `${software_root}/sources/accumulo-testing-repo`. It switches to the
      `${accumulo_testing_branch_name}` branch and builds the software using Maven.

@@ -41,7 +41,7 @@ general.opentelemetry.enabled=true
 # Micrometer settings
 general.micrometer.enabled=true
 general.micrometer.jvm.metrics.enabled=true
-general.micrometer.factory=org.apache.accumulo.test.metrics.TestStatsDRegistryFactory
+general.micrometer.factory=org.apache.accumulo.core.spi.metrics.AccumuloMonitorMeterRegistryFactory,org.apache.accumulo.test.metrics.TestStatsDRegistryFactory
 
 # Per-Table Encryption
 instance.crypto.opts.factory=org.apache.accumulo.core.spi.crypto.PerTableCryptoServiceFactory

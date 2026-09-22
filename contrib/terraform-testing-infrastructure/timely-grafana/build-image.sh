@@ -18,7 +18,7 @@
 # under the License.
 #
 
-HADOOP_VERSION=${1:-"3.3.6"}
+HADOOP_VERSION=${1:-"3.5.0"}
 MVN_REPO=$2
 MVN_DIR=$3
 

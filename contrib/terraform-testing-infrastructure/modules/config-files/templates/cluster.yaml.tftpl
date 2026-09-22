@@ -18,7 +18,9 @@
 #
 
 manager:
-  - ${manager_ip}
+  servers_per_host: 1
+  hosts:
+    - ${manager_ip}
 
 monitor:
   - ${manager_ip}

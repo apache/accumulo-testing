@@ -40,8 +40,8 @@ pdsh -S -g worker sudo systemctl start telegraf
 #
 # Initialize Accumulo with the supplied instance name and root user password
 #
-accumulo init --instance-name "$1" --password "$2"
-accumulo init --add-resource-groups accumulo_meta,user_small,user_large
+accumulo inst init --instance-name "$1" --password "$2"
+accumulo inst init --add-resource-groups accumulo_meta,user_small,user_large
 
 #
 # Start jaegertracing container

@@ -21,12 +21,12 @@ FROM redhat/ubi8 as builder
 COPY build_output/maven /opt/apache-maven
 COPY build_output/repo /opt/apache-maven
 COPY settings.xml /tmp/settings.xml
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 ENV TIMELY_VERSION="3.0.0-SNAPSHOT"
-ARG HADOOP_VERSION="3.3.6"
+ARG HADOOP_VERSION="3.5.0"
 
 RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf install -y java-17-openjdk-devel git wget collectd collectd-java && \
+    dnf install -y java-21-openjdk-devel git wget collectd collectd-java && \
     dnf clean all && \
     rm -rf /var/cache/dnf
 
@@ -38,16 +38,25 @@ RUN cd /opt && \
     /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml clean install
 
 RUN cd /opt && \
-    git clone https://github.com/NationalSecurityAgency/datawave-in-memory-accumulo.git datawave-in-memory-accumulo && \
-    cd datawave-in-memory-accumulo && \
-    git checkout accumulo4 && \
-    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install
+    git clone https://github.com/NationalSecurityAgency/datawave.git datawave && \
+    cd datawave && \
+    git checkout c1fd5d0a787bfa73301a586d0e68598426a32ed7 && \
+    cd contrib/datawave-utils/read-properties && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install && \
+    git checkout 7fa6fc2261cc79bce9b468d6ae8b248e44f8ff4f && \
+    cd ../code-style && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean install && \
+    git checkout accumulo4-2026 && \
+    cd ../../.. && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean install -N && \
+    cd core/in-memory-accumulo && \
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean install
 
 RUN cd /opt && \
     git clone https://github.com/NationalSecurityAgency/timely.git timely && \
     cd timely && \
     git checkout accumulo4 && \
-    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} clean package -Pcollectd -DskipTests
+    /opt/apache-maven/apache-maven-*/bin/mvn -s /tmp/settings.xml -Dversion.hadoop=${HADOOP_VERSION} -Dversion.accumulo=4.0.0-alpha-1 clean package -Pcollectd -DskipTests -Denforcer.skip=true -Dspotbugs.skip=true
 
 RUN mkdir /tmp/timely-server && \
     tar zxf /opt/timely/server/target/timely-server-${TIMELY_VERSION}-dist.tar.gz --strip-components=1 -C /tmp/timely-server && \

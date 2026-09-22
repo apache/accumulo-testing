@@ -20,7 +20,8 @@
 
 bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 at_home=$(cd "$(dirname "$bin_dir")" && pwd)
-source "${bin_dir}/build"
+# only 'start' needs env.sh, which exits if the install paths are missing
+[[ $1 == stop ]] || source "${bin_dir}/build"
 
 function print_usage() {
   cat <<EOF
@@ -50,7 +51,7 @@ function start_app_agitator() {
   local node_to_kill
   nodes_to_kill_array=()
   local T
-  local ENV_VARS="ACCUMULO_HOME=$ACCUMULO_HOME ZOOKEEPER_HOME=$ZOOKEEPER_HOME HADOOP_HOME=$HADOOP_HOME JAVA_HOME=$JAVA_HOME"
+  local ENV_VARS="ACCUMULO_HOME=$ACCUMULO_HOME ZOOKEEPER_HOME=$ZOOKEEPER_HOME HADOOP_HOME=$HADOOP_HOME HADOOP_CONF_DIR=$HADOOP_CONF_DIR HADOOP_LOG_DIR=$HADOOP_LOG_DIR JAVA_HOME=$JAVA_HOME"
 
   if ((num_hosts == 0)); then
     echo "ERROR: No hosts were found in env for $app_name"
@@ -135,9 +136,9 @@ function start_agitator() {
   datanode_log="${log_base}_datanode-agitator.log"
   datanode_kill_cmd="pkill -9 -f '[p]roc_datanode'"
   datanode_start_cmd="$HADOOP_HOME/bin/hdfs --daemon start datanode"
-  manager_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main manager'"
+  manager_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main proc manager'"
   manager_start_cmd="$ACCUMULO_HOME/bin/accumulo-service manager start"
-  tserver_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main tserver'"
+  tserver_kill_cmd="pkill -f '[ ]org[.]apache[.]accumulo[.]start[.]Main proc tserver'"
   tserver_start_cmd="$ACCUMULO_HOME/bin/accumulo-service tserver start"
 
   [[ -n $AGITATOR_USER ]] || AGITATOR_USER=$(whoami)
@@ -203,7 +204,8 @@ function read_cluster_conf() {
 function get_app_hosts() {
   case "$1" in
     manager) echo -n "$MANAGER_HOSTS" ;;
-    tserver | datanode) echo -n "$TSERVER_HOSTS" ;;
+    tserver) echo -n "$TSERVER_HOSTS" ;;
+    datanode) echo -n "${AGTR_DATANODE_HOSTS:-$TSERVER_HOSTS}" ;;
     *) return 1 ;;
   esac
 }
