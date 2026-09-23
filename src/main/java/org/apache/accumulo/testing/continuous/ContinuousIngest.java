@@ -30,6 +30,7 @@ import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 import java.util.zip.CRC32;
@@ -60,6 +61,9 @@ public class ContinuousIngest {
 
   private static final byte[] EMPTY_BYTES = new byte[0];
 
+  // how long ctrl-c waits for ingest to reach a flush point before giving up on a clean stop
+  private static final long STOP_WAIT_SEC = 300;
+
   private static List<ColumnVisibility> visibilities;
   private static long lastPauseNs;
   private static long pauseWaitSec;
@@ -73,6 +77,10 @@ public class ContinuousIngest {
   private static double exponent;
 
   private static RandomDataGenerator rnd;
+
+  // set by the shutdown hook, causes ingest to stop at the next flush point
+  private static volatile boolean stopping = false;
+  private static final CountDownLatch stopped = new CountDownLatch(1);
 
   public interface RandomGeneratorFactory extends Supplier<LongSupplier> {
     static RandomGeneratorFactory create(ContinuousEnv env, AccumuloClient client,
@@ -270,11 +278,28 @@ public class ContinuousIngest {
       final boolean checksum =
           Boolean.parseBoolean(testProps.getProperty(TestProps.CI_INGEST_CHECKSUM));
 
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        if (stopped.getCount() == 0)
+          return;
+        stopping = true;
+        log.info("Stopping ingest at next flush point, waiting up to {}s (kill -9 {} to stop now)",
+            STOP_WAIT_SEC, ProcessHandle.current().pid());
+        try {
+          if (!stopped.await(STOP_WAIT_SEC, TimeUnit.SECONDS)) {
+            log.warn("Timed out waiting for ingest to stop, exiting with data unflushed");
+          }
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }));
+
       var splitSupplier = createSplitSupplier(client, tableName);
       var randomFactory = RandomGeneratorFactory.create(env, client, splitSupplier, random);
       var batchWriterFactory = BatchWriterFactory.create(client, env, splitSupplier);
       doIngest(client, randomFactory, batchWriterFactory, tableName, testProps, maxColF, maxColQ,
           numEntries, checksum, random);
+    } finally {
+      stopped.countDown();
     }
   }
 
@@ -365,7 +390,7 @@ public class ContinuousIngest {
           }
 
           lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
-          if (entriesWritten >= numEntries)
+          if (entriesWritten >= numEntries || stopping)
             break out;
           pauseCheck(random);
         }
@@ -401,7 +426,7 @@ public class ContinuousIngest {
           lastFlushTime = flush(bw, entriesWritten, entriesDeleted, lastFlushTime);
         }
 
-        if (entriesWritten >= numEntries)
+        if (entriesWritten >= numEntries || stopping)
           break out;
         pauseCheck(random);
       }
