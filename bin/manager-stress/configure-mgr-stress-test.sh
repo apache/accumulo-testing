@@ -21,7 +21,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-default_client_config="${script_dir}/../../conf/accumulo-client.properties"
+default_client_config="${script_dir}/../../conf/accumulo-testing.properties"
 default_namespace="mgrstress_$(date +%Y%m%d_%H%M%S)_${RANDOM}"
 default_host=$(hostname -f 2>/dev/null || hostname)
 
