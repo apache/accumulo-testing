@@ -107,6 +107,11 @@
     </dependency>
     <dependency>
       <groupId>org.apache.accumulo</groupId>
+      <artifactId>accumulo-server-base</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.accumulo</groupId>
       <artifactId>accumulo-minicluster</artifactId>
       <scope>test</scope>
     </dependency>
@@ -156,6 +161,8 @@
               <docker-entry>SCRIPT_STYLE</docker-entry>
               <gcs>SCRIPT_STYLE</gcs>
               <mapred>SCRIPT_STYLE</mapred>
+              <manager-stress>SCRIPT_STYLE</manager-stress>
+              <configure-mgr-stress-test>SCRIPT_STYLE</configure-mgr-stress-test>
               <monitor>SCRIPT_STYLE</monitor>
               <performance>SCRIPT_STYLE</performance>
               <readers>SCRIPT_STYLE</readers>
@@ -165,6 +172,7 @@
               <conf>SCRIPT_STYLE</conf>
               <example>SCRIPT_STYLE</example>
               <java>SLASHSTAR_STYLE</java>
+              <sh>SCRIPT_STYLE</sh>
               <tf>SCRIPT_STYLE</tf>
               <uno>SCRIPT_STYLE</uno>
             </mapping>

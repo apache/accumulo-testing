@@ -1,0 +1,44 @@
+#! /usr/bin/env bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+bin_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${bin_dir}/../build"
+
+export CLASSPATH="$ACCUMULO_HOME/conf:$ACCUMULO_HOME/lib/*:$TEST_JAR_PATH:$HADOOP_API_JAR:$HADOOP_RUNTIME_JAR:$CLASSPATH"
+
+if [[ "$#" -eq 0 ]]; then
+  set -- --help
+fi
+
+client_config_set=false
+for arg in "$@"; do
+  case "$arg" in
+    -c | --config-file | --config-file=*)
+      client_config_set=true
+      break
+      ;;
+  esac
+done
+if [[ "$client_config_set" == false ]]; then
+  set -- "$@" -c "$ACCUMULO_CLIENT_PROPS"
+fi
+
+java $JAVA_OPTS -Dlog4j.configurationFile="file:$TEST_LOG4J" \
+  org.apache.accumulo.testing.manager.stress.compactor.StressCompactor "$@"

@@ -57,6 +57,9 @@ Tests are run using the following scripts in `bin/`:
   * `agitator` - Runs agitator
   * `gcs` - Runs garbage collection simulation
   * `monitor` - Runs availability monitor probe
+  * `manager-stress/managerstress.sh` - Stresses Manager and Compaction Coordinator operations
+  * `manager-stress/stresscompactor.sh` - Starts in-JVM Compactor simulators in a separate JVM
+  * `manager-stress/configure-mgr-stress-test.sh` - Prompts for settings and prints both commands
 
 Run the scripts without arguments to view usage.
 
@@ -175,6 +178,121 @@ verification test.
 ## Garbage Collection Simulator
 
 See [gcs.md](docs/gcs.md).
+
+## Manager and Compaction Coordinator stress test
+
+The `managerstress` command starts local client JVMs that issue weighted create-table, delete-table,
+split, merge, tablet-availability, compaction, and bulk-import tasks against an existing Accumulo
+instance. It creates the requested number of uniquely named tables before starting workers and
+replenishes the table pool after deletes. A selected create task creates a new table generation
+before deleting the old generation so the pool returns to its configured size. Weights apply to
+selected workload tasks; the follow-up table creations after deletes are unweighted pool maintenance.
+
+All created table generations start with `TabletAvailability.UNHOSTED` and 10–999 evenly spaced
+initial splits, leaving at most 1,000 tablets. Split tasks add a random number of unique split rows
+without exceeding that tablet limit. Merge tasks sample a target from 1–100, clamp it to a valid
+2–100 tablet range, and use the table's actual split boundaries for the merge. Split rows and the
+bulk-import seed key use the same fixed-width hexadecimal row-key scheme.
+
+Availability tasks sample a random number of unique tablets from one through the table's full
+tablet count. Each selected tablet is assigned a random availability state different from its
+current state. Nonadjacent selections remain separate; adjacent selections with the same target
+state are grouped into one row-range request.
+
+Bulk import requires a shared HDFS directory accessible to all local workers. Each worker creates
+one one-entry RFile there at startup and stages a copy of it for every bulk import. Compaction tasks
+submit non-blocking major compactions. The coordinator removes the run-specific HDFS staging
+directory during shutdown, including any files left by workers that did not exit cleanly.
+
+`managerstress` temporarily configures the `mgrstress` compaction service in the system
+configuration. It uses `org.apache.accumulo.core.spi.compaction.RatioBasedCompactionPlanner`, with
+`compaction.service.mgrstress.planner.opts.groups` set to the group specified by
+the required `--compactor-resource-group` option. The stress namespace is created with
+`table.compaction.dispatcher.opts.service=mgrstress`. Previous ZooKeeper system-property overrides
+are restored when the test finishes; pre-existing values do not prevent startup.
+
+The required `--namespace` must name a namespace that does not already exist. `managerstress` creates
+it before creating tables, places all stress tables in it, and removes its tables and namespace when
+the run finishes. The configured Accumulo user needs permission to create and drop namespaces and
+tables, alter tables and namespaces, modify system configuration, compact, and bulk import. It also
+needs access to the configured HDFS directory.
+
+For example, the command below runs four client processes for 30 minutes, maintaining eight tables.
+Operation weights are relative; setting a weight to zero disables that operation.
+
+```bash
+./bin/manager-stress/managerstress.sh \
+  --namespace mgrstress_example \
+  --compactor-resource-group default \
+  --duration 30m \
+  --clients 4 \
+  --tables 8 \
+  --hdfs-dir hdfs://namenode:8020/tmp/accumulo-managerstress \
+  --create-weight 1 \
+  --delete-weight 1 \
+  --split-weight 2 \
+  --merge-weight 2 \
+  --availability-weight 1 \
+  --compact-weight 4 \
+  --bulk-import-weight 1
+```
+
+Use `--table-prefix` to choose a prefix for the generated tables; if omitted, a unique prefix is
+created for the run. Choose a namespace name that is unused on the Accumulo instance; the test fails
+if it already exists. The test removes all tables in its namespace and deletes the namespace after
+workers stop. Per-worker logs include operation attempts, completions, skips, races, errors, and
+average latency.
+
+When workers stop, `managerstress` logs totals aggregated from each worker's atomic metrics snapshot.
+For each operation, `submitted` counts workload operations that reached their Manager API call,
+`completed` counts successful synchronous operations, and `asyncAccepted` counts compaction and
+tablet-availability requests accepted by Accumulo. Availability and compaction requests do not wait
+for tablets to reach their target state. `failed` counts operation errors; `outcomeUnknown` is the
+subset with a transport failure or interruption after submission. Snapshot files are refreshed
+periodically in the run's temporary control directory and removed after the summary is logged.
+
+### Compactor simulator
+
+`stresscompactor` is designed to be used with the `managerstress` test framework. Run it alongside
+`managerstress` to provide Compactor simulators for external compaction requests generated by the
+stress tables. Each invocation starts the configured number of independently registered Compactor
+simulators as threads in that JVM. Start additional JVMs by invoking the command again (or on other
+hosts); set `JAVA_OPTS` separately for each process to tune its heap and garbage collector.
+
+Use the same group for `managerstress --compactor-resource-group` and
+`stresscompactor --resource-group`. Run `./bin/manager-stress/configure-mgr-stress-test.sh` to
+interactively enter settings for both processes and print the two commands. Press Enter to accept
+the displayed defaults. The client config prompt defaults to `../../conf/accumulo-client.properties`
+relative to the helper script; credentials should be stored in that file. The helper prints commands
+to stdout without starting the processes.
+
+The Manager must be able to reach the advertised host and callback ports. Configure the resource
+group to match the Compactor resource group used by the external compaction service for the stress
+tables. The configured Accumulo user must be permitted to perform system actions. When using SASL,
+the advertised host should be the host's canonical name.
+
+```bash
+JAVA_OPTS="-Xms2g -Xmx2g -XX:+UseG1GC" ./bin/manager-stress/stresscompactor.sh \
+  --compactors-per-jvm 16 \
+  --duration 30m \
+  --resource-group default \
+  --host compactor-client01.example.net \
+  --port-range 9600-9699 \
+  --success-weight 1 \
+  --failure-weight 1 \
+  --cancellation-weight 1
+```
+
+Each simulator applies `--resource-group` to its own `compactor.group` configuration property,
+registers its Compactor address, and serves the Manager's status, wake, and cancel RPCs. On receiving
+a job it immediately reports a result according to the configured relative weights. A successful
+result reports zero output entries, which commits as a zero-output compaction and removes the
+input-file references from the stress table. Simulators unregister and close their connections when
+the JVM's duration expires or it is stopped.
+
+Each simulator logs its job outcomes on shutdown, followed by a per-JVM aggregate. These counts are
+external compaction jobs, which may be multiple for one table-level compaction request; they are
+reported separately from `managerstress`'s accepted asynchronous request count.
 
 ## Agitator
 

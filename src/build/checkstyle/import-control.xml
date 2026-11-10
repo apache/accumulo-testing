@@ -30,6 +30,7 @@
 
     <!-- API packages -->
     <allow pkg="org.apache.accumulo.core.client"/>
+    <allow pkg="org.apache.accumulo.core.client.admin.servers"/>
     <allow pkg="org.apache.accumulo.core.data"/>
     <allow pkg="org.apache.accumulo.core.security"/>
     <allow pkg="org.apache.accumulo.core.iterators"/>
@@ -41,6 +42,24 @@
 
     <!-- exceptions for testing -->
     <allow pkg="org.apache.accumulo.core.conf"/>
+    <allow class="org.apache.accumulo.core.clientImpl.ClientContext"/>
+    <allow pkg="org.apache.accumulo.core.clientImpl.thrift"/>
+    <allow pkg="org.apache.accumulo.core.compaction.thrift"/>
+    <allow class="org.apache.accumulo.core.metadata.schema.ExternalCompactionId"/>
+    <allow pkg="org.apache.accumulo.core.lock"/>
+    <allow class="org.apache.accumulo.core.metrics.MetricsInfo"/>
+    <allow pkg="org.apache.accumulo.core.process.thrift"/>
+    <allow pkg="org.apache.accumulo.core.rpc"/>
+    <allow pkg="org.apache.accumulo.core.rpc.clients"/>
+    <allow pkg="org.apache.accumulo.core.securityImpl.thrift"/>
+    <allow pkg="org.apache.accumulo.core.tabletserver.thrift"/>
+    <allow class="org.apache.accumulo.core.trace.TraceUtil"/>
+    <allow class="org.apache.accumulo.core.util.compaction.ExternalCompactionUtil"/>
+    <allow class="org.apache.accumulo.core.cli.ServerOpts"/>
+    <allow class="org.apache.accumulo.server.AbstractServer"/>
+    <allow class="org.apache.accumulo.server.ServerContext"/>
+    <allow class="org.apache.accumulo.server.client.ClientServiceHandler"/>
+    <allow pkg="org.apache.accumulo.server.rpc"/>
     <allow class="org.apache.accumulo.core.util.threads.ThreadPools"/>
     <allow class="org.apache.accumulo.core.util.cleaner.CleanerUtil"/>
 
